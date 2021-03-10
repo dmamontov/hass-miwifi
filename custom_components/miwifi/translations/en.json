@@ -1,0 +1,41 @@
+{
+  "config": {
+    "abort": {
+      "updated": "Data is updated, restart Home Assistant"
+    },
+    "error": {
+      "ip_address.not_matched": "Invalid IP",
+      "password.not_matched": "Invalid password",
+      "connection": "Failed to establish connection"
+    },
+    "step": {
+      "auth": {
+        "description": "Enter the IP address and password from your MiWiFi router",
+        "data": {
+          "ip_address": "IP address",
+          "password": "Password"
+        }
+      }
+    }
+  },
+  "options": {
+    "abort": {
+      "updated": "Data is updated, restart Home Assistant"
+    },
+    "error": {
+      "ip_address.not_matched": "Invalid IP",
+      "password.not_matched": "Invalid password",
+      "connection": "Failed to establish connection"
+    },
+    "step": {
+      "settings": {
+        "description": "Enter the IP address and password from your MiWiFi router",
+        "data": {
+          "ip_address": "IP address",
+          "password": "Password",
+          "last_activity_days": "Number of days to wait after the last activity"
+        }
+      }
+    }
+  }
+}
