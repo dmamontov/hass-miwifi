@@ -1,0 +1,10 @@
+{
+  "domain": "miwifi",
+  "name": "MiWiFi",
+  "version": "1.0.0",
+  "documentation": "https://github.com/dmamontov/hass-miwifi",
+  "config_flow": true,
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": ["@dmamontov"]
+}

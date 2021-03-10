@@ -1,0 +1,41 @@
+{
+  "config": {
+    "abort": {
+      "updated": "Данные обновлены, перезапустите Home Assistant"
+    },
+    "error": {
+      "ip_address.not_matched": "Неверный IP",
+      "password.not_matched": "Неверный пароль",
+      "connection": "Не удалось установить соединение"
+    },
+    "step": {
+      "auth": {
+        "description": "Введите IP адрес и пароль от вашего роутера с MiWiFi",
+        "data": {
+          "ip_address": "IP адрес",
+          "password": "Пароль"
+        }
+      }
+    }
+  },
+  "options": {
+    "abort": {
+      "updated": "Данные обновлены, перезапустите Home Assistant"
+    },
+    "error": {
+      "ip_address.not_matched": "Неверный IP",
+      "password.not_matched": "Неверный пароль",
+      "connection": "Не удалось установить соединение"
+    },
+    "step": {
+      "settings": {
+        "description": "Введите IP адрес и пароль от вашего роутера с MiWiFi",
+        "data": {
+          "ip_address": "IP адрес",
+          "password": "Пароль",
+          "last_activity_days": "Допустимое количество дней ожидания после последней активности"
+        }
+      }
+    }
+  }
+}
