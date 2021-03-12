@@ -125,10 +125,10 @@ class Luci(object):
 
         self._device_data = {
             "mac": status["hardware"]["mac"],
-            "name": init_info["routername"],
+            "name": init_info["routername"] if "routername" in init_info else None,
             "manufacturer": DEFAULT_MANUFACTURER,
-            "model": init_info["model"],
-            "sw_version": init_info["romversion"],
+            "model": init_info["model"] if "model" in init_info else None,
+            "sw_version": init_info["romversion"] if "romversion" in init_info else None,
         }
 
         self._data["sensor"]["uptime"] = str(timedelta(seconds = int(float(status["upTime"]))))
