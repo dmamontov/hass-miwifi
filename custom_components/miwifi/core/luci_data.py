@@ -15,7 +15,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 
 from . import exceptions
-from .const import DOMAIN, DOMAINS, DATA_UPDATED, DEVICES_UPDATED, SCAN_INTERVAL, CONF_LAST_ACTIVITY_DAYS
+from .const import DOMAIN, DOMAINS, DATA_UPDATED, DEVICES_UPDATED, SCAN_INTERVAL, CONF_LAST_ACTIVITY_DAYS, DEFAULT_LAST_ACTIVITY_DAYS
 from .luci import Luci
 
 _LOGGER = logging.getLogger(__name__)
@@ -140,7 +140,7 @@ class LuciData:
         hass.data[DOMAIN][entry.entry_id].set_scan_interval()
 
     async def check_last_activity(self) -> None:
-        last_days = int(self.config_entry.options.get(CONF_LAST_ACTIVITY_DAYS))
+        last_days = int(self.config_entry.options.get(CONF_LAST_ACTIVITY_DAYS, DEFAULT_LAST_ACTIVITY_DAYS))
         if last_days <= 0:
             return
 
