@@ -35,6 +35,10 @@ A. This is a legacy device tracking option. But the integration allows importing
 
 A. Yes, the integration supports devices connected in `repeater mode`. But to get the number of devices and their tracking, you will also need to connect and configure the parent router.
 
+**Q. Can I use the router in repeater mode without a parent MiWiFi device?**
+
+A. It is possible with the `force_load_repeater_devices` option enabled. But there is a limitation. You will not see IP, uptime, and connection type, but the name will be the mac-address.
+
 ## Install
 Installed through the custom repository [HACS](https://hacs.xyz/) - `dmamontov/hass-miwifi`
 
@@ -52,6 +56,7 @@ For authorization, use the ip of your router and its password
 miwifi:
   ip_address: router_ip
   password: router_pass
+  force_load_repeater_devices: False # PRO
 ```
 
 ## Advanced config
@@ -66,7 +71,7 @@ The component supports automatic deletion of monitored devices after a specified
 ```yaml
 miwifi:
   ...
-  last_activity_days: 30
+  last_activity_days: 30 # PRO
 ```
 
 ## Services
@@ -96,9 +101,13 @@ target:
 4. Add new Lovelace card: [example](https://gist.github.com/dmamontov/e6fa1842c486388387aaf061d3a82818)
 
 ## Routers tested
-| Router                                                                            | Firmware version | Region | Status    |
-| --------------------------------------------------------------------------------- | ---------------- | ------ | --------- |
-| [Xiaomi AC2100](https://xiaomiplanets.com/review-xiaomi-ac2100-router/)           | 2.0.743          | CN     | Supported |
-| [Xiaomi AX3600](https://xiaomiplanets.com/xiaomi-aiot-router-ax3600-performance/) | 1.0.79           | CN     | Supported |
-
 Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
+
+| Router                                                                              | Firmware version           | Status                        |
+| ----------------------------------------------------------------------------------- | -------------------------- | ----------------------------- |
+| [Xiaomi AC2100](https://xiaomiplanets.com/review-xiaomi-ac2100-router/)             | 2.0.743(CN)                | Supported                     |
+| [Xiaomi AX3600](https://xiaomiplanets.com/xiaomi-aiot-router-ax3600-performance/)   | 1.0.79(CN), 3.0.22(Global) | Supported                     |
+| [Xiaomi AX1800](https://xiaomiplanets.com/xiaomi-my-router-ax1800-performance-11/)  | 3.0.34(Global)             | Supported                     |
+| [Xiaomi PRO R3P](https://xiaomiplanets.com/xiaomi-mi-router-for-hd-action-1/)       | 2.16.29(CN)                | With restrictions<sup>*</sup> |
+
+<sup>*</sup> Not all integration options may be supported.

@@ -33,7 +33,14 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 class Luci(object):
-    def __init__(self, hass: HomeAssistant, session, ip: str, password: str):
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        session,
+        ip: str,
+        password: str,
+        options: dict = {}
+    ) -> None:
         if ip.endswith("/"):
             ip = ip[:-1]
 
@@ -46,6 +53,7 @@ class Luci(object):
 
         self.base_url = BASE_RESOURCE.format(ip = ip)
         self.password = password
+        self.is_force_load = options["is_force_load"] if "is_force_load" in options else False
 
         self.is_repeater_mode = False
 
@@ -123,6 +131,10 @@ class Luci(object):
         init_info = await self.init_info()
         status = await self.status()
 
+        model = init_info["model"] if "model" in init_info else None
+        if not model and "hardware" in init_info:
+            model = init_info["hardware"]
+
         self._device_data = {
             "mac": status["hardware"]["mac"],
             "name": init_info["routername"] if "routername" in init_info else None,
@@ -146,10 +158,12 @@ class Luci(object):
             if state["up"] != 1:
                 self._state = False
 
-        self._data["light"]["led"] = led["status"] == 1
+        uptime = wan_info["info"]["uptime"] if isinstance(wan_info["info"], dict) and "uptime" in wan_info["info"] else 0
+
+        self._data["light"]["led"] = led["status"] == 1 if "status" in led else False
         self._data["binary_sensor"]["repeater_mode"] = self.is_repeater_mode
         self._data["binary_sensor"]["wifi_state"] = wifi_state
-        self._data["binary_sensor"]["wan_state"] = wan_info["info"]["uptime"] > 0
+        self._data["binary_sensor"]["wan_state"] = uptime
 
     async def set_devices_list(self) -> None:
         wifi_connect_devices = await self.wifi_connect_devices()
@@ -158,6 +172,9 @@ class Luci(object):
         if "list" in wifi_connect_devices:
             for index, device in enumerate(wifi_connect_devices["list"]):
                 self._signals[device["mac"]] = device["signal"]
+
+        if self.is_repeater_mode and self.is_force_load:
+            self.add_devices(self._signals)
 
         if self.is_repeater_mode or DOMAIN not in self.hass.data:
             return
@@ -191,7 +208,7 @@ class Luci(object):
 
                 if ip == self._ip:
                     self.add_devices(devices_to_ip[ip])
-                else:
+                elif not self.hass.data[DOMAIN][entities_map[ip]].api.is_force_load:
                     self.hass.data[DOMAIN][entities_map[ip]].api.add_devices(devices_to_ip[ip])
                     await asyncio.sleep(1)
                     self.hass.data[DOMAIN][entities_map[ip]].update_devices()
@@ -214,13 +231,17 @@ class Luci(object):
             devices[mac]["router_mac"] = self._device_data["mac"]
             devices[mac]["signal"] = self._signals[mac] if mac in self._signals else 0
 
+            if "name" not in devices[mac]:
+                devices[mac]["name"] = mac
+
             if mac not in self._devices_list:
                 self._new_devices.append(mac)
 
             self._current_devices.append(mac)
             self._devices_list[mac] = devices[mac]
 
-            self._data["sensor"][CONNECTION_TO_SENSOR[devices[mac]["type"]]] += 1
+            if "type" in devices[mac]:
+                self._data["sensor"][CONNECTION_TO_SENSOR[devices[mac]["type"]]] += 1
 
     async def get_entities_map(self) -> dict:
         entries_map = {}

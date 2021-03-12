@@ -85,13 +85,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
 
 def _get_new_device(hass: HomeAssistant, device: dict, legacy_device: dict) -> dict:
     return {
-        "ip": device["ip"][0]["ip"],
-        "connection": device["connection"],
+        "ip": device["ip"][0]["ip"] if "ip" in device else "0:0:0:0",
+        "connection": device["connection"] if "connection" in device else "Not detected",
         "router_mac": device["router_mac"],
         "name": legacy_device["name"] if "name" in legacy_device else device["name"],
         "icon": legacy_device["icon"] if "icon" in legacy_device else None,
         "signal": device["signal"],
-        "online": device["ip"][0]["online"],
+        "online": device["ip"][0]["online"] if "ip" in device else "0",
         "unique_id": async_generate_entity_id(
             DEVICE_TRACKER_ENTITY_ID_FORMAT,
             legacy_device["dev_id"] if "dev_id" in legacy_device else device["name"],
@@ -269,7 +269,7 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
                 if old_router_mac != self._device["router_mac"]:
                     self.luci.remove_device(self._mac)
                     remove_enries.append(self._config_entry)
-                    
+
                     self.luci = self.hass.data[DOMAIN][entry_id]
                     self._config_entry = self.luci.config_entry
 

@@ -15,7 +15,16 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 
 from . import exceptions
-from .const import DOMAIN, DOMAINS, DATA_UPDATED, DEVICES_UPDATED, SCAN_INTERVAL, CONF_LAST_ACTIVITY_DAYS, DEFAULT_LAST_ACTIVITY_DAYS
+from .const import (
+    DOMAIN,
+    DOMAINS,
+    DATA_UPDATED,
+    DEVICES_UPDATED,
+    SCAN_INTERVAL,
+    CONF_FORCE_LOAD_REPEATER_DEVICES,
+    CONF_LAST_ACTIVITY_DAYS,
+    DEFAULT_LAST_ACTIVITY_DAYS
+)
 from .luci import Luci
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,7 +37,15 @@ class LuciData:
 
         session = async_get_clientsession(hass, False)
 
-        self.api = Luci(hass, session, self.ip, self.password)
+        self.api = Luci(
+            hass,
+            session,
+            self.ip,
+            self.password,
+            {
+                "is_force_load": config_entry.options.get(CONF_FORCE_LOAD_REPEATER_DEVICES, False)
+            }
+        )
 
         self.unsub_timer = None
         self.available = False

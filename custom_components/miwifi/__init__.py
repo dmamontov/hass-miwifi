@@ -10,7 +10,13 @@ from homeassistant.const import CONF_IP_ADDRESS, CONF_PASSWORD, EVENT_HOMEASSIST
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
 
-from .core.const import DOMAIN, CONF_LAST_ACTIVITY_DAYS, DEFAULT_LAST_ACTIVITY_DAYS, STORAGE_VERSION
+from .core.const import (
+    DOMAIN,
+    CONF_FORCE_LOAD_REPEATER_DEVICES,
+    CONF_LAST_ACTIVITY_DAYS,
+    DEFAULT_LAST_ACTIVITY_DAYS,
+    STORAGE_VERSION
+)
 from .core.luci_data import LuciData
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +28,8 @@ CONFIG_SCHEMA = vol.Schema({
             vol.Schema({
                 vol.Required(CONF_IP_ADDRESS): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
-                vol.Optional(CONF_LAST_ACTIVITY_DAYS, default = DEFAULT_LAST_ACTIVITY_DAYS): cv.positive_int
+                vol.Optional(CONF_FORCE_LOAD_REPEATER_DEVICES, default = False): cv.boolean,
+                vol.Optional(CONF_LAST_ACTIVITY_DAYS, default = DEFAULT_LAST_ACTIVITY_DAYS): cv.positive_int,
             })
         ]
     )
