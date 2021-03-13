@@ -25,7 +25,7 @@ A. Once every 10 seconds. This is the most optimal time for correct work.
 
 **Q. In addition to tracking devices, what else does the integration allow you to do?**
 
-A. The integration creates sensors to track the number of connected devices through different types of connections (`5 Ghz`, `2.4 Ghz`, `lan`). Creates binary sensors that track (`repeater mode`, `wifi state`, `wan state`). Creates switches to control `LEDs` and `reboot` the router. It also collects statistics on connected devices (Signal, Uptime, etc.)
+A. The integration creates sensors to track the number of connected devices through different types of connections (`5 Ghz`, `2.4 Ghz`, `lan`, `guest`). Creates binary sensors that track (`mode`, `wifi state`, `wan state`). Creates switches to control `LEDs` and `reboot` the router. It also collects statistics on connected devices (Signal, Uptime, etc.)
 
 **Q. Does the integration support legacy device tracking via `known_devices.yaml`?**
 
@@ -35,7 +35,7 @@ A. This is a legacy device tracking option. But the integration allows importing
 
 A. Yes, the integration supports devices connected in `repeater mode` or `access point mode`. But to get the number of devices and their tracking, you will also need to connect and configure the parent router.
 
-**Q. Can I use the router in repeater mode without a parent MiWiFi device?**
+**Q. Can I use the router in `repeater mode` or `access point mode` without a parent MiWiFi device?**
 
 A. It is possible with the `force_load_repeater_devices` option enabled. But there is a limitation. You will not see IP, uptime, and connection type, but the name will be the mac-address.
 
