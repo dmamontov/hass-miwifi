@@ -21,7 +21,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
     sensors = []
 
     for sensor, data in SENSORS.items():
-        sensors.append(MiWiFiSensor(hass, luci, sensor, data))
+        if sensor in luci.api.data["sensor"]:
+            sensors.append(MiWiFiSensor(hass, luci, sensor, data))
 
     async_add_entities(sensors, True)
 
@@ -94,11 +95,6 @@ class MiWiFiSensor(Entity):
 
     async def async_update(self) -> None:
         try:
-            if "repeater_mode" in self._data and not self._data["repeater_mode"] and self.luci.api.data["binary_sensor"]["repeater_mode"]:
-                self._state = STATE_UNAVAILABLE
-
-                return
-
             self._state = self.luci.api.data["sensor"][self._code]
         except KeyError:
             self._state = None

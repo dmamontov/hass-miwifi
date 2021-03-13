@@ -27,7 +27,8 @@ from .const import (
     DEFAULT_MANUFACTURER,
     CONNECTION_RANGES,
     CONNECTION_TO_SENSOR,
-    DEVICES_LIST
+    DEVICES_LIST,
+    MODE_MAP
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,8 +61,11 @@ class Luci(object):
         self._data = {
             "switch": {"reboot": False},
             "light": {"led": False},
-            "binary_sensor": {"state": False, "repeater_mode": False, "wifi_state": False, "wan_state": False},
-            "sensor": {"devices": 0, "devices_lan": 0, "devices_5ghz": 0, "devices_2_4ghz": 0, "uptime": "0:00:00"},
+            "binary_sensor": {"state": False, "wifi_state": False, "wan_state": False},
+            "sensor": {
+                "devices": 0, "devices_lan": 0, "devices_5ghz": 0, "devices_2_4ghz": 0, "devices_guest": 0,
+                "mode": "default", "uptime": "0:00:00"
+            },
         }
 
         self._device_data = None
@@ -161,20 +165,29 @@ class Luci(object):
         uptime = wan_info["info"]["uptime"] if isinstance(wan_info["info"], dict) and "uptime" in wan_info["info"] else 0
 
         self._data["light"]["led"] = led["status"] == 1 if "status" in led else False
-        self._data["binary_sensor"]["repeater_mode"] = self.is_repeater_mode
         self._data["binary_sensor"]["wifi_state"] = wifi_state
-        self._data["binary_sensor"]["wan_state"] = uptime
+
+        if self.is_repeater_mode:
+            if "wan_state" in self._data["binary_sensor"]:
+                del self._data["binary_sensor"]["wan_state"]
+        else:
+            self._data["binary_sensor"]["wan_state"] = uptime > 0
+
+        self._data["sensor"]["mode"] = MODE_MAP[mode["mode"]] if mode["mode"] in MODE_MAP else "undefined"
 
     async def set_devices_list(self) -> None:
         wifi_connect_devices = await self.wifi_connect_devices()
         self._signals = {}
 
+        force_devices = {}
+
         if "list" in wifi_connect_devices:
             for index, device in enumerate(wifi_connect_devices["list"]):
                 self._signals[device["mac"]] = device["signal"]
+                force_devices[device["mac"]] = device
 
-        if self.is_repeater_mode and self.is_force_load:
-            self.add_devices(self._signals)
+        if self.is_repeater_mode and self.is_force_load and len(force_devices) > 0:
+            await self.add_devices(force_devices, True)
 
         if self.is_repeater_mode or DOMAIN not in self.hass.data:
             return
@@ -207,25 +220,53 @@ class Luci(object):
                     continue
 
                 if ip == self._ip:
-                    self.add_devices(devices_to_ip[ip])
+                    await self.add_devices(devices_to_ip[ip])
                 elif not self.hass.data[DOMAIN][entities_map[ip]].api.is_force_load:
-                    self.hass.data[DOMAIN][entities_map[ip]].api.add_devices(devices_to_ip[ip])
+                    await self.hass.data[DOMAIN][entities_map[ip]].api.add_devices(devices_to_ip[ip])
                     await asyncio.sleep(1)
                     self.hass.data[DOMAIN][entities_map[ip]].update_devices()
 
-    def add_devices(self, devices: dict) -> None:
+    async def add_devices(self, devices: dict, is_force: bool = False) -> None:
         if not self._device_data:
             return
 
-        self._new_devices = []
-        self._current_devices = []
-
-        self._data["sensor"] = {
-            "devices": 0, "devices_lan": 0, "devices_5ghz": 0, "devices_2_4ghz": 0,
+        sensor_default = {
+            "devices": 0,
+            "devices_lan": 0,
+            "devices_5ghz": 0,
+            "devices_2_4ghz": 0,
+            "devices_guest": 0,
+            "mode": self._data["sensor"]["mode"],
             "uptime": self._data["sensor"]["uptime"]
         }
 
+        if is_force:
+            try:
+                new_status = await self.new_status()
+
+                if "2g" not in new_status:
+                    del sensor_default["devices_2_4ghz"]
+                else:
+                    sensor_default["devices_2_4ghz"] = new_status["2g"]["online_sta_count"]
+
+                if "5g" not in new_status:
+                    del sensor_default["devices_5ghz"]
+                else:
+                    sensor_default["devices_5ghz"] = new_status["5g"]["online_sta_count"]
+
+                del sensor_default["devices_lan"]
+                del sensor_default["devices_guest"]
+            except:
+                del sensor_default["devices_lan"]
+                del sensor_default["devices_5ghz"]
+                del sensor_default["devices_2_4ghz"]
+                del sensor_default["devices_guest"]
+
+        self._data["sensor"] = sensor_default
         self._data["sensor"]["devices"] = len(devices)
+
+        new_devices = []
+        current_devices = []
 
         for mac in devices:
             devices[mac]["router_mac"] = self._device_data["mac"]
@@ -235,13 +276,16 @@ class Luci(object):
                 devices[mac]["name"] = mac
 
             if mac not in self._devices_list:
-                self._new_devices.append(mac)
+                new_devices.append(mac)
 
-            self._current_devices.append(mac)
+            current_devices.append(mac)
             self._devices_list[mac] = devices[mac]
 
             if "type" in devices[mac]:
                 self._data["sensor"][CONNECTION_TO_SENSOR[devices[mac]["type"]]] += 1
+
+        self._new_devices = new_devices
+        self._current_devices = current_devices
 
     async def get_entities_map(self) -> dict:
         entries_map = {}
@@ -278,6 +322,9 @@ class Luci(object):
 
     async def status(self) -> dict:
         return await self.get("misystem/status")
+
+    async def new_status(self) -> dict:
+        return await self.get("misystem/newstatus")
 
     async def mode(self) -> dict:
         return await self.get("xqnetwork/mode")

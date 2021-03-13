@@ -26,7 +26,6 @@ DEVICE_TRACKER_ENTITY_ID_FORMAT = "device_tracker.{}"
 
 BINARY_SENSORS = {
     "state": {"name": "State", "icon": "mdi:router-wireless", "skip_available": True},
-    "repeater_mode": {"name": "Repeater mode", "icon": "mdi:repeat"},
     "wifi_state": {"name": "Wifi state", "icon": "mdi:wifi"},
     "wan_state": {"name": "Wan state", "icon": "mdi:wan", "device_class": "connectivity"},
 }
@@ -36,7 +35,9 @@ SENSORS = {
     "devices_lan": {"name": "Devices (lan)", "icon": "mdi:counter", "unit": "pcs"},
     "devices_5ghz": {"name": "Devices (5 Ghz)", "icon": "mdi:counter", "unit": "pcs"},
     "devices_2_4ghz": {"name": "Devices (2.4 Ghz)", "icon": "mdi:counter", "unit": "pcs"},
+    "devices_guest": {"name": "Devices (guest)", "icon": "mdi:counter", "unit": "pcs"},
     "uptime": {"name": "Uptime", "icon": "mdi:timer-sand", "unit": None},
+    "mode": {"name": "Mode", "icon": "mdi:transit-connection-variant", "unit": None}
 }
 
 LIGHTS = {
@@ -53,10 +54,18 @@ CONNECTION_TO_SENSOR = {
     0: "devices_lan",
     1: "devices_2_4ghz",
     2: "devices_5ghz",
+    3: "devices_guest",
 }
 
 CONNECTION_RANGES = {
     0: "Lan",
     1: "2.4 Ghz",
-    2: "5 Ghz"
+    2: "5 Ghz",
+    3: "Guest",
+}
+
+MODE_MAP = {
+    0: "default",
+    1: "repeater",
+    2: "access_point"
 }

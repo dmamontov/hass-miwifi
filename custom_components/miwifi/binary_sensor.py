@@ -21,7 +21,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
     sensors = []
 
     for sensor, data in BINARY_SENSORS.items():
-        sensors.append(MiWiFiBinarySensor(hass, luci, sensor, data))
+        if sensor in luci.api.data["binary_sensor"]:
+            sensors.append(MiWiFiBinarySensor(hass, luci, sensor, data))
 
     async_add_entities(sensors, True)
 

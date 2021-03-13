@@ -31,13 +31,17 @@ A. The integration creates sensors to track the number of connected devices thro
 
 A. This is a legacy device tracking option. But the integration allows importing names, dev_id, icon from the file `known_devices.yaml` and associating with new devices by mac-address. To do this, simply create or rename the file to `legacy_known_devices.yaml`
 
-**Q. Does the integration support routers connected in `repeater mode`?**
+**Q. Does the integration support routers connected in `repeater mode` or `access point mode`?**
 
-A. Yes, the integration supports devices connected in `repeater mode`. But to get the number of devices and their tracking, you will also need to connect and configure the parent router.
+A. Yes, the integration supports devices connected in `repeater mode` or `access point mode`. But to get the number of devices and their tracking, you will also need to connect and configure the parent router.
 
 **Q. Can I use the router in repeater mode without a parent MiWiFi device?**
 
 A. It is possible with the `force_load_repeater_devices` option enabled. But there is a limitation. You will not see IP, uptime, and connection type, but the name will be the mac-address.
+
+**Q. Is a reboot required after changing the [PRO] settings?**
+
+A. Reboot is required
 
 ## Install
 Installed through the custom repository [HACS](https://hacs.xyz/) - `dmamontov/hass-miwifi`
@@ -56,7 +60,7 @@ For authorization, use the ip of your router and its password
 miwifi:
   ip_address: router_ip
   password: router_pass
-  force_load_repeater_devices: False # PRO
+  force_load_repeater_devices: False # [PRO]
 ```
 
 ## Advanced config
@@ -71,7 +75,7 @@ The component supports automatic deletion of monitored devices after a specified
 ```yaml
 miwifi:
   ...
-  last_activity_days: 30 # PRO
+  last_activity_days: 30 # [PRO]
 ```
 
 ## Services

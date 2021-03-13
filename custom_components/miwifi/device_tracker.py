@@ -44,7 +44,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
     zone_home = hass.states.get(ENTITY_ID_HOME)
 
     add_devices = []
-
     for mac in luci._devices:
         add_devices.append(MiWiFiDevice(hass, config_entry, luci, mac, luci._devices[mac], zone_home, False))
 
@@ -69,7 +68,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
 
             new_device["last_activity"] = datetime.now().replace(microsecond=0).isoformat()
 
-            _LOGGER.debug("New device {} ({}) from {}".format(new_device["name"], mac, luci.api._ip))
+            _LOGGER.info("New device {} ({}) from {}".format(new_device["name"], mac, luci.api._ip))
 
             new_devices.append(MiWiFiDevice(hass, config_entry, luci, mac, new_device, zone_home))
             luci.add_device(mac, new_device)
@@ -86,7 +85,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
 def _get_new_device(hass: HomeAssistant, device: dict, legacy_device: dict) -> dict:
     return {
         "ip": device["ip"][0]["ip"] if "ip" in device else "0:0:0:0",
-        "connection": device["connection"] if "connection" in device else "Not detected",
+        "connection": device["connection"] if "connection" in device else "undefined",
         "router_mac": device["router_mac"],
         "name": legacy_device["name"] if "name" in legacy_device else device["name"],
         "icon": legacy_device["icon"] if "icon" in legacy_device else None,
@@ -260,9 +259,9 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
                 old_router_mac = self._device["router_mac"]
                 device = self.hass.data[DOMAIN][entry_id].api._devices_list[self._mac]
 
-                self._device["ip"] = device["ip"][0]["ip"]
-                self._device["online"] = device["ip"][0]["online"]
-                self._device["connection"] = device["connection"]
+                self._device["ip"] = device["ip"][0]["ip"] if "ip" in device else "0:0:0:0"
+                self._device["online"] = device["ip"][0]["online"] if "ip" in device else "0"
+                self._device["connection"] = device["connection"] if "connection" in device else "undefined"
                 self._device["signal"] = device["signal"]
                 self._device["router_mac"] = device["router_mac"]
 
