@@ -102,7 +102,9 @@ target:
 1. Install [Auto-entities](https://github.com/thomasloven/lovelace-auto-entities) from HACS
 2. Install [Flex Table](https://github.com/custom-cards/flex-table-card) from HACS
 3. Add new Lovelace tab with **Panel Mode**
-4. Add new Lovelace card: [example](https://gist.github.com/dmamontov/e6fa1842c486388387aaf061d3a82818)
+4. Add new Lovelace card:
+   - [example](https://gist.github.com/dmamontov/e6fa1842c486388387aaf061d3a82818)
+   - [example (force mode)](https://gist.github.com/dmamontov/9a6183ee5fafd32017c3e8fe0661dde4)
 
 ## Routers tested
 Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
