@@ -109,11 +109,11 @@ target:
 ## Routers tested
 Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 
-| Router                                                                              | Firmware version           | Status                        |
-| ----------------------------------------------------------------------------------- | -------------------------- | ----------------------------- |
-| [Xiaomi AC2100](https://xiaomiplanets.com/review-xiaomi-ac2100-router/)             | 2.0.743(CN)                | Supported                     |
-| [Xiaomi AX3600](https://xiaomiplanets.com/xiaomi-aiot-router-ax3600-performance/)   | 1.0.79(CN), 3.0.22(Global) | Supported                     |
-| [Xiaomi AX1800](https://xiaomiplanets.com/xiaomi-my-router-ax1800-performance-11/)  | 3.0.34(Global)             | Supported                     |
-| [Xiaomi PRO R3P](https://xiaomiplanets.com/xiaomi-mi-router-for-hd-action-1/)       | 2.16.29(CN)                | With restrictions<sup>*</sup> |
+| Image                                               | Router                                                                              | Firmware version           | Status                        |
+| --------------------------------------------------- | ---------------------------------------------------------------- | -------------------------- | ----------------------------- |
+| ![](http://www1.miwifi.com/statics/img/2100@1x.png) | [Xiaomi AC2100](https://www.mi.com/miwifiac)                     | 2.0.743(CN)                | Supported                     |
+| ![](http://www1.miwifi.com/statics/img/RA72.png)    | [Xiaomi AX3600](https://www.mi.com/r3600)                        | 1.0.79(CN), 3.0.22(Global) | Supported                     |
+| ![](http://www1.miwifi.com/statics/img/AX1800.png)  | [Xiaomi AX1800](https://www.mi.com/buy/detail?product_id=12027)  | 3.0.34(Global)             | Supported                     |
+| ![](http://www1.miwifi.com/statics/img/r3p.png)     | [Xiaomi PRO R3P](http://item.mi.com/1172800043.html)             | 2.16.29(CN)                | With restrictions<sup>*</sup> |
 
 <sup>*</sup> Not all integration options may be supported.
