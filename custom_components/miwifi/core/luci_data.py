@@ -2,6 +2,7 @@ import logging
 
 import asyncio
 import homeassistant.helpers.device_registry as dr
+import homeassistant.helpers.entity_registry as er
 
 from datetime import datetime, timedelta
 
@@ -162,6 +163,7 @@ class LuciData:
             return
 
         device_registry = await dr.async_get_registry(self.hass)
+        entity_registry = await er.async_get_registry(self.hass)
         now = datetime.now().replace(microsecond = 0)
 
         for mac in self._devices:
@@ -178,6 +180,11 @@ class LuciData:
                 device = device_registry.async_get_device({(DOMAIN, mac)}, connections)
                 if not device:
                     continue
+
+                device_entities = er.async_entries_for_device(entity_registry, device.id, True)
+                if device_entities:
+                    for entity in device_entities:
+                        entity_registry.async_remove(entity.entity_id)
 
                 device_registry.async_remove_device(device.id)
 

@@ -86,9 +86,9 @@ async def _init_services(hass: HomeAssistant):
         devices = data.pop('device_id', [])
         entities = data.pop('entity_id', None)
 
-        if entities:
-            entity_registry = await er.async_get_registry(hass)
+        entity_registry = await er.async_get_registry(hass)
 
+        if entities:
             for entity_id in entities:
                 entity = entity_registry.async_get(entity_id)
                 if not entity:
@@ -103,6 +103,11 @@ async def _init_services(hass: HomeAssistant):
                 device_entry = device_registry.async_get(device)
                 if not device_entry:
                     continue
+
+                device_entities = er.async_entries_for_device(entity_registry, device, True)
+                if device_entities:
+                    for entity in device_entities:
+                        entity_registry.async_remove(entity.entity_id)
 
                 device_registry.async_remove_device(device)
 

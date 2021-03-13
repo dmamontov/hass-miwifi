@@ -109,7 +109,7 @@ target:
 ## Routers tested
 Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 
-| Image                                               | Router                                                                              | Firmware version           | Status                        |
+| Image                                               | Router                                                           | Firmware version           | Status                        |
 | --------------------------------------------------- | ---------------------------------------------------------------- | -------------------------- | ----------------------------- |
 | ![](http://www1.miwifi.com/statics/img/2100@1x.png) | [Xiaomi AC2100](https://www.mi.com/miwifiac)                     | 2.0.743(CN)                | Supported                     |
 | ![](http://www1.miwifi.com/statics/img/RA72.png)    | [Xiaomi AX3600](https://www.mi.com/r3600)                        | 1.0.79(CN), 3.0.22(Global) | Supported                     |
