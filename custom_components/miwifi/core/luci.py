@@ -64,7 +64,7 @@ class Luci(object):
             "binary_sensor": {"state": False, "wifi_state": False, "wan_state": False},
             "sensor": {
                 "devices": 0, "devices_lan": 0, "devices_5ghz": 0, "devices_2_4ghz": 0, "devices_guest": 0,
-                "mode": "default", "uptime": "0:00:00"
+                "memory_usage": 0, "mode": "default", "uptime": "0:00:00"
             },
         }
 
@@ -149,13 +149,20 @@ class Luci(object):
 
         self._data["sensor"]["uptime"] = str(timedelta(seconds = int(float(status["upTime"]))))
 
+        if "mem" in status and isinstance(status["mem"], dict) and "usage" in status["mem"]:
+            self._data["sensor"]["memory_usage"] = int(float(status["mem"]["usage"]) * 100)
+        else:
+            del self._data["sensor"]["memory_usage"]
+
     async def set_entity_data(self) -> None:
         mode = await self.mode()
         wifi_status = await self.wifi_status()
         wan_info = await self.wan_info()
         led = await self.led()
 
-        self.is_repeater_mode = mode["mode"] > 0
+        if self._data["sensor"]["mode"] != "mesh":
+            self.is_repeater_mode = mode["mode"] > 0
+            self._data["sensor"]["mode"] = MODE_MAP[mode["mode"]] if mode["mode"] in MODE_MAP else "undefined"
 
         wifi_state = True
         for state in wifi_status["status"]:
@@ -172,8 +179,6 @@ class Luci(object):
                 del self._data["binary_sensor"]["wan_state"]
         else:
             self._data["binary_sensor"]["wan_state"] = uptime > 0
-
-        self._data["sensor"]["mode"] = MODE_MAP[mode["mode"]] if mode["mode"] in MODE_MAP else "undefined"
 
     async def set_devices_list(self) -> None:
         wifi_connect_devices = await self.wifi_connect_devices()
@@ -194,37 +199,43 @@ class Luci(object):
 
         device_list = await self.device_list()
 
-        if "list" in device_list:
-            device_list = {item['mac']:item for item in device_list["list"]}
+        if "list" not in device_list or len(device_list["list"]) <= 0:
+            if len(self._signals) > 0 and not self.is_repeater_mode:
+                self.is_repeater_mode = True
+                self._data["sensor"]["mode"] = "mesh"
 
-            devices_to_ip = {}
-            entities_map = await self.get_entities_map()
+            return
 
-            for mac in device_list:
-                device = device_list[mac]
+        device_list = {item['mac']:item for item in device_list["list"]}
 
-                if device["parent"] and device["parent"] in device_list and device_list[device["parent"]]["ip"][0]["ip"] in entities_map:
-                    ip = device_list[device["parent"]]["ip"][0]["ip"]
-                else:
-                    ip = self._ip
+        devices_to_ip = {}
+        entities_map = await self.get_entities_map()
 
-                device["connection"] = CONNECTION_RANGES[device["type"]]
+        for mac in device_list:
+            device = device_list[mac]
 
-                if ip not in devices_to_ip:
-                    devices_to_ip[ip] = {}
+            if device["parent"] and device["parent"] in device_list and device_list[device["parent"]]["ip"][0]["ip"] in entities_map:
+                ip = device_list[device["parent"]]["ip"][0]["ip"]
+            else:
+                ip = self._ip
 
-                devices_to_ip[ip][mac] = device
+            device["connection"] = CONNECTION_RANGES[device["type"]]
 
-            for ip in devices_to_ip:
-                if len(devices_to_ip[ip]) == 0:
-                    continue
+            if ip not in devices_to_ip:
+                devices_to_ip[ip] = {}
 
-                if ip == self._ip:
-                    await self.add_devices(devices_to_ip[ip])
-                elif not self.hass.data[DOMAIN][entities_map[ip]].api.is_force_load:
-                    await self.hass.data[DOMAIN][entities_map[ip]].api.add_devices(devices_to_ip[ip])
-                    await asyncio.sleep(1)
-                    self.hass.data[DOMAIN][entities_map[ip]].update_devices()
+            devices_to_ip[ip][mac] = device
+
+        for ip in devices_to_ip:
+            if len(devices_to_ip[ip]) == 0:
+                continue
+
+            if ip == self._ip:
+                await self.add_devices(devices_to_ip[ip])
+            elif not self.hass.data[DOMAIN][entities_map[ip]].api.is_force_load:
+                await self.hass.data[DOMAIN][entities_map[ip]].api.add_devices(devices_to_ip[ip])
+                await asyncio.sleep(1)
+                self.hass.data[DOMAIN][entities_map[ip]].update_devices()
 
     async def add_devices(self, devices: dict, is_force: bool = False) -> None:
         if not self._device_data:
@@ -239,6 +250,9 @@ class Luci(object):
             "mode": self._data["sensor"]["mode"],
             "uptime": self._data["sensor"]["uptime"]
         }
+
+        if "memory_usage" in self._data["sensor"]:
+            sensor_default["memory_usage"] = self._data["sensor"]["memory_usage"]
 
         if is_force:
             try:

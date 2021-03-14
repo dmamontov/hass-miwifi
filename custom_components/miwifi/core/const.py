@@ -37,7 +37,8 @@ SENSORS = {
     "devices_2_4ghz": {"name": "Devices (2.4 Ghz)", "icon": "mdi:counter", "unit": "pcs"},
     "devices_guest": {"name": "Devices (guest)", "icon": "mdi:counter", "unit": "pcs"},
     "uptime": {"name": "Uptime", "icon": "mdi:timer-sand", "unit": None},
-    "mode": {"name": "Mode", "icon": "mdi:transit-connection-variant", "unit": None}
+    "mode": {"name": "Mode", "icon": "mdi:transit-connection-variant", "unit": None},
+    "memory_usage": {"name": "Memory usage", "icon": "mdi:memory", "unit": "%"}
 }
 
 LIGHTS = {

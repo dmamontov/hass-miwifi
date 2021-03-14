@@ -17,31 +17,35 @@ Component for tracking devices and managing routers based on [MiWiFi](http://miw
 ## FAQ
 **Q. Do I need to get telnet or ssh?**
 
-A. Not. integration works through Luci-API
+**A.** Not. integration works through Luci-API
 
 **Q. How often are states updated?**
 
-A. Once every 10 seconds. This is the most optimal time for correct work.
+**A.** Once every 10 seconds. This is the most optimal time for correct work.
 
 **Q. In addition to tracking devices, what else does the integration allow you to do?**
 
-A. The integration creates sensors to track the number of connected devices through different types of connections (`5 Ghz`, `2.4 Ghz`, `lan`, `guest`). Creates binary sensors that track (`mode`, `wifi state`, `wan state`). Creates switches to control `LEDs` and `reboot` the router. It also collects statistics on connected devices (Signal, Uptime, etc.)
+**A.** The integration creates sensors to track the number of connected devices through different types of connections (`5 Ghz`, `2.4 Ghz`, `lan`, `guest`). Creates binary sensors that track (`mode`, `wifi state`, `wan state`). Creates switches to control `LEDs` and `reboot` the router. It also collects statistics on connected devices (Signal, Uptime, etc.)
 
 **Q. Does the integration support legacy device tracking via `known_devices.yaml`?**
 
-A. This is a legacy device tracking option. But the integration allows importing names, dev_id, icon from the file `known_devices.yaml` and associating with new devices by mac-address. To do this, simply create or rename the file to `legacy_known_devices.yaml`
+**A.** This is a legacy device tracking option. But the integration allows importing names, dev_id, icon from the file `known_devices.yaml` and associating with new devices by mac-address. To do this, simply create or rename the file to `legacy_known_devices.yaml`
 
 **Q. Does the integration support routers connected in `repeater mode` or `access point mode`?**
 
-A. Yes, the integration supports devices connected in `repeater mode` or `access point mode`. But to get the number of devices and their tracking, you will also need to connect and configure the parent router.
+**A.** Yes, the integration supports devices connected in `repeater mode` or `access point mode`. But to get the number of devices and their tracking, you will also need to connect and configure the parent router.
 
 **Q. Can I use the router in `repeater mode` or `access point mode` without a parent MiWiFi device?**
 
-A. It is possible with the `force_load_repeater_devices` option enabled. But there is a limitation. You will not see IP, uptime, and connection type, but the name will be the mac-address.
+**A.** It is possible with the `force_load_repeater_devices` option enabled. But there is a limitation. You will not see IP, uptime, and connection type, but the name will be the mac-address.
+
+**Q. Does Mesh support routers?**
+
+**A.** Yes, they are supported.
 
 **Q. Is a reboot required after changing the [PRO] settings?**
 
-A. Reboot is required
+**A.** Reboot is required
 
 ## Install
 Installed through the custom repository [HACS](https://hacs.xyz/) - `dmamontov/hass-miwifi`
@@ -109,11 +113,12 @@ target:
 ## Routers tested
 Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 
-| Image                                               | Router                                                           | Firmware version           | Status                        |
-| --------------------------------------------------- | ---------------------------------------------------------------- | -------------------------- | ----------------------------- |
-| ![](http://www1.miwifi.com/statics/img/2100@1x.png) | [Xiaomi AC2100](https://www.mi.com/miwifiac)                     | 2.0.743(CN)                | Supported                     |
-| ![](http://www1.miwifi.com/statics/img/RA72.png)    | [Xiaomi AX3600](https://www.mi.com/r3600)                        | 1.0.79(CN), 3.0.22(Global) | Supported                     |
-| ![](http://www1.miwifi.com/statics/img/AX1800.png)  | [Xiaomi AX1800](https://www.mi.com/buy/detail?product_id=12027)  | 3.0.34(Global)             | Supported                     |
-| ![](http://www1.miwifi.com/statics/img/r3p.png)     | [Xiaomi PRO R3P](http://item.mi.com/1172800043.html)             | 2.16.29(CN)                | With restrictions<sup>*</sup> |
+| Image                                               | Router                                                           | Firmware version            | Status                        |
+| --------------------------------------------------- | ---------------------------------------------------------------- | --------------------------- | ----------------------------- |
+| ![](http://www1.miwifi.com/statics/img/RA72.png)    | [Xiaomi AX3600](https://www.mi.com/r3600)                        | 1.0.79(CN), 3.0.22(Global)  | Supported                     |
+| ![](http://www1.miwifi.com/statics/img/AX1800.png)  | [Xiaomi AX1800](https://www.mi.com/buy/detail?product_id=12027)  | 1.0.378(CN)                 | Supported                     |
+| ![](http://miwifi.com/statics/img/RA67.png)         | [Redmi AX5](https://www.mi.com/buy/detail?product_id=12258)      | 1.0.33(CN), 3.0.34(Global)  | Supported                     |
+| ![](http://www1.miwifi.com/statics/img/2100@1x.png) | [Xiaomi AC2100](https://www.mi.com/miwifiac)                     | 2.0.743(CN)                 | Supported                     |
+| ![](http://www1.miwifi.com/statics/img/r3p.png)     | [Xiaomi PRO R3P](http://item.mi.com/1172800043.html)             | 2.16.29(CN)                 | With restrictions<sup>*</sup> |
 
 <sup>*</sup> Not all integration options may be supported.
