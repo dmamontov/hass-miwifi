@@ -41,6 +41,8 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     if DOMAIN not in config:
         return success
 
+    hass.data.setdefault(DOMAIN, {})
+
     for router in config[DOMAIN]:
         hass.data[DOMAIN][router[CONF_IP_ADDRESS]] = router
 
