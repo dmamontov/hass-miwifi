@@ -118,7 +118,7 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 | ![](http://www1.miwifi.com/statics/img/RA72.png)    | [Xiaomi AX3600](https://www.mi.com/r3600)                        | 1.0.79(CN), 3.0.22(Global)  | Supported                     |
 | ![](http://www1.miwifi.com/statics/img/AX1800.png)  | [Xiaomi AX1800](https://www.mi.com/buy/detail?product_id=12027)  | 1.0.378(CN)                 | Supported                     |
 | ![](http://miwifi.com/statics/img/RA67.png)         | [Redmi AX5](https://www.mi.com/buy/detail?product_id=12258)      | 1.0.33(CN), 3.0.34(Global)  | Supported                     |
-| ![](http://www1.miwifi.com/statics/img/2100@1x.png) | [Xiaomi AC2100](https://www.mi.com/miwifiac)                     | 2.0.743(CN)                 | Supported                     |
+| ![](http://www1.miwifi.com/statics/img/2100@1x.png) | [Xiaomi AC2100](https://www.mi.com/miwifiac)                     | 2.0.23(CN), 2.0.743(CN)     | Supported                     |
 | ![](http://www1.miwifi.com/statics/img/r3p.png)     | [Xiaomi PRO R3P](http://item.mi.com/1172800043.html)             | 2.16.29(CN)                 | With restrictions<sup>*</sup> |
 
 <sup>*</sup> Not all integration options may be supported.
