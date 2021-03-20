@@ -62,6 +62,10 @@ class LuciData:
     def password(self):
         return self.config_entry.options[CONF_PASSWORD]
 
+    @property
+    def is_force_load(self) -> bool:
+        return self.config_entry.options.get(CONF_FORCE_LOAD_REPEATER_DEVICES, False)
+
     async def async_update(self):
         try:
             if self.re_auth:
@@ -83,7 +87,7 @@ class LuciData:
 
         self.api.set_state(self.available)
 
-        if not self.api.is_repeater_mode:
+        if not self.api.is_repeater_mode or self.is_force_load:
             self.update_devices()
 
         async_dispatcher_send(self.hass, DATA_UPDATED)
@@ -113,7 +117,7 @@ class LuciData:
 
         self.api.set_state(self.available)
 
-        if not self.api.is_repeater_mode:
+        if not self.api.is_repeater_mode or self.is_force_load:
             self.update_devices()
 
         self.set_scan_interval()
