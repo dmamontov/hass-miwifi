@@ -33,6 +33,7 @@
         "data": {
           "ip_address": "IP адрес",
           "password": "Пароль",
+          "timeout": "Timeout запросов в секундах [PRO]",
           "force_load_repeater_devices": "Принудительная загрузка устройств в режиме репитера [PRO]",
           "last_activity_days": "Допустимое количество дней ожидания после последней активности [PRO]"
         }

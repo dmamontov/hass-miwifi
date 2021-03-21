@@ -28,7 +28,8 @@ from .const import (
     CONNECTION_RANGES,
     CONNECTION_TO_SENSOR,
     DEVICES_LIST,
-    MODE_MAP
+    MODE_MAP,
+    DEFAULT_TIMEOUT
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,7 +55,9 @@ class Luci(object):
 
         self.base_url = BASE_RESOURCE.format(ip = ip)
         self.password = password
+
         self.is_force_load = options["is_force_load"] if "is_force_load" in options else False
+        self.timeout = options["timeout"] if "timeout" in options else DEFAULT_TIMEOUT
 
         self.is_repeater_mode = False
 
@@ -93,7 +96,7 @@ class Luci(object):
         data = {}
 
         try:
-            with async_timeout.timeout(5, loop = self._loop):
+            with async_timeout.timeout(self.timeout, loop = self._loop):
                 response = await self._session.post(
                     "{}/api/xqsystem/login".format(self.base_url),
                     data = {
@@ -121,7 +124,7 @@ class Luci(object):
 
     async def logout(self) -> None:
         try:
-            with async_timeout.timeout(5, loop = self._loop):
+            with async_timeout.timeout(self.timeout, loop = self._loop):
                 await self._session.get("{}/;stok={}/web/logout".format(self.base_url, self._token))
         except:
             return
@@ -312,7 +315,7 @@ class Luci(object):
     async def get(self, path: str):
         data = {}
         try:
-            with async_timeout.timeout(5, loop = self._loop):
+            with async_timeout.timeout(self.timeout, loop = self._loop):
                 response = await self._session.get(
                     "{}/;stok={}/api/{}".format(self.base_url, self._token, path),
                 )

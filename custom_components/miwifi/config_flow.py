@@ -5,10 +5,17 @@ import homeassistant.helpers.config_validation as cv
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigFlow, OptionsFlow, ConfigEntry
-from homeassistant.const import CONF_IP_ADDRESS, CONF_PASSWORD
+from homeassistant.const import CONF_IP_ADDRESS, CONF_PASSWORD, CONF_TIMEOUT
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .core.const import DOMAIN, CONF_LAST_ACTIVITY_DAYS, CONF_FORCE_LOAD_REPEATER_DEVICES, DEFAULT_LAST_ACTIVITY_DAYS
+from .core.const import (
+    DOMAIN,
+    CONF_LAST_ACTIVITY_DAYS,
+    CONF_FORCE_LOAD_REPEATER_DEVICES,
+    DEFAULT_TIMEOUT,
+    DEFAULT_LAST_ACTIVITY_DAYS
+)
+
 from .core import exceptions
 from .core.luci import Luci
 
@@ -78,6 +85,10 @@ class OptionsFlowHandler(OptionsFlow):
         options_schema = vol.Schema({
             vol.Required(CONF_IP_ADDRESS, default = self.config_entry.options.get(CONF_IP_ADDRESS, "")): str,
             vol.Required(CONF_PASSWORD, default = self.config_entry.options.get(CONF_PASSWORD, "")): str,
+            vol.Optional(
+                CONF_TIMEOUT,
+                default = self.config_entry.options.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
+            ): cv.positive_int,
             vol.Optional(
                 CONF_FORCE_LOAD_REPEATER_DEVICES,
                 default = self.config_entry.options.get(CONF_FORCE_LOAD_REPEATER_DEVICES, False)

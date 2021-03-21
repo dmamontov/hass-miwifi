@@ -10,6 +10,8 @@ SCAN_INTERVAL = 10
 
 CONF_FORCE_LOAD_REPEATER_DEVICES = "force_load_repeater_devices"
 CONF_LAST_ACTIVITY_DAYS = "last_activity_days"
+
+DEFAULT_TIMEOUT = 5
 DEFAULT_LAST_ACTIVITY_DAYS = 30
 
 BASE_RESOURCE = "http://{ip}/cgi-bin/luci"

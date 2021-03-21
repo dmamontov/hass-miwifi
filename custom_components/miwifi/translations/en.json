@@ -33,6 +33,7 @@
         "data": {
           "ip_address": "IP address",
           "password": "Password",
+          "timeout": "Timeout of requests in seconds [PRO]",
           "force_load_repeater_devices": "Forced booting of devices in repeater mode [PRO]",
           "last_activity_days": "Allowed number of days to wait after the last activity [PRO]"
         }

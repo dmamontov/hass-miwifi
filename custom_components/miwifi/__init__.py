@@ -6,7 +6,7 @@ import homeassistant.helpers.entity_registry as er
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
-from homeassistant.const import CONF_IP_ADDRESS, CONF_PASSWORD, EVENT_HOMEASSISTANT_STOP
+from homeassistant.const import CONF_IP_ADDRESS, CONF_PASSWORD, CONF_TIMEOUT, EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
 
@@ -14,6 +14,7 @@ from .core.const import (
     DOMAIN,
     CONF_FORCE_LOAD_REPEATER_DEVICES,
     CONF_LAST_ACTIVITY_DAYS,
+    DEFAULT_TIMEOUT,
     DEFAULT_LAST_ACTIVITY_DAYS,
     STORAGE_VERSION
 )
@@ -28,6 +29,7 @@ CONFIG_SCHEMA = vol.Schema({
             vol.Schema({
                 vol.Required(CONF_IP_ADDRESS): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
+                vol.Optional(CONF_TIMEOUT, default = DEFAULT_TIMEOUT): cv.positive_int,
                 vol.Optional(CONF_FORCE_LOAD_REPEATER_DEVICES, default = False): cv.boolean,
                 vol.Optional(CONF_LAST_ACTIVITY_DAYS, default = DEFAULT_LAST_ACTIVITY_DAYS): cv.positive_int,
             })

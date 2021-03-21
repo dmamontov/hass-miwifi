@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_IP_ADDRESS, CONF_PASSWORD
+from homeassistant.const import CONF_IP_ADDRESS, CONF_PASSWORD, CONF_TIMEOUT
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
@@ -24,6 +24,7 @@ from .const import (
     SCAN_INTERVAL,
     CONF_FORCE_LOAD_REPEATER_DEVICES,
     CONF_LAST_ACTIVITY_DAYS,
+    DEFAULT_TIMEOUT,
     DEFAULT_LAST_ACTIVITY_DAYS
 )
 from .luci import Luci
@@ -44,7 +45,8 @@ class LuciData:
             self.ip,
             self.password,
             {
-                "is_force_load": config_entry.options.get(CONF_FORCE_LOAD_REPEATER_DEVICES, False)
+                "is_force_load": self.is_force_load,
+                "timeout": self.timeout
             }
         )
 
@@ -63,8 +65,16 @@ class LuciData:
         return self.config_entry.options[CONF_PASSWORD]
 
     @property
+    def last_days(self) -> int:
+        return int(self.config_entry.options.get(CONF_LAST_ACTIVITY_DAYS, DEFAULT_LAST_ACTIVITY_DAYS))
+
+    @property
     def is_force_load(self) -> bool:
         return self.config_entry.options.get(CONF_FORCE_LOAD_REPEATER_DEVICES, False)
+
+    @property
+    def timeout(self) -> int:
+        return self.config_entry.options.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
 
     async def async_update(self):
         try:
@@ -162,8 +172,7 @@ class LuciData:
         hass.data[DOMAIN][entry.entry_id].set_scan_interval()
 
     async def check_last_activity(self) -> None:
-        last_days = int(self.config_entry.options.get(CONF_LAST_ACTIVITY_DAYS, DEFAULT_LAST_ACTIVITY_DAYS))
-        if last_days <= 0:
+        if self.last_days <= 0:
             return
 
         device_registry = await dr.async_get_registry(self.hass)
@@ -177,7 +186,7 @@ class LuciData:
 
             delta = now - last_activity
 
-            if int(delta.days) > last_days:
+            if int(delta.days) > self.last_days:
                 self.remove_device(mac)
 
                 connections = dr._normalize_connections({(dr.CONNECTION_NETWORK_MAC, mac)})
