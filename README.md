@@ -7,6 +7,7 @@ Component for tracking devices and managing routers based on [MiWiFi](http://miw
 
 ## Table of Contents
 - [FAQ](#faq)
+- [Conflicts](#conflicts)
 - [Install](#install)
 - [Config](#config)
 - [Advanced config](#advanced-config)
@@ -47,6 +48,17 @@ Component for tracking devices and managing routers based on [MiWiFi](http://miw
 
 **A.** Reboot is required
 
+## Conflicts
+The following component conflicts are currently known:
+* **xiaomi** (device_tracker)
+  * **Cause**: Due to the fact that they use the same API, logout occurs after each scan 
+  * **Solution**: I recommend turning it off for this router
+   
+
+* **nmap** (device_tracker)
+   * **Cause**: Because nmap uses the old integration and finds your devices, it simply overwrites their attributes
+   * **Solution**: Exclude router netmask from scanning
+   
 ## Install
 Installed through the custom repository [HACS](https://hacs.xyz/) - `dmamontov/hass-miwifi`
 
