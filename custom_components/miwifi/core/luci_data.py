@@ -8,7 +8,12 @@ from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_IP_ADDRESS, CONF_PASSWORD, CONF_TIMEOUT
+from homeassistant.const import (
+    CONF_IP_ADDRESS,
+    CONF_PASSWORD,
+    CONF_SCAN_INTERVAL,
+    CONF_TIMEOUT
+)
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
@@ -75,6 +80,10 @@ class LuciData:
     @property
     def timeout(self) -> int:
         return self.config_entry.options.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
+
+    @property
+    def scan_interval(self) -> int:
+        return self.config_entry.options.get(CONF_SCAN_INTERVAL, SCAN_INTERVAL)
 
     async def async_update(self):
         try:
@@ -164,7 +173,7 @@ class LuciData:
             self.unsub_timer()
 
         self.unsub_timer = async_track_time_interval(
-            self.hass, refresh, timedelta(seconds = SCAN_INTERVAL)
+            self.hass, refresh, timedelta(seconds = self.scan_interval)
         )
 
     @staticmethod

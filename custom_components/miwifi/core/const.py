@@ -6,6 +6,7 @@ DEVICES_UPDATED = "miwifi_device_updated"
 STORAGE_VERSION = 1
 
 DOMAINS = ["binary_sensor", "sensor", "light", "switch", "device_tracker"]
+
 SCAN_INTERVAL = 10
 
 CONF_FORCE_LOAD_REPEATER_DEVICES = "force_load_repeater_devices"

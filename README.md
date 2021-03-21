@@ -64,6 +64,7 @@ For authorization, use the ip of your router and its password
 miwifi:
   ip_address: router_ip
   password: router_pass
+  scan_interval: 10 # in seconds [PRO]
   timeout: 5 # in seconds [PRO]
   force_load_repeater_devices: False # [PRO]
 ```
