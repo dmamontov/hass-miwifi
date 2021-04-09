@@ -58,7 +58,12 @@ The following component conflicts are currently known:
 * **nmap** (device_tracker)
    * **Cause**: Because nmap uses the old integration and finds your devices, it simply overwrites their attributes
    * **Solution**: Exclude router netmask from scanning
-   
+
+* **pihole**
+    * **Cause**: Devices stop being tracked
+    * **Solution**: Disable the pihole app
+    * **PS**: Perhaps you can customize, if someone configures write, I will add instructions
+
 ## Install
 Installed through the custom repository [HACS](https://hacs.xyz/) - `dmamontov/hass-miwifi`
 
@@ -133,6 +138,7 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 | ![](http://www1.miwifi.com/statics/img/AX1800.png)  | [Xiaomi AX1800](https://www.mi.com/buy/detail?product_id=12027)  | <ul><li>1.0.378(CN)</li></ul>                       | Supported                     |
 | ![](http://miwifi.com/statics/img/RA67.png)         | [Redmi AX5](https://www.mi.com/buy/detail?product_id=12258)      | <ul><li>1.0.33(CN)</li><li>3.0.34(Global)</li></ul> | Supported                     |
 | ![](http://www1.miwifi.com/statics/img/2100@1x.png) | [Xiaomi AC2100](https://www.mi.com/miwifiac)                     | <ul><li>2.0.23(CN)</li><li>2.0.743(CN)</li></ul>    | Supported                     |
+| ![](http://www1.miwifi.com/statics/img/R4AC.png)    | [Xiaomi Mi Wifi 4A](https://www.mi.com/miwifi4a/)                | <ul><li>2.28.58(CN)</li></ul>                       | Supported                     |
 | ![](http://www1.miwifi.com/statics/img/r3p.png)     | [Xiaomi PRO R3P](http://item.mi.com/1172800043.html)             | <ul><li>2.16.29(CN)</li></ul>                       | With restrictions<sup>*</sup> |
 
 <sup>*</sup> Not all integration options may be supported.
