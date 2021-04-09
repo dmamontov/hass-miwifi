@@ -92,8 +92,6 @@ class Luci(object):
 
     async def login(self) -> dict:
         nonce = self.generate_nonce()
-        response = {}
-        data = {}
 
         try:
             with async_timeout.timeout(self.timeout, loop = self._loop):
@@ -137,16 +135,18 @@ class Luci(object):
     async def set_device_data(self) -> None:
         init_info = await self.init_info()
         status = await self.status()
+        model = None
 
-        model = init_info["model"] if "model" in init_info else None
-        if not model and "hardware" in init_info:
+        if "model" in init_info:
+            model = init_info["model"]
+        elif "hardware" in init_info:
             model = init_info["hardware"]
 
         self._device_data = {
             "mac": status["hardware"]["mac"],
             "name": init_info["routername"] if "routername" in init_info else None,
             "manufacturer": DEFAULT_MANUFACTURER,
-            "model": init_info["model"] if "model" in init_info else None,
+            "model": model,
             "sw_version": init_info["romversion"] if "romversion" in init_info else None,
         }
 
@@ -170,7 +170,7 @@ class Luci(object):
         wifi_state = True
         for state in wifi_status["status"]:
             if state["up"] != 1:
-                self._state = False
+                wifi_state = False
 
         uptime = wan_info["info"]["uptime"] if isinstance(wan_info["info"], dict) and "uptime" in wan_info["info"] else 0
 
@@ -313,7 +313,6 @@ class Luci(object):
         return entries_map
 
     async def get(self, path: str):
-        data = {}
         try:
             with async_timeout.timeout(self.timeout, loop = self._loop):
                 response = await self._session.get(
@@ -356,7 +355,7 @@ class Luci(object):
         return await self.get("xqsystem/reboot")
 
     async def led(self, state: Optional[int] = None) -> dict:
-        return await self.get("misystem/led{}".format(f"?on={state}" if state != None else ""))
+        return await self.get("misystem/led{}".format(f"?on={state}" if state is not None else ""))
 
     async def device_list(self) -> dict:
         return await self.get("misystem/devicelist")
@@ -364,10 +363,12 @@ class Luci(object):
     async def wifi_connect_devices(self) -> dict:
         return await self.get("xqnetwork/wifi_connect_devices")
 
-    def sha1(self, key: str) -> str:
+    @staticmethod
+    def sha1(key: str) -> str:
         return hashlib.sha1(key.encode()).hexdigest()
 
-    def get_mac_address(self) -> str:
+    @staticmethod
+    def get_mac_address() -> str:
         as_hex = f"{uuid.getnode():012x}"
 
         return ":".join(

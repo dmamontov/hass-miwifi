@@ -37,7 +37,6 @@ legacy_schema = vol.Schema(
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities) -> None:
     luci = hass.data[DOMAIN][config_entry.entry_id]
-    unsub_update = None
 
     legacy_devices = await _get_legacy_devices(hass)
 
@@ -76,7 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
         if new_devices:
             async_add_entities(new_devices)
 
-    unsub_update = async_dispatcher_connect(
+    async_dispatcher_connect(
         hass, DEVICES_UPDATED, update_devices
     )
 
@@ -103,7 +102,7 @@ async def _get_legacy_devices(hass: HomeAssistant) -> dict:
 
     try:
         devices = await hass.async_add_executor_job(load_yaml_config_file, hass.config.path(LEGACY_YAML_DEVICES))
-    except HomeAssistantError as err:
+    except HomeAssistantError:
         return {}
     except FileNotFoundError:
         return {}
@@ -112,7 +111,7 @@ async def _get_legacy_devices(hass: HomeAssistant) -> dict:
         try:
             device = legacy_schema(device)
             device["dev_id"] = cv.slugify(dev_id)
-        except vol.Invalid as e:
+        except vol.Invalid:
             continue
         else:
             legacy_devices[device["mac"]] = dict(device)
@@ -300,16 +299,13 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
         if not device:
             return
 
-        via_device_id = UNDEFINED
         via = device_registry.async_get_device({(DOMAIN, self._device["router_mac"])})
-        if via:
-            via_device_id = via.id
 
         device_registry._async_update_device(
             device.id,
             add_config_entry_id = new_entry.entry_id,
             remove_config_entry_id = remove_entry.entry_id,
-            via_device_id = via.id,
+            via_device_id = via.id if via else UNDEFINED,
             merge_connections = connections,
             merge_identifiers = {(DOMAIN, self._mac)},
             manufacturer = UNDEFINED,

@@ -1,9 +1,8 @@
 import logging
-import requests
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.config_entries import ConfigFlow, OptionsFlow, ConfigEntry
 from homeassistant.const import (
     CONF_IP_ADDRESS,

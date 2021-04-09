@@ -2,9 +2,6 @@ import logging
 
 import homeassistant.helpers.device_registry as dr
 
-from typing import Optional
-
-from homeassistant.const import CONF_NAME, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.light import ENTITY_ID_FORMAT, LightEntity
 from homeassistant.config_entries import ConfigEntry
@@ -13,7 +10,6 @@ from homeassistant.helpers.entity import async_generate_entity_id
 
 from .core.const import DATA_UPDATED, DOMAIN, LIGHTS
 from .core.luci_data import LuciData
-from .core import exceptions
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +21,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
         lights.append(MiWiFiLight(hass, luci, light, data))
 
     async_add_entities(lights, True)
-
 
 class MiWiFiLight(LightEntity):
     def __init__(self, hass: HomeAssistant, luci: LuciData, code: str, data: dict) -> None:

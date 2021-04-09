@@ -4,7 +4,6 @@ import homeassistant.helpers.device_registry as dr
 
 from typing import Optional
 
-from homeassistant.const import CONF_NAME, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.binary_sensor import ENTITY_ID_FORMAT, BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -25,7 +24,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
             sensors.append(MiWiFiBinarySensor(hass, luci, sensor, data))
 
     async_add_entities(sensors, True)
-
 
 class MiWiFiBinarySensor(BinarySensorEntity):
     def __init__(self, hass: HomeAssistant, luci: LuciData, code: str, data: dict) -> None:

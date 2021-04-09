@@ -4,7 +4,6 @@ import homeassistant.helpers.device_registry as dr
 
 from typing import Optional
 
-from homeassistant.const import CONF_NAME, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.sensor import ENTITY_ID_FORMAT
 from homeassistant.config_entries import ConfigEntry
