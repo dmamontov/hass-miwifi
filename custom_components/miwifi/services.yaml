@@ -5,3 +5,7 @@ remove_devices:
     entity:
       integration: miwifi
       domain: device_tracker
+
+clear_store:
+  name: Clear devices store
+  description: Clear devices store.

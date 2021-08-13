@@ -18,6 +18,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import async_generate_entity_id
 from homeassistant.helpers.typing import UNDEFINED
 from homeassistant.components.zone import ENTITY_ID_HOME
+from homeassistant.util import slugify
 
 from .core.const import DEVICES_UPDATED, DOMAIN, DEVICE_TRACKER_ENTITY_ID_FORMAT, LEGACY_YAML_DEVICES
 from .core.luci_data import LuciData
@@ -90,12 +91,20 @@ def _get_new_device(hass: HomeAssistant, device: dict, legacy_device: dict) -> d
         "icon": legacy_device["icon"] if "icon" in legacy_device else None,
         "signal": device["signal"],
         "online": device["ip"][0]["online"] if "ip" in device else "0",
-        "unique_id": async_generate_entity_id(
+        "unique_id": _generate_entity_id(
             DEVICE_TRACKER_ENTITY_ID_FORMAT,
-            legacy_device["dev_id"] if "dev_id" in legacy_device else device["name"],
-            hass = hass
+            legacy_device["dev_id"] if "dev_id" in legacy_device else device["name"]
         )
     }
+
+def _generate_entity_id(
+    entity_id_format: str,
+    name: Optional[str]
+) -> str:
+    name = (name or DEVICE_DEFAULT_NAME).lower()
+    preferred_string = entity_id_format.format(slugify(name))
+
+    return preferred_string
 
 async def _get_legacy_devices(hass: HomeAssistant) -> dict:
     legacy_devices = {}

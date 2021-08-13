@@ -82,14 +82,17 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_close)
 
-    await _init_services(hass)
+    await _init_services(hass, store)
 
     if not await client.async_setup():
         return False
 
     return True
 
-async def _init_services(hass: HomeAssistant):
+async def _init_services(hass: HomeAssistant, store: Store):
+    async def clear_store(call: ServiceCall):
+        await store.async_save({})
+
     async def remove_devices(call: ServiceCall):
         data = dict(call.data)
 
@@ -141,3 +144,4 @@ async def _init_services(hass: HomeAssistant):
                 hass.data[DOMAIN][entry_id].remove_device(mac)
 
     hass.services.async_register(DOMAIN, 'remove_devices', remove_devices)
+    hass.services.async_register(DOMAIN, 'clear_store', clear_store)
