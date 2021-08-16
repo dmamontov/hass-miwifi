@@ -35,8 +35,7 @@ class MiWiFiLight(LightEntity):
 
         self.entity_id = _generate_entity_id(
             ENTITY_ID_FORMAT,
-            "{}_{}".format(luci.api.device_data["name"], code),
-            hass = hass
+            "{}_{}".format(luci.api.device_data["name"], code)
         )
 
     @property
