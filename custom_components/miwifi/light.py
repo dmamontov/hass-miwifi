@@ -6,8 +6,8 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.light import ENTITY_ID_FORMAT, LightEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import async_generate_entity_id
 
+from .core.util import _generate_entity_id
 from .core.const import DATA_UPDATED, DOMAIN, LIGHTS
 from .core.luci_data import LuciData
 
@@ -33,7 +33,7 @@ class MiWiFiLight(LightEntity):
         self._state = False
         self._is_block = False
 
-        self.entity_id = async_generate_entity_id(
+        self.entity_id = _generate_entity_id(
             ENTITY_ID_FORMAT,
             "{}_{}".format(luci.api.device_data["name"], code),
             hass = hass

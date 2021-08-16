@@ -8,8 +8,9 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.sensor import ENTITY_ID_FORMAT
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import async_generate_entity_id, Entity
+from homeassistant.helpers.entity import Entity
 
+from .core.util import _generate_entity_id
 from .core.const import DATA_UPDATED, DOMAIN, SENSORS
 from .core.luci_data import LuciData
 
@@ -35,7 +36,7 @@ class MiWiFiSensor(Entity):
         self._data = data
         self._state = None
 
-        self.entity_id = async_generate_entity_id(
+        self.entity_id = _generate_entity_id(
             ENTITY_ID_FORMAT,
             "{}_{}".format(luci.api.device_data["name"], code),
             hass = hass
