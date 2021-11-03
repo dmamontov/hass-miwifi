@@ -257,8 +257,13 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
                 old_router_mac = self._device["router_mac"]
                 device = self.hass.data[DOMAIN][entry_id].api._devices_list[self._mac]
 
-                self._device["ip"] = device["ip"][0]["ip"] if "ip" in device else "0:0:0:0"
-                self._device["online"] = device["ip"][0]["online"] if "ip" in device else "0"
+                if "ip" in device and 0 in device["ip"]:
+                    self._device["ip"] = device["ip"][0]["ip"] if "ip" in device["ip"][0] else "127.0.0.1"
+                    self._device["online"] = device["ip"][0]["online"] if "online" in device["ip"][0] else "0"
+                else:
+                    self._device["ip"] = "127.0.0.1"
+                    self._device["online"] = "0"
+
                 self._device["connection"] = device["connection"] if "connection" in device else "undefined"
                 self._device["signal"] = device["signal"]
                 self._device["router_mac"] = device["router_mac"]
