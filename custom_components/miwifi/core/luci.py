@@ -222,7 +222,7 @@ class Luci(object):
             else:
                 ip = self._ip
 
-            device["connection"] = CONNECTION_RANGES[device["type"]]
+            device["connection"] = CONNECTION_RANGES[device["type"]] if device["type"] in CONNECTION_RANGES else "unknown"
 
             if ip not in devices_to_ip:
                 devices_to_ip[ip] = {}
