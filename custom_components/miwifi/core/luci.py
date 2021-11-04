@@ -67,7 +67,7 @@ class Luci(object):
             "binary_sensor": {"state": False, "wifi_state": False, "wan_state": False},
             "sensor": {
                 "devices": 0, "devices_lan": 0, "devices_5ghz": 0, "devices_2_4ghz": 0, "devices_guest": 0,
-                "memory_usage": 0, "mode": "default", "uptime": "0:00:00"
+                "devices_5ghz_game": 0, "memory_usage": 0, "mode": "default", "uptime": "0:00:00"
             },
         }
 
@@ -250,6 +250,7 @@ class Luci(object):
             "devices_5ghz": 0,
             "devices_2_4ghz": 0,
             "devices_guest": 0,
+            "devices_5ghz_game": 0,
             "mode": self._data["sensor"]["mode"],
             "uptime": self._data["sensor"]["uptime"]
         }
@@ -271,6 +272,7 @@ class Luci(object):
                 else:
                     sensor_default["devices_5ghz"] = new_status["5g"]["online_sta_count"]
 
+                del sensor_default["devices_5ghz_game"]
                 del sensor_default["devices_lan"]
                 del sensor_default["devices_guest"]
             except:
@@ -278,6 +280,7 @@ class Luci(object):
                 del sensor_default["devices_5ghz"]
                 del sensor_default["devices_2_4ghz"]
                 del sensor_default["devices_guest"]
+                del sensor_default["devices_5ghz_game"]
 
         self._data["sensor"] = sensor_default
         self._data["sensor"]["devices"] = len(devices)

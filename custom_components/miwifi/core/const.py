@@ -39,6 +39,7 @@ SENSORS = {
     "devices_5ghz": {"name": "Devices (5 Ghz)", "icon": "mdi:counter", "unit": "pcs"},
     "devices_2_4ghz": {"name": "Devices (2.4 Ghz)", "icon": "mdi:counter", "unit": "pcs"},
     "devices_guest": {"name": "Devices (guest)", "icon": "mdi:counter", "unit": "pcs"},
+    "devices_5ghz_game": {"name": "Devices (5 Ghz Game)", "icon": "mdi:counter", "unit": "pcs"},
     "uptime": {"name": "Uptime", "icon": "mdi:timer-sand", "unit": None},
     "mode": {"name": "Mode", "icon": "mdi:transit-connection-variant", "unit": None},
     "memory_usage": {"name": "Memory usage", "icon": "mdi:memory", "unit": "%"}
@@ -59,6 +60,7 @@ CONNECTION_TO_SENSOR = {
     1: "devices_2_4ghz",
     2: "devices_5ghz",
     3: "devices_guest",
+    6: "devices_5ghz_game",
 }
 
 CONNECTION_RANGES = {
@@ -66,6 +68,7 @@ CONNECTION_RANGES = {
     1: "2.4 Ghz",
     2: "5 Ghz",
     3: "Guest",
+    6: "5 Ghz (Game)",
 }
 
 MODE_MAP = {
