@@ -1,7 +1,7 @@
 {
   "domain": "miwifi",
   "name": "MiWiFi",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "documentation": "https://github.com/dmamontov/hass-miwifi",
   "config_flow": true,
   "requirements": [],

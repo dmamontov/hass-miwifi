@@ -272,6 +272,11 @@ class Luci(object):
                 else:
                     sensor_default["devices_5ghz"] = new_status["5g"]["online_sta_count"]
 
+                if "game" not in new_status:
+                    del sensor_default["devices_5ghz_game"]
+                else:
+                    sensor_default["devices_5ghz_game"] = new_status["game"]["online_sta_count"]
+
                 del sensor_default["devices_5ghz_game"]
                 del sensor_default["devices_lan"]
                 del sensor_default["devices_guest"]
@@ -301,7 +306,7 @@ class Luci(object):
             current_devices.append(mac)
             self._devices_list[mac] = devices[mac]
 
-            if "type" in devices[mac]:
+            if "type" in devices[mac] and devices[mac]["type"] in CONNECTION_TO_SENSOR:
                 self._data["sensor"][CONNECTION_TO_SENSOR[devices[mac]["type"]]] += 1
 
         self._new_devices = new_devices
