@@ -3,6 +3,7 @@
   "name": "MiWiFi",
   "version": "1.2.7",
   "documentation": "https://github.com/dmamontov/hass-miwifi",
+  "issue_tracker": "https://github.com/dmamontov/hass-miwifi/issues",
   "config_flow": true,
   "requirements": [],
   "dependencies": [],
