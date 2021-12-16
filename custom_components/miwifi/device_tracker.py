@@ -182,7 +182,7 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
         return self._available
 
     @property
-    def device_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict:
         return {
             "mac": self._mac,
             "ip": self._device["ip"],
