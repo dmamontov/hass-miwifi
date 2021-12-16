@@ -7,6 +7,7 @@ from typing import Optional
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.binary_sensor import ENTITY_ID_FORMAT, BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import ENTITY_CATEGORY_DIAGNOSTIC
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 from .core.util import _generate_entity_id
@@ -34,6 +35,7 @@ class MiWiFiBinarySensor(BinarySensorEntity):
         self._code = code
         self._data = data
         self._state = False
+        self._attr_entity_category = ENTITY_CATEGORY_DIAGNOSTIC
 
         self.entity_id = _generate_entity_id(
             ENTITY_ID_FORMAT,

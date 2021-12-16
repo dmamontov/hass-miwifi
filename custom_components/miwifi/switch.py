@@ -5,6 +5,7 @@ import homeassistant.helpers.device_registry as dr
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.switch import ENTITY_ID_FORMAT, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import ENTITY_CATEGORY_DIAGNOSTIC
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 from .core.util import _generate_entity_id
@@ -32,6 +33,7 @@ class MiWiFiSwitch(SwitchEntity):
         self._data = data
         self._state = False
         self._is_block = False
+        self._attr_entity_category = ENTITY_CATEGORY_DIAGNOSTIC
 
         self.entity_id = _generate_entity_id(
             ENTITY_ID_FORMAT,
