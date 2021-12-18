@@ -7,9 +7,6 @@ import time
 import uuid
 import json
 
-import aiohttp
-import async_timeout
-
 from typing import Optional
 from datetime import timedelta
 
@@ -38,7 +35,7 @@ class Luci(object):
     def __init__(
         self,
         hass: HomeAssistant,
-        session,
+        httpx_client,
         ip: str,
         password: str,
         options: dict = {}
@@ -48,8 +45,7 @@ class Luci(object):
 
         self.hass = hass
 
-        self._loop = hass.loop
-        self._session = session
+        self.httpx_client = httpx_client
         self._ip = ip
         self._token = None
 
@@ -94,26 +90,26 @@ class Luci(object):
         nonce = self.generate_nonce()
 
         try:
-            with async_timeout.timeout(self.timeout, loop = self._loop):
-                response = await self._session.post(
+            async with self.httpx_client as client:
+                response = await client.post(
                     "{}/api/xqsystem/login".format(self.base_url),
-                    data = {
+                    data={
                         "username": DEFAULT_USERNAME,
                         "logtype": str(LOGIN_TYPE),
                         "password": self.generate_password_hash(nonce, self.password),
                         "nonce": nonce,
-                    }
+                    },
+                    timeout = self.timeout
                 )
 
-            data = json.loads(await response.read())
-        except asyncio.TimeoutError as e:
-            _LOGGER.debug("ERROR MiWifi: Timeout connection error %r", e)
-            raise exceptions.LuciConnectionError()
-        except aiohttp.ClientError as e:
+            _LOGGER.debug(response)
+
+            data = json.loads(response.content)
+        except Exception as e:
             _LOGGER.debug("ERROR MiWifi: Connection error %r", e)
             raise exceptions.LuciConnectionError()
 
-        if response.status != 200 or "token" not in data:
+        if response.status_code != 200 or "token" not in data:
              raise exceptions.LuciTokenError()
 
         self._token = data["token"]
@@ -122,8 +118,8 @@ class Luci(object):
 
     async def logout(self) -> None:
         try:
-            with async_timeout.timeout(self.timeout, loop = self._loop):
-                await self._session.get("{}/;stok={}/web/logout".format(self.base_url, self._token))
+            async with self.httpx_client as client:
+                await client.get("{}/;stok={}/web/logout".format(self.base_url, self._token), timeout = self.timeout)
         except:
             return
 
@@ -321,16 +317,16 @@ class Luci(object):
 
     async def get(self, path: str):
         try:
-            with async_timeout.timeout(self.timeout, loop = self._loop):
-                response = await self._session.get(
+            async with self.httpx_client as client:
+                response = await client.get(
                     "{}/;stok={}/api/{}".format(self.base_url, self._token, path),
+                    timeout = self.timeout
                 )
 
-            data = json.loads(await response.read())
-        except asyncio.TimeoutError as e:
-            _LOGGER.debug("ERROR MiWifi: Timeout connection error %r", e)
-            raise exceptions.LuciConnectionError()
-        except aiohttp.ClientError as e:
+            _LOGGER.debug(response)
+
+            data = json.loads(response.content)
+        except Exception as e:
             _LOGGER.debug("ERROR MiWifi: Connection error %r", e)
             raise exceptions.LuciConnectionError()
 

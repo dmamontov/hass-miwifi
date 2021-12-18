@@ -15,7 +15,7 @@ from homeassistant.const import (
     CONF_TIMEOUT
 )
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.httpx_client import get_async_client
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
@@ -42,11 +42,9 @@ class LuciData:
         self.config_entry = config_entry
         self.store = store
 
-        session = async_get_clientsession(hass, False)
-
         self.api = Luci(
             hass,
-            session,
+            get_async_client(hass, False),
             self.ip,
             self.password,
             {
