@@ -277,7 +277,6 @@ class Luci(object):
                 else:
                     sensor_default["devices_5ghz_game"] = new_status["game"]["online_sta_count"]
 
-                del sensor_default["devices_5ghz_game"]
                 del sensor_default["devices_lan"]
                 del sensor_default["devices_guest"]
             except:
