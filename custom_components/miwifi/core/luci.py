@@ -187,7 +187,7 @@ class Luci(object):
 
         if "list" in wifi_connect_devices:
             for index, device in enumerate(wifi_connect_devices["list"]):
-                self._signals[device["mac"]] = device["signal"]
+                self._signals[device["mac"]] = device["signal"] if "signal" in device else 0
                 force_devices[device["mac"]] = device
 
         if self.is_repeater_mode and self.is_force_load and len(force_devices) > 0:
