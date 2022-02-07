@@ -44,7 +44,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
 
     add_devices = []
     for mac in luci._devices:
-        add_devices.append(MiWiFiDevice(hass, config_entry, luci, mac, luci._devices[mac], zone_home, False))
+        add_devices.append(
+            MiWiFiDevice(hass, config_entry, luci, mac, luci._devices[mac], zone_home, False)
+        )
 
     if add_devices:
         async_add_entities(add_devices)
@@ -69,7 +71,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
 
             _LOGGER.info("New device {} ({}) from {}".format(new_device["name"], mac, luci.api._ip))
 
-            new_devices.append(MiWiFiDevice(hass, config_entry, luci, mac, new_device, zone_home))
+            new_devices.append(
+                MiWiFiDevice(hass, config_entry, luci, mac, new_device, zone_home)
+            )
             luci.add_device(mac, new_device)
 
         if new_devices:
@@ -159,6 +163,9 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
 
     @property
     def icon(self) -> str:
+        if self._icon:
+            self._icon.replace("-android", "")
+
         return self._icon
 
     @property
@@ -229,7 +236,8 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
 
     @callback
     def _schedule_immediate_update(self) -> None:
-        self.async_schedule_update_ha_state(True)
+        if self._update():
+            self.async_schedule_update_ha_state(True)
 
     async def will_remove_from_hass(self) -> None:
         if self.unsub_update:
@@ -241,7 +249,8 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
     async def async_removed_from_registry(self) -> None:
         self.luci.remove_device(self._mac)
 
-    async def async_update(self) -> None:
+    def _update(self) -> bool:
+        is_changed = False
         is_active = False
         is_available = False
         is_available_all = False
@@ -254,7 +263,7 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
             if self._mac in self.hass.data[DOMAIN][entry_id].api._current_devices:
                 is_active = True
 
-                old_router_mac = self._device["router_mac"]
+                old_device = self._device.copy()
                 device = self.hass.data[DOMAIN][entry_id].api._devices_list[self._mac]
 
                 if "ip" in device and len(device["ip"]) > 0:
@@ -268,7 +277,7 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
                 self._device["signal"] = device["signal"]
                 self._device["router_mac"] = device["router_mac"]
 
-                if old_router_mac != self._device["router_mac"]:
+                if old_device["router_mac"] != self._device["router_mac"]:
                     self.luci.remove_device(self._mac)
                     remove_enries.append(self._config_entry)
 
@@ -276,6 +285,10 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
                     self._config_entry = self.luci.config_entry
 
                 is_available = self.hass.data[DOMAIN][entry_id].available
+
+                for field in ["ip", "online", "connection", "signal", "router_mac"]:
+                    if old_device[field] != self._device[field]:
+                        is_changed = True
             else:
                 remove_enries.append(self.hass.data[DOMAIN][entry_id].config_entry)
 
@@ -285,17 +298,25 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
             self.luci.add_device(self._mac, self._device)
 
             for entry in remove_enries:
-                await self._update_device(self._config_entry, entry)
+                self._update_device(self._config_entry, entry)
         else:
             is_available = is_available_all
+            if self._device["signal"] != 0 and self._device["online"] != 0:
+                is_changed = True
+
             self._device["signal"] = 0
             self._device["online"] = 0
+
+        if self._available != is_available or self._active != is_active:
+            is_changed = True
 
         self._available = is_available
         self._active = is_active
 
-    async def _update_device(self, new_entry: ConfigEntry, remove_entry: ConfigEntry) -> None:
-        device_registry = await dr.async_get_registry(self.hass)
+        return is_changed
+
+    def _update_device(self, new_entry: ConfigEntry, remove_entry: ConfigEntry) -> None:
+        device_registry = dr.async_get(self.hass)
 
         connections = dr._normalize_connections({(dr.CONNECTION_NETWORK_MAC, self._mac)})
         device = device_registry.async_get_device({(DOMAIN, self._mac)}, connections)
@@ -305,7 +326,7 @@ class MiWiFiDevice(ScannerEntity, TrackerEntity):
 
         via = device_registry.async_get_device({(DOMAIN, self._device["router_mac"])})
 
-        device_registry._async_update_device(
+        device_registry.async_update_device(
             device.id,
             add_config_entry_id = new_entry.entry_id,
             remove_config_entry_id = remove_entry.entry_id,

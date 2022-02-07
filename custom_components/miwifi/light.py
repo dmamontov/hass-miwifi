@@ -78,7 +78,8 @@ class MiWiFiLight(LightEntity):
 
     @callback
     def _schedule_immediate_update(self) -> None:
-        self.async_schedule_update_ha_state(True)
+        if self._update():
+            self.async_schedule_update_ha_state(True)
 
     async def will_remove_from_hass(self) -> None:
         if self.unsub_update:
@@ -86,16 +87,21 @@ class MiWiFiLight(LightEntity):
 
         self.unsub_update = None
 
-    async def async_update(self) -> None:
+    def _update(self) -> bool:
         if self._is_block:
             self._is_block = False
 
-            return
+            return False
 
         try:
+            if self._state == self.luci.api.data["light"][self._code]:
+                return False
+
             self._state = self.luci.api.data["light"][self._code]
         except KeyError:
             self._state = False
+
+        return True
 
     async def led_on(self) -> None:
         try:
