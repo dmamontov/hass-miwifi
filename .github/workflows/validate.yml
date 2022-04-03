@@ -9,8 +9,8 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v2"
-      - name: HACS validation
-        uses: "hacs/action@main"
+      - uses: "home-assistant/actions/hassfest@master"
+      - uses: "hacs/action@main"
         with:
           category: "integration"
           ignore: topics
