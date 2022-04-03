@@ -19,7 +19,7 @@ from .updater import LuciUpdater
 
 
 def get_config_value(
-    config_entry: config_entries.ConfigEntry | None, param: str, default=None
+        config_entry: config_entries.ConfigEntry | None, param: str, default=None
 ) -> Any:
     """Get current value for configuration parameter.
 

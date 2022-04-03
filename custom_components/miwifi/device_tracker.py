@@ -59,9 +59,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up MiWifi device tracker entry.
 
@@ -108,10 +108,10 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
     _device: dict
 
     def __init__(
-        self,
-        unique_id: str,
-        device: dict,
-        updater: LuciUpdater,
+            self,
+            unique_id: str,
+            device: dict,
+            updater: LuciUpdater,
     ) -> None:
         """Initialize device_tracker.
 
@@ -325,9 +325,9 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
                 break
 
         if (
-            self._attr_available == is_available
-            and self._is_connected == is_connected
-            and not is_update
+                self._attr_available == is_available
+                and self._is_connected == is_connected
+                and not is_update
         ):
             return
 

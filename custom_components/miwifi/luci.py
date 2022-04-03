@@ -37,11 +37,11 @@ class LuciClient(object):
     _url: str
 
     def __init__(
-        self,
-        client: AsyncClient,
-        ip: str = CLIENT_ADDRESS,
-        password: str | None = None,
-        timeout: int = DEFAULT_TIMEOUT,
+            self,
+            client: AsyncClient,
+            ip: str = CLIENT_ADDRESS,
+            password: str | None = None,
+            timeout: int = DEFAULT_TIMEOUT,
     ) -> None:
         """Initialize API client.
 
@@ -279,7 +279,7 @@ class LuciClient(object):
 
         as_hex: str = f"{uuid.getnode():012x}"
 
-        return ":".join(as_hex[i : i + 2] for i in range(0, 12, 2))
+        return ":".join(as_hex[i: i + 2] for i in range(0, 12, 2))
 
     def generate_nonce(self) -> str:
         """Generate fake nonce.

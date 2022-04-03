@@ -81,8 +81,8 @@ async def async_discover_devices(client: AsyncClient) -> list:
 
 @callback
 def async_trigger_discovery(
-    hass: HomeAssistant,
-    discovered_devices: list,
+        hass: HomeAssistant,
+        discovered_devices: list,
 ) -> None:
     """Trigger config flows for discovered devices.
 

@@ -71,9 +71,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up MiWifi binary sensor entry.
 
@@ -107,10 +107,10 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
     _attr_attribution: str = ATTRIBUTION
 
     def __init__(
-        self,
-        unique_id: str,
-        description: BinarySensorEntityDescription,
-        updater: LuciUpdater,
+            self,
+            unique_id: str,
+            description: BinarySensorEntityDescription,
+            updater: LuciUpdater,
     ) -> None:
         """Initialize sensor.
 

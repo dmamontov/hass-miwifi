@@ -113,16 +113,16 @@ class LuciUpdater(DataUpdateCoordinator):
     _moved_devices: list = []
 
     def __init__(
-        self,
-        hass: HomeAssistant,
-        ip: str,
-        password: str,
-        scan_interval: int = DEFAULT_SCAN_INTERVAL,
-        timeout: int = DEFAULT_TIMEOUT,
-        is_force_load: bool = False,
-        activity_days: int = DEFAULT_ACTIVITY_DAYS,
-        store: Store | None = None,
-        is_only_login: bool = False,
+            self,
+            hass: HomeAssistant,
+            ip: str,
+            password: str,
+            scan_interval: int = DEFAULT_SCAN_INTERVAL,
+            timeout: int = DEFAULT_TIMEOUT,
+            is_force_load: bool = False,
+            activity_days: int = DEFAULT_ACTIVITY_DAYS,
+            store: Store | None = None,
+            is_only_login: bool = False,
     ) -> None:
         """Initialize updater.
 
@@ -331,9 +331,9 @@ class LuciUpdater(DataUpdateCoordinator):
         response: dict = await self.luci.status()
 
         if (
-            "hardware" in response
-            and isinstance(response["hardware"], dict)
-            and "mac" in response["hardware"]
+                "hardware" in response
+                and isinstance(response["hardware"], dict)
+                and "mac" in response["hardware"]
         ):
             data[ATTR_DEVICE_MAC_ADDRESS] = response["hardware"]["mac"]
 
@@ -379,9 +379,9 @@ class LuciUpdater(DataUpdateCoordinator):
         response: dict = await self.luci.wan_info()
 
         if (
-            "info" in response
-            and isinstance(response["info"], dict)
-            and "uptime" in response["info"]
+                "info" in response
+                and isinstance(response["info"], dict)
+                and "uptime" in response["info"]
         ):
             data[ATTR_BINARY_SENSOR_WAN_STATE] = response["info"]["uptime"] > 0
         else:
@@ -492,11 +492,11 @@ class LuciUpdater(DataUpdateCoordinator):
             action: DeviceAction = DeviceAction.ADD
 
             if (
-                "parent" in device
-                and len(device["parent"]) > 0
-                and device["parent"] in mac_to_ip
-                and mac_to_ip[device["parent"]] in integrations
-                and mac_to_ip[device["parent"]] != self.ip
+                    "parent" in device
+                    and len(device["parent"]) > 0
+                    and device["parent"] in mac_to_ip
+                    and mac_to_ip[device["parent"]] in integrations
+                    and mac_to_ip[device["parent"]] != self.ip
             ):
                 integration: dict = integrations[mac_to_ip[device["parent"]]]
 
@@ -545,10 +545,10 @@ class LuciUpdater(DataUpdateCoordinator):
                 integrations[ip][UPDATER].add_device(device[0], True, device[1])
 
     def add_device(
-        self,
-        device: dict,
-        is_from_parent: bool = False,
-        action: DeviceAction = DeviceAction.ADD,
+            self,
+            device: dict,
+            is_from_parent: bool = False,
+            action: DeviceAction = DeviceAction.ADD,
     ) -> None:
         """Prepare device.
 
@@ -586,20 +586,20 @@ class LuciUpdater(DataUpdateCoordinator):
             ATTR_TRACKER_CONNECTION: connection,
             ATTR_TRACKER_DOWN_SPEED: float(ip_attr["downspeed"])
             if ip_attr is not None
-            and "downspeed" in ip_attr
-            and float(ip_attr["downspeed"]) > 0
+               and "downspeed" in ip_attr
+               and float(ip_attr["downspeed"]) > 0
             else 0.0,
             ATTR_TRACKER_UP_SPEED: float(ip_attr["upspeed"])
             if ip_attr is not None
-            and "upspeed" in ip_attr
-            and float(ip_attr["upspeed"]) > 0
+               and "upspeed" in ip_attr
+               and float(ip_attr["upspeed"]) > 0
             else 0.0,
             ATTR_TRACKER_ONLINE: str(
                 timedelta(seconds=int(ip_attr["online"] if ip_attr is not None else 0))
             ),
             ATTR_TRACKER_LAST_ACTIVITY: datetime.now()
-            .replace(microsecond=0)
-            .isoformat(),
+                .replace(microsecond=0)
+                .isoformat(),
         }
 
         if not is_from_parent and action == DeviceAction.MOVE:
@@ -608,9 +608,9 @@ class LuciUpdater(DataUpdateCoordinator):
             action = DeviceAction.ADD
 
         if (
-            is_new
-            and action == DeviceAction.ADD
-            and self.new_device_callback is not None
+                is_new
+                and action == DeviceAction.ADD
+                and self.new_device_callback is not None
         ):
             async_dispatcher_send(
                 self.hass, SIGNAL_NEW_DEVICE, self.devices[device[ATTR_TRACKER_MAC]]
@@ -639,7 +639,7 @@ class LuciUpdater(DataUpdateCoordinator):
             self.data[code] += 1
 
     def _mass_update_device(
-        self, device: dict, integrations: dict | None = None
+            self, device: dict, integrations: dict | None = None
     ) -> bool:
         """Mass update devices
 
@@ -702,9 +702,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
             for ip, integration in integrations.items():
                 if (
-                    ip != self.ip
-                    and not integration[UPDATER].is_force_load
-                    and mac in integration[UPDATER].devices
+                        ip != self.ip
+                        and not integration[UPDATER].is_force_load
+                        and mac in integration[UPDATER].devices
                 ):
                     del integration[UPDATER].devices[mac]
 
