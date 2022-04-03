@@ -24,6 +24,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+
 @callback
 def async_start_discovery(hass: HomeAssistant) -> None:
     """Start discovery.
@@ -42,13 +43,14 @@ def async_start_discovery(hass: HomeAssistant) -> None:
 
         :param _: Any
         """
-        
+
         async_trigger_discovery(hass, await async_discover_devices(get_async_client(hass, False)))
 
     # Do not block startup since discovery takes 31s or more
     asyncio.create_task(_async_discovery())
 
     async_track_time_interval(hass, _async_discovery, DISCOVERY_INTERVAL)
+
 
 async def async_discover_devices(client: AsyncClient) -> list:
     """Discover devices.
@@ -61,7 +63,7 @@ async def async_discover_devices(client: AsyncClient) -> list:
 
     try:
         response = await LuciClient(client).topo_graph()
-    except:
+    except BaseException:
         pass
 
     if "graph" not in response or "ip" not in response["graph"]:
@@ -78,6 +80,7 @@ async def async_discover_devices(client: AsyncClient) -> list:
 
     return devices
 
+
 @callback
 def async_trigger_discovery(
     hass: HomeAssistant,
@@ -93,10 +96,15 @@ def async_trigger_discovery(
         hass.async_create_task(
             hass.config_entries.flow.async_init(
                 DOMAIN,
-                context={"source": config_entries.SOURCE_INTEGRATION_DISCOVERY},
-                data={CONF_IP_ADDRESS: device},
+                context={
+                    "source": config_entries.SOURCE_INTEGRATION_DISCOVERY
+                },
+                data={
+                    CONF_IP_ADDRESS: device
+                },
             )
         )
+
 
 def parse_leafs(devices: list, leafs: list) -> list:
     """Recursive parse leafs.

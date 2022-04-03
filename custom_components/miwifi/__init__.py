@@ -42,6 +42,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up entry configured via user interface.
 
@@ -55,7 +56,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     is_new: bool = get_config_value(entry, OPTION_IS_FROM_FLOW, False)
 
     if is_new:
-        hass.config_entries.async_update_entry(entry, data=entry.data, options={})
+        hass.config_entries.async_update_entry(
+            entry, data=entry.data, options={}
+        )
 
     ip: str = get_config_value(entry, CONF_IP_ADDRESS)
 
@@ -77,7 +80,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         UPDATER: updater,
     }
 
-    hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER] = entry.add_update_listener(async_update_options)
+    hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER] = entry.add_update_listener(
+        async_update_options
+    )
 
     async def async_start(with_sleep: bool = False) -> None:
         """Async start.
@@ -105,12 +110,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await asyncio.sleep(DEFAULT_SLEEP)
     else:
         hass.loop.call_later(
-            DEFAULT_CALL_DELAY, lambda: hass.async_create_task(async_start(True)),
+            DEFAULT_CALL_DELAY,
+            lambda: hass.async_create_task(
+                async_start(True)
+            ),
         )
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_stop)
 
     return True
+
 
 async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Update options for entry that was configured via user interface.
@@ -121,6 +130,7 @@ async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
     await hass.config_entries.async_reload(entry.entry_id)
 
+
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Remove entry configured via user interface.
 
@@ -130,7 +140,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """
 
     if CONF_IP_ADDRESS in hass.data[DOMAIN][entry.entry_id]:
-        store: Store = get_store(hass, hass.data[DOMAIN][entry.entry_id][CONF_IP_ADDRESS])
+        store: Store = get_store(
+            hass,
+            hass.data[DOMAIN][entry.entry_id][CONF_IP_ADDRESS]
+        )
         await store.async_remove()
 
     is_unload = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -142,6 +155,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN].pop(entry.entry_id)
 
     return is_unload
+
 
 async def async_remove_config_entry_device(
     hass: HomeAssistant, entry: ConfigEntry, device_entry: dr.DeviceEntry

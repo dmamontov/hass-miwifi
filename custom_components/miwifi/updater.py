@@ -103,6 +103,7 @@ PREPARE_METHODS: Final = [
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class LuciUpdater(DataUpdateCoordinator):
     """Luci data updater for interaction with Luci API."""
 
@@ -125,16 +126,16 @@ class LuciUpdater(DataUpdateCoordinator):
     _moved_devices: list = []
 
     def __init__(
-            self,
-            hass: HomeAssistant,
-            ip: str,
-            password: str,
-            scan_interval: int = DEFAULT_SCAN_INTERVAL,
-            timeout: int=DEFAULT_TIMEOUT,
-            is_force_load: bool = False,
-            activity_days: int = DEFAULT_ACTIVITY_DAYS,
-            store: Store | None = None,
-            is_only_login: bool = False,
+        self,
+        hass: HomeAssistant,
+        ip: str,
+        password: str,
+        scan_interval: int = DEFAULT_SCAN_INTERVAL,
+        timeout: int = DEFAULT_TIMEOUT,
+        is_force_load: bool = False,
+        activity_days: int = DEFAULT_ACTIVITY_DAYS,
+        store: Store | None = None,
+        is_only_login: bool = False,
     ) -> None:
         """Initialize updater.
 
@@ -235,11 +236,16 @@ class LuciUpdater(DataUpdateCoordinator):
         self.data[ATTR_STATE] = codes.is_success(self.code)
 
         if is_force and retry <= DEFAULT_RETRY and not self.data[ATTR_STATE]:
-            _LOGGER.error("Error connecting to router (attempt #%s of %s): %r", retry, DEFAULT_RETRY, err)
+            _LOGGER.error(
+                "Error connecting to router (attempt #%s of %s): %r",
+                retry,
+                DEFAULT_RETRY,
+                err
+            )
 
             await asyncio.sleep(retry)
 
-            return self.update(True, retry + 1)
+            return await self.update(True, retry + 1)
 
         if not self._is_only_login:
             self._clean_devices()
@@ -287,7 +293,7 @@ class LuciUpdater(DataUpdateCoordinator):
             self._job,
             utcnow().replace(microsecond=0) + offset,
         )
-    
+
     async def _async_prepare(self, method: str, data: dict) -> None:
         """Prepare data.
 
@@ -296,7 +302,7 @@ class LuciUpdater(DataUpdateCoordinator):
         """
 
         action = getattr(self, f"_async_prepare_{method}")
-        
+
         if action:
             await action(data)
 
@@ -330,15 +336,23 @@ class LuciUpdater(DataUpdateCoordinator):
 
         response: dict = await self.luci.status()
 
-        if "hardware" in response and isinstance(response["hardware"], dict) and "mac" in response["hardware"]:
+        if (
+            "hardware" in response
+            and isinstance(response["hardware"], dict)
+            and "mac" in response["hardware"]
+        ):
             data[ATTR_DEVICE_MAC_ADDRESS] = response["hardware"]["mac"]
 
         if "upTime" in response:
-            data[ATTR_SENSOR_UPTIME] = str(timedelta(seconds = int(float(response["upTime"]))))
+            data[ATTR_SENSOR_UPTIME] = str(
+                timedelta(seconds=int(float(response["upTime"])))
+            )
 
         if "mem" in response and isinstance(response["mem"], dict):
             if "usage" in response["mem"]:
-                data[ATTR_SENSOR_MEMORY_USAGE] = int(float(response["mem"]["usage"]) * 100)
+                data[ATTR_SENSOR_MEMORY_USAGE] = int(
+                    float(response["mem"]["usage"]) * 100
+                )
 
             if "total" in response["mem"]:
                 data[ATTR_SENSOR_MEMORY_TOTAL] = int(
@@ -370,7 +384,11 @@ class LuciUpdater(DataUpdateCoordinator):
 
         response: dict = await self.luci.wan_info()
 
-        if "info" in response and isinstance(response["info"], dict) and "uptime" in response["info"]:
+        if (
+            "info" in response
+            and isinstance(response["info"], dict)
+            and "uptime" in response["info"]
+        ):
             data[ATTR_BINARY_SENSOR_WAN_STATE] = response["info"]["uptime"] > 0
         else:
             data[ATTR_BINARY_SENSOR_WAN_STATE] = False
@@ -408,7 +426,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
         for wifi in response["info"]:
             # Support only 5G , 2.4G and 5G Game
-            if "ifname" not in wifi or wifi["ifname"] not in ["wl0", "wl1", "wl2"]:
+            if "ifname" not in wifi or wifi["ifname"] not in [
+                "wl0", "wl1", "wl2"
+            ]:
                 continue
 
             if "status" in wifi:
@@ -434,7 +454,8 @@ class LuciUpdater(DataUpdateCoordinator):
                 integrations = self.get_integrations()
 
             for device in response["list"]:
-                self._signals[device["mac"]] = device["signal"] if "signal" in device else 0
+                self._signals[device["mac"]] = device["signal"] \
+                    if "signal" in device else 0
 
                 if self.is_repeater and self.is_force_load:
                     device[ATTR_TRACKER_ENTRY_ID] = \
@@ -467,7 +488,8 @@ class LuciUpdater(DataUpdateCoordinator):
         integrations: dict[str, dict] = self.get_integrations()
 
         mac_to_ip: dict[str, str] = {
-            device['mac']: device["ip"][0]["ip"] for device in response["list"] \
+            device['mac']: device["ip"][0]["ip"]
+            for device in response["list"]
             if "ip" in device and len(device["ip"]) > 0
         }
 
@@ -499,7 +521,9 @@ class LuciUpdater(DataUpdateCoordinator):
                     if mac_to_ip[device["parent"]] not in add_to:
                         add_to[mac_to_ip[device["parent"]]] = []
 
-                    add_to[mac_to_ip[device["parent"]]].append((device, action))
+                    add_to[mac_to_ip[device["parent"]]].append(
+                        (device, action)
+                    )
             else:
                 device[ATTR_TRACKER_ENTRY_ID] = integrations[self.ip][ATTR_TRACKER_ENTRY_ID]
 
@@ -523,7 +547,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
             integrations[ip][UPDATER].reset_counter(True)
             for device in devices:
-                integrations[ip][UPDATER].add_device(device[0], True, device[1])
+                integrations[ip][UPDATER].add_device(
+                    device[0], True, device[1]
+                )
 
     def add_device(
         self,
@@ -538,13 +564,16 @@ class LuciUpdater(DataUpdateCoordinator):
         :param action: DeviceAction: Device action
         """
 
-        if ATTR_TRACKER_MAC not in device or (is_from_parent and self.is_force_load):
+        if ATTR_TRACKER_MAC not in device \
+            or (is_from_parent and self.is_force_load):
             return
 
         is_new: bool = device[ATTR_TRACKER_MAC] not in self.devices
 
         ip_attr: dict | None = device["ip"][0] if "ip" in device else None
-        connection: Connection | None = Connection(int(device["type"])) if "type" in device else None
+        connection: Connection | None = Connection(
+            int(device["type"])
+        ) if "type" in device else None
 
         self.devices[device[ATTR_TRACKER_MAC]] = {
             ATTR_TRACKER_ENTRY_ID: device[ATTR_TRACKER_ENTRY_ID],
@@ -556,10 +585,10 @@ class LuciUpdater(DataUpdateCoordinator):
             ATTR_TRACKER_IP: ip_attr["ip"] if ip_attr is not None else None,
             ATTR_TRACKER_CONNECTION: connection,
             ATTR_TRACKER_DOWN_SPEED: float(ip_attr["downspeed"]) \
-                if ip_attr is not None and "downspeed" in ip_attr and float(ip_attr["downspeed"]) > 0 \
+                if ip_attr is not None and "downspeed" in ip_attr and float(ip_attr["downspeed"]) > 0
                 else 0.0,
             ATTR_TRACKER_UP_SPEED: float(ip_attr["upspeed"]) \
-                if ip_attr is not None and "upspeed" in ip_attr and float(ip_attr["upspeed"]) > 0 \
+                if ip_attr is not None and "upspeed" in ip_attr and float(ip_attr["upspeed"]) > 0
                 else 0.0,
             ATTR_TRACKER_ONLINE: str(timedelta(seconds=int(ip_attr["online"] if ip_attr is not None else 0))),
             ATTR_TRACKER_LAST_ACTIVITY: datetime.now().replace(microsecond=0).isoformat()
@@ -571,9 +600,16 @@ class LuciUpdater(DataUpdateCoordinator):
             action = DeviceAction.ADD
 
         if is_new and action == DeviceAction.ADD and self.new_device_callback is not None:
-            async_dispatcher_send(self.hass, SIGNAL_NEW_DEVICE, self.devices[device[ATTR_TRACKER_MAC]])
-            
-            _LOGGER.debug("Found new device: %s", self.devices[device[ATTR_TRACKER_MAC]])
+            async_dispatcher_send(
+                self.hass,
+                SIGNAL_NEW_DEVICE,
+                self.devices[device[ATTR_TRACKER_MAC]]
+            )
+
+            _LOGGER.debug(
+                "Found new device: %s",
+                self.devices[device[ATTR_TRACKER_MAC]]
+            )
         elif action == DeviceAction.MOVE:
             _LOGGER.debug("Move device: %s", device[ATTR_TRACKER_MAC])
 
@@ -643,7 +679,8 @@ class LuciUpdater(DataUpdateCoordinator):
         devices: dict = self.devices
 
         for mac, device in devices.items():
-            delta = now - datetime.strptime(device[ATTR_TRACKER_LAST_ACTIVITY], "%Y-%m-%dT%H:%M:%S")
+            delta = now - \
+                datetime.strptime(device[ATTR_TRACKER_LAST_ACTIVITY], "%Y-%m-%dT%H:%M:%S")
 
             if int(delta.days) <= self._activity_days:
                 continue
@@ -669,7 +706,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 UPDATER: integration[UPDATER],
                 ATTR_TRACKER_ENTRY_ID: entry_id
             }
-            for entry_id, integration in self.hass.data[DOMAIN].items() \
+            for entry_id, integration in self.hass.data[DOMAIN].items()
             if isinstance(integration, dict)
         }
 
@@ -697,7 +734,11 @@ class LuciUpdater(DataUpdateCoordinator):
 
         devices: dict | None = await self._store.async_load()
 
-        if devices is None or not isinstance(devices, dict) or len(devices) == 0:
+        if (
+            devices is None
+            or not isinstance(devices, dict)
+            or len(devices) == 0
+        ):
             return
 
         for mac, data in devices.items():
@@ -711,7 +752,8 @@ class LuciUpdater(DataUpdateCoordinator):
     async def _async_save_devices(self) -> None:
         """Async save devices to Store"""
 
-        if self._store is None or (self.is_repeater and not self.is_force_load):
+        if self._store is None \
+            or (self.is_repeater and not self.is_force_load):
             return
 
         await self._store.async_save(self.devices)

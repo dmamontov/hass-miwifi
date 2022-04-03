@@ -9,6 +9,7 @@ from .const import (
     ATTR_SWITCH_WIFI_5_0_GAME,
 )
 
+
 class Mode(IntEnum):
     def __new__(cls, value: int, phrase: str = "undefined") -> "Mode":
         """New mode.
@@ -37,6 +38,7 @@ class Mode(IntEnum):
     REPEATER = 1, "repeater"
     ACCESS_POINT = 2, "access_point"
     MESH = 9, "mesh"
+
 
 class Connection(IntEnum):
     def __new__(cls, value: int, phrase: str = "undefined") -> "Connection":
@@ -68,6 +70,7 @@ class Connection(IntEnum):
     GUEST = 3, "Guest"
     WIFI_5_0_GAME = 6, "5G Game"
 
+
 class IfName(str, Enum):
     def __new__(cls, value: str, phrase: str = "undefined") -> "IfName":
         """New ifname.
@@ -95,6 +98,7 @@ class IfName(str, Enum):
     WL0 = "wl0", ATTR_SWITCH_WIFI_5_0
     WL1 = "wl1", ATTR_SWITCH_WIFI_2_4
     WL2 = "wl2", ATTR_SWITCH_WIFI_5_0_GAME
+
 
 class DeviceAction(IntEnum):
     def __new__(cls, value: int, phrase: str = "undefined") -> "DeviceAction":

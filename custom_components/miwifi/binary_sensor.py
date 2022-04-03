@@ -1,6 +1,22 @@
 """Binary sensor component."""
 
 from __future__ import annotations
+from .const import (
+    DOMAIN,
+    UPDATER,
+
+    ATTRIBUTION,
+    ATTR_DEVICE_MAC_ADDRESS,
+
+    ATTR_STATE,
+    ATTR_STATE_NAME,
+
+    ATTR_BINARY_SENSOR_WAN_STATE,
+    ATTR_BINARY_SENSOR_WAN_STATE_NAME,
+
+    ATTR_BINARY_SENSOR_DUAL_BAND,
+    ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
+)
 
 import logging
 from typing import Final
@@ -24,22 +40,6 @@ from homeassistant.const import (
 
 from .updater import LuciUpdater
 from.helper import generate_entity_id
-from .const import (
-    DOMAIN,
-    UPDATER,
-
-    ATTRIBUTION,
-    ATTR_DEVICE_MAC_ADDRESS,
-
-    ATTR_STATE,
-    ATTR_STATE_NAME,
-
-    ATTR_BINARY_SENSOR_WAN_STATE,
-    ATTR_BINARY_SENSOR_WAN_STATE_NAME,
-
-    ATTR_BINARY_SENSOR_DUAL_BAND,
-    ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
-)
 
 ICONS: Final = {
     f"{ATTR_STATE}_{STATE_ON}": "mdi:router-wireless",
@@ -73,6 +73,7 @@ MIWIFI_BINARY_SENSORS: tuple[BinarySensorEntityDescription, ...] = (
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -89,7 +90,9 @@ async def async_setup_entry(
     updater: LuciUpdater = data[UPDATER]
 
     if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
-        _LOGGER.error("Failed to initialize binary sensor: Missing mac address. Restart HASS.")
+        _LOGGER.error(
+            "Failed to initialize binary sensor: Missing mac address. Restart HASS."
+        )
 
     entities: list[MiWifiBinarySensor] = [
         MiWifiBinarySensor(
@@ -100,6 +103,7 @@ async def async_setup_entry(
         for description in MIWIFI_BINARY_SENSORS
     ]
     async_add_entities(entities)
+
 
 class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
     """MiWifi binary sensor entry."""
@@ -166,7 +170,11 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
         self._attr_available = is_available
         self._attr_is_on = is_on
 
-        icon_name: str = "{}_{}".format(self.entity_description.key, STATE_ON if is_on else STATE_OFF)
+        icon_name: str = "{}_{}".format(
+            self.entity_description.key,
+            STATE_ON if is_on else STATE_OFF
+        )
+
         if icon_name in ICONS:
             self._attr_icon = ICONS[icon_name]
 

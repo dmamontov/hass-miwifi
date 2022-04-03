@@ -26,6 +26,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class LuciClient(object):
     """Luci API Client."""
 
@@ -51,7 +52,7 @@ class LuciClient(object):
         :param password: str: device password
         :param timeout: int: Query execution timeout
         """
-        
+
         if ip.endswith("/"):
             ip = ip[:-1]
 
@@ -114,7 +115,11 @@ class LuciClient(object):
                     timeout=self._timeout
                 )
 
-                _LOGGER.debug("Successful request %s: %s", url, response.content)
+                _LOGGER.debug(
+                    "Successful request %s: %s",
+                    url,
+                    response.content
+                )
         except HTTPError as e:
             _LOGGER.debug("Logout error: %r", e)
 
@@ -126,7 +131,11 @@ class LuciClient(object):
         :return dict: dict with api data.
         """
 
-        url: str = "{}/{}api/{}".format(self._url, ";stok={}/".format(self._token) if use_stok else "", path)
+        url: str = "{}/{}api/{}".format(
+            self._url,
+            ";stok={}/".format(self._token) if use_stok else "",
+            path
+        )
 
         try:
             async with self._client as client:
@@ -280,7 +289,7 @@ class LuciClient(object):
         as_hex: str = f"{uuid.getnode():012x}"
 
         return ":".join(
-            as_hex[i : i + 2] for i in range(0, 12, 2)
+            as_hex[i: i + 2] for i in range(0, 12, 2)
         )
 
     def generate_nonce(self) -> str:

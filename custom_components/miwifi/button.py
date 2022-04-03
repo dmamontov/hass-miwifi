@@ -1,6 +1,17 @@
 """Button component."""
 
 from __future__ import annotations
+from .const import (
+    DOMAIN,
+    UPDATER,
+
+    ATTRIBUTION,
+    ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_STATE,
+
+    ATTR_BUTTON_REBOOT,
+    ATTR_BUTTON_REBOOT_NAME,
+)
 
 import logging
 
@@ -21,17 +32,6 @@ from homeassistant.const import (
 
 from .updater import LuciUpdater
 from.helper import generate_entity_id
-from .const import (
-    DOMAIN,
-    UPDATER,
-
-    ATTRIBUTION,
-    ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_STATE,
-
-    ATTR_BUTTON_REBOOT,
-    ATTR_BUTTON_REBOOT_NAME,
-)
 
 MIWIFI_BUTTONS: tuple[ButtonEntityDescription, ...] = (
     ButtonEntityDescription(
@@ -44,6 +44,7 @@ MIWIFI_BUTTONS: tuple[ButtonEntityDescription, ...] = (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -61,7 +62,9 @@ async def async_setup_entry(
     updater: LuciUpdater = data[UPDATER]
 
     if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
-        _LOGGER.error("Failed to initialize button: Missing mac address. Restart HASS.")
+        _LOGGER.error(
+            "Failed to initialize button: Missing mac address. Restart HASS."
+        )
 
     entities: list[MiWifiButton] = [
         MiWifiButton(
@@ -72,6 +75,7 @@ async def async_setup_entry(
         for description in MIWIFI_BUTTONS
     ]
     async_add_entities(entities)
+
 
 class MiWifiButton(ButtonEntity, CoordinatorEntity, RestoreEntity):
     """MiWifi button entry."""
@@ -125,7 +129,7 @@ class MiWifiButton(ButtonEntity, CoordinatorEntity, RestoreEntity):
 
         try:
             await self._updater.luci.reboot()
-        except:
+        except BaseException:
             pass
 
     async def async_press(self) -> None:

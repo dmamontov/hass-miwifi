@@ -35,6 +35,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """First time set up flow."""
 
@@ -42,7 +43,9 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> MiWifiOptionsFlow:
+    def async_get_options_flow(
+            config_entry: config_entries.ConfigEntry
+    ) -> MiWifiOptionsFlow:
         """Get the options flow for this handler.
 
         :param config_entry: config_entries.ConfigEntry: Config Entry object
@@ -138,13 +141,19 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            code: codes = await async_verify_access(self.hass, user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD])
+            code: codes = await async_verify_access(
+                self.hass,
+                user_input[CONF_IP_ADDRESS],
+                user_input[CONF_PASSWORD]
+            )
 
             _LOGGER.debug("Verify access code: %s", code)
 
             if codes.is_success(code):
                 return self.async_create_entry(
-                    title=user_input[CONF_IP_ADDRESS], data=user_input, options={OPTION_IS_FROM_FLOW: True}
+                    title=user_input[CONF_IP_ADDRESS],
+                    data=user_input,
+                    options={OPTION_IS_FROM_FLOW: True}
                 )
             elif code == codes.FORBIDDEN:
                 errors["base"] = "password.not_matched"
@@ -179,17 +188,18 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+
 class MiWifiOptionsFlow(config_entries.OptionsFlow):
     """Changing options flow."""
-    
+
     _config_entry: config_entries.ConfigEntry
-    
+
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow.
 
         :param config_entry: config_entries.ConfigEntry: Config Entry object
         """
-        
+
         self._config_entry = config_entry
 
     async def async_step_init(self, user_input: ConfigType | None = None) -> FlowResult:
@@ -197,16 +207,21 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
 
         :param user_input: ConfigType | None: User data
         """
-        
+
         errors: dict[str, str] = {}
         if user_input is not None:
-            code: codes = await async_verify_access(self.hass, user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD])
+            code: codes = await async_verify_access(
+                self.hass,
+                user_input[CONF_IP_ADDRESS],
+                user_input[CONF_PASSWORD]
+            )
 
             _LOGGER.debug("Verify access code: %s", code)
 
             if codes.is_success(code):
                 return self.async_create_entry(
-                    title=user_input[CONF_IP_ADDRESS], data=user_input
+                    title=user_input[CONF_IP_ADDRESS],
+                    data=user_input
                 )
             elif code == codes.FORBIDDEN:
                 errors["base"] = "password.not_matched"
@@ -257,8 +272,12 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
             schema |= {
                 vol.Optional(
                     CONF_IS_FORCE_LOAD,
-                    default=get_config_value(self._config_entry, CONF_IS_FORCE_LOAD, False)
+                    default=get_config_value(
+                        self._config_entry,
+                        CONF_IS_FORCE_LOAD,
+                        False
+                    )
                 ): cv.boolean,
             }
-        
+
         return vol.Schema(schema)

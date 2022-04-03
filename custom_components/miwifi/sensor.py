@@ -170,6 +170,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -186,7 +187,9 @@ async def async_setup_entry(
     updater: LuciUpdater = data[UPDATER]
 
     if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
-        _LOGGER.error("Failed to initialize sensor: Missing mac address. Restart HASS.")
+        _LOGGER.error(
+            "Failed to initialize sensor: Missing mac address. Restart HASS."
+        )
 
     entities: list[MiWifiSensor] = [
         MiWifiSensor(
@@ -194,11 +197,12 @@ async def async_setup_entry(
             description,
             updater,
         )
-        for description in MIWIFI_SENSORS \
-        if description.key != ATTR_SENSOR_DEVICES_5_0_GAME or \
-           updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
+        for description in MIWIFI_SENSORS
+        if description.key != ATTR_SENSOR_DEVICES_5_0_GAME \
+           or updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
     ]
     async_add_entities(entities)
+
 
 class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
     """MiWifi binary sensor entry."""

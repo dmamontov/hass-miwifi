@@ -1,6 +1,17 @@
 """Light component."""
 
 from __future__ import annotations
+from .const import (
+    DOMAIN,
+    UPDATER,
+
+    ATTRIBUTION,
+    ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_STATE,
+
+    ATTR_LIGHT_LED,
+    ATTR_LIGHT_LED_NAME,
+)
 
 import logging
 from typing import Final, Any
@@ -23,17 +34,6 @@ from homeassistant.const import (
 
 from .updater import LuciUpdater
 from.helper import generate_entity_id
-from .const import (
-    DOMAIN,
-    UPDATER,
-
-    ATTRIBUTION,
-    ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_STATE,
-
-    ATTR_LIGHT_LED,
-    ATTR_LIGHT_LED_NAME,
-)
 
 ICONS: Final = {
     f"{ATTR_LIGHT_LED}_{STATE_ON}": "mdi:led-on",
@@ -52,6 +52,7 @@ MIWIFI_LIGHTS: tuple[LightEntityDescription, ...] = (
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -68,7 +69,9 @@ async def async_setup_entry(
     updater: LuciUpdater = data[UPDATER]
 
     if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
-        _LOGGER.error("Failed to initialize light: Missing mac address. Restart HASS.")
+        _LOGGER.error(
+            "Failed to initialize light: Missing mac address. Restart HASS."
+        )
 
     entities: list[MiWifiLight] = [
         MiWifiLight(
@@ -79,6 +82,7 @@ async def async_setup_entry(
         for description in MIWIFI_LIGHTS
     ]
     async_add_entities(entities)
+
 
 class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
     """MiWifi light entry."""
@@ -146,7 +150,11 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         self._attr_available = is_available
         self._attr_is_on = is_on
 
-        icon_name: str = "{}_{}".format(self.entity_description.key, STATE_ON if is_on else STATE_OFF)
+        icon_name: str = "{}_{}".format(
+            self.entity_description.key,
+            STATE_ON if is_on else STATE_OFF
+        )
+
         if icon_name in ICONS:
             self._attr_icon = ICONS[icon_name]
 
@@ -160,7 +168,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
 
         try:
             await self._updater.luci.led(1)
-        except:
+        except BaseException:
             pass
 
     async def _led_off(self, **kwargs: Any) -> None:
@@ -171,7 +179,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
 
         try:
             await self._updater.luci.led(0)
-        except:
+        except BaseException:
             pass
 
     async def async_turn_on(self, **kwargs: Any) -> None:
