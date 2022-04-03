@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import IntEnum, Enum
+
 from .const import (
     ATTR_SWITCH_WIFI_2_4,
     ATTR_SWITCH_WIFI_5_0,

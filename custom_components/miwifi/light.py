@@ -1,6 +1,26 @@
 """Light component."""
 
 from __future__ import annotations
+
+import logging
+from typing import Final, Any
+
+from homeassistant.components.light import (
+    ENTITY_ID_FORMAT,
+    LightEntityDescription,
+    LightEntity,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    ENTITY_CATEGORY_CONFIG,
+    STATE_ON,
+    STATE_OFF,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
 from .const import (
     DOMAIN,
     UPDATER,
@@ -10,28 +30,8 @@ from .const import (
     ATTR_LIGHT_LED,
     ATTR_LIGHT_LED_NAME,
 )
-
-import logging
-from typing import Final, Any
-
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.components.light import (
-    ENTITY_ID_FORMAT,
-    LightEntityDescription,
-    LightEntity,
-)
-from homeassistant.const import (
-    ENTITY_CATEGORY_CONFIG,
-    STATE_ON,
-    STATE_OFF,
-)
-
-from .updater import LuciUpdater
 from .helper import generate_entity_id
+from .updater import LuciUpdater
 
 ICONS: Final = {
     f"{ATTR_LIGHT_LED}_{STATE_ON}": "mdi:led-on",

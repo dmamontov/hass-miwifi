@@ -2,25 +2,23 @@
 
 from __future__ import annotations
 
-import logging
 import asyncio
-
+import logging
 from typing import Any
-from httpx import AsyncClient
 
 from homeassistant import config_entries
+from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.httpx_client import get_async_client
-from homeassistant.const import CONF_IP_ADDRESS
-
-from .luci import LuciClient
+from httpx import AsyncClient
 
 from .const import (
     DOMAIN,
     DISCOVERY,
     DISCOVERY_INTERVAL,
 )
+from .luci import LuciClient
 
 _LOGGER = logging.getLogger(__name__)
 

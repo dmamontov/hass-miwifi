@@ -5,22 +5,19 @@ from __future__ import annotations
 import logging
 import socket
 from contextlib import closing
-from typing import Any, Final
 from functools import cached_property
+from typing import Any, Final
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.components.device_tracker import ENTITY_ID_FORMAT, SOURCE_TYPE_ROUTER
+from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.components.device_tracker import ENTITY_ID_FORMAT, SOURCE_TYPE_ROUTER
-from homeassistant.components.device_tracker.config_entry import ScannerEntity
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
-from .updater import LuciUpdater
-from .helper import generate_entity_id, parse_last_activity, pretty_size
-from .enum import Connection
 from .const import (
     DOMAIN,
     UPDATER,
@@ -42,6 +39,9 @@ from .const import (
     ATTR_TRACKER_UP_SPEED,
     ATTR_TRACKER_LAST_ACTIVITY,
 )
+from .enum import Connection
+from .helper import generate_entity_id, parse_last_activity, pretty_size
+from .updater import LuciUpdater
 
 ATTR_CHANGES: Final = [
     ATTR_TRACKER_IP,

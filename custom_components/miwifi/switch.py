@@ -1,6 +1,26 @@
 """Switch component."""
 
 from __future__ import annotations
+
+import logging
+from typing import Any, Final
+
+from homeassistant.components.switch import (
+    ENTITY_ID_FORMAT,
+    SwitchEntityDescription,
+    SwitchEntity,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    ENTITY_CATEGORY_CONFIG,
+    STATE_ON,
+    STATE_OFF,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
 from .const import (
     DOMAIN,
     UPDATER,
@@ -17,28 +37,8 @@ from .const import (
     ATTR_SWITCH_WIFI_5_0_GAME,
     ATTR_SWITCH_WIFI_5_0_GAME_NAME,
 )
-
-import logging
-from typing import Any, Final
-
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.components.switch import (
-    ENTITY_ID_FORMAT,
-    SwitchEntityDescription,
-    SwitchEntity,
-)
-from homeassistant.const import (
-    ENTITY_CATEGORY_CONFIG,
-    STATE_ON,
-    STATE_OFF,
-)
-
-from .updater import LuciUpdater
 from .helper import generate_entity_id
+from .updater import LuciUpdater
 
 ICONS: Final = {
     f"{ATTR_SWITCH_WIFI_2_4}_{STATE_ON}": "mdi:wifi",

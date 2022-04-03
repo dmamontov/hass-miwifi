@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import logging
 import asyncio
+import logging
 
-from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.storage import Store
-from homeassistant.helpers import device_registry as dr
 from homeassistant.const import (
     CONF_IP_ADDRESS,
     CONF_PASSWORD,
@@ -16,10 +13,9 @@ from homeassistant.const import (
     CONF_TIMEOUT,
     EVENT_HOMEASSISTANT_STOP,
 )
-
-from .updater import LuciUpdater
-from .helper import get_config_value, get_store
-from .discovery import async_start_discovery
+from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.storage import Store
 
 from .const import (
     DOMAIN,
@@ -35,6 +31,9 @@ from .const import (
     UPDATER,
     UPDATE_LISTENER,
 )
+from .discovery import async_start_discovery
+from .helper import get_config_value, get_store
+from .updater import LuciUpdater
 
 _LOGGER = logging.getLogger(__name__)
 

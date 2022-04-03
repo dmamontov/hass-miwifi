@@ -1,6 +1,24 @@
 """Button component."""
 
 from __future__ import annotations
+
+import logging
+
+from homeassistant.components.button import (
+    ENTITY_ID_FORMAT,
+    ButtonEntityDescription,
+    ButtonEntity,
+    ButtonDeviceClass,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    ENTITY_CATEGORY_CONFIG,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
 from .const import (
     DOMAIN,
     UPDATER,
@@ -10,26 +28,8 @@ from .const import (
     ATTR_BUTTON_REBOOT,
     ATTR_BUTTON_REBOOT_NAME,
 )
-
-import logging
-
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.components.button import (
-    ENTITY_ID_FORMAT,
-    ButtonEntityDescription,
-    ButtonEntity,
-    ButtonDeviceClass,
-)
-from homeassistant.const import (
-    ENTITY_CATEGORY_CONFIG,
-)
-
-from .updater import LuciUpdater
 from .helper import generate_entity_id
+from .updater import LuciUpdater
 
 MIWIFI_BUTTONS: tuple[ButtonEntityDescription, ...] = (
     ButtonEntityDescription(

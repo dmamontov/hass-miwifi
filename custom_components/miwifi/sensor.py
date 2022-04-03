@@ -3,14 +3,9 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Final
 from enum import Enum
+from typing import Any, Final
 
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,
     SensorEntityDescription,
@@ -18,16 +13,18 @@ from homeassistant.components.sensor import (
     SensorStateClass,
     SensorEntity,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ENTITY_CATEGORY_DIAGNOSTIC,
-    ENTITY_CATEGORY_SYSTEM,
     PERCENTAGE,
     DATA_MEGABYTES,
     TEMP_CELSIUS,
 )
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .updater import LuciUpdater
-from .helper import generate_entity_id
 from .const import (
     DOMAIN,
     UPDATER,
@@ -58,6 +55,8 @@ from .const import (
     ATTR_SENSOR_DEVICES_5_0_GAME,
     ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
 )
+from .helper import generate_entity_id
+from .updater import LuciUpdater
 
 PCS: Final = "pcs"
 

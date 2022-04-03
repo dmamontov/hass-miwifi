@@ -1,6 +1,27 @@
 """Binary sensor component."""
 
 from __future__ import annotations
+
+import logging
+from typing import Final
+
+from homeassistant.components.binary_sensor import (
+    ENTITY_ID_FORMAT,
+    BinarySensorEntityDescription,
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    ENTITY_CATEGORY_DIAGNOSTIC,
+    STATE_ON,
+    STATE_OFF,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
 from .const import (
     DOMAIN,
     UPDATER,
@@ -13,29 +34,8 @@ from .const import (
     ATTR_BINARY_SENSOR_DUAL_BAND,
     ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
 )
-
-import logging
-from typing import Final
-
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.components.binary_sensor import (
-    ENTITY_ID_FORMAT,
-    BinarySensorEntityDescription,
-    BinarySensorDeviceClass,
-    BinarySensorEntity,
-)
-from homeassistant.const import (
-    ENTITY_CATEGORY_DIAGNOSTIC,
-    STATE_ON,
-    STATE_OFF,
-)
-
-from .updater import LuciUpdater
 from .helper import generate_entity_id
+from .updater import LuciUpdater
 
 ICONS: Final = {
     f"{ATTR_STATE}_{STATE_ON}": "mdi:router-wireless",

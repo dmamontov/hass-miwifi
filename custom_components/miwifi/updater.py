@@ -2,34 +2,25 @@
 
 from __future__ import annotations
 
-import logging
 import asyncio
+import logging
 import os
-from typing import Final
-
-from httpx import codes
 from datetime import datetime, timedelta
 from functools import cached_property
-from homeassistant.core import HomeAssistant, CALLBACK_TYPE
-from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.httpx_client import get_async_client
-from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.storage import Store
-from homeassistant.helpers import event
-from homeassistant.util import utcnow
-from homeassistant.const import CONF_IP_ADDRESS
-from homeassistant.util import json
+from typing import Final
 
-from .luci import LuciClient
-from .exceptions import LuciConnectionException, LuciTokenException
-from .enum import (
-    Mode,
-    Connection,
-    IfName,
-    DeviceAction,
-)
+from homeassistant.const import CONF_IP_ADDRESS
+from homeassistant.core import HomeAssistant, CALLBACK_TYPE
+from homeassistant.helpers import event
+from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.httpx_client import get_async_client
+from homeassistant.helpers.storage import Store
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.util import json
+from homeassistant.util import utcnow
+from httpx import codes
 
 from .const import (
     DOMAIN,
@@ -76,6 +67,14 @@ from .const import (
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
 )
+from .enum import (
+    Mode,
+    Connection,
+    IfName,
+    DeviceAction,
+)
+from .exceptions import LuciConnectionException, LuciTokenException
+from .luci import LuciClient
 
 PREPARE_METHODS: Final = [
     "init",

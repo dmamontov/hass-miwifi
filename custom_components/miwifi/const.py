@@ -1,8 +1,8 @@
 """General constants."""
 from __future__ import annotations
 
-from typing import Final
 from datetime import timedelta
+from typing import Final
 
 from homeassistant.const import Platform
 

@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 import math
-from httpx import codes
+from datetime import datetime
 from typing import Any
 
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
-from homeassistant.loader import async_get_integration
-from homeassistant.util import slugify
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
+from homeassistant.loader import async_get_integration
+from homeassistant.util import slugify
+from httpx import codes
 
-from .updater import LuciUpdater
 from .const import DOMAIN, STORAGE_VERSION
+from .updater import LuciUpdater
 
 
 def get_config_value(
