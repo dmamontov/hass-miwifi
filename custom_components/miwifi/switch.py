@@ -1,132 +1,300 @@
+"""Switch component."""
+
+from __future__ import annotations
+
 import logging
+from typing import Any, Final
 
-import homeassistant.helpers.device_registry as dr
-
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.components.switch import ENTITY_ID_FORMAT, SwitchEntity
+from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ENTITY_CATEGORY_DIAGNOSTIC
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.components.switch import (
+    ENTITY_ID_FORMAT,
+    SwitchEntityDescription,
+    SwitchEntity,
+    SwitchDeviceClass
+)
+from homeassistant.const import (
+    ENTITY_CATEGORY_CONFIG,
+    STATE_ON,
+    STATE_OFF,
+)
 
-from .core.util import _generate_entity_id
-from .core.const import DATA_UPDATED, DOMAIN, SWITCHS
-from .core.luci_data import LuciData
+from .updater import LuciUpdater
+from.helper import generate_entity_id
+from .const import (
+    DOMAIN,
+    UPDATER,
+
+    ATTRIBUTION,
+    ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_STATE,
+
+    ATTR_BINARY_SENSOR_DUAL_BAND,
+
+    ATTR_WIFI_NAME,
+    ATTR_WIFI_ADAPTER_LENGTH,
+
+    ATTR_SWITCH_WIFI_2_4,
+    ATTR_SWITCH_WIFI_2_4_NAME,
+
+    ATTR_SWITCH_WIFI_5_0,
+    ATTR_SWITCH_WIFI_5_0_NAME,
+
+    ATTR_SWITCH_WIFI_5_0_GAME,
+    ATTR_SWITCH_WIFI_5_0_GAME_NAME,
+)
+
+ICONS: Final = {
+    f"{ATTR_SWITCH_WIFI_2_4}_{STATE_ON}": "mdi:wifi",
+    f"{ATTR_SWITCH_WIFI_2_4}_{STATE_OFF}": "mdi:wifi-off",
+    f"{ATTR_SWITCH_WIFI_5_0}_{STATE_ON}": "mdi:wifi",
+    f"{ATTR_SWITCH_WIFI_5_0}_{STATE_OFF}": "mdi:wifi-off",
+    f"{ATTR_SWITCH_WIFI_5_0_GAME}_{STATE_ON}": "mdi:wifi",
+    f"{ATTR_SWITCH_WIFI_5_0_GAME}_{STATE_OFF}": "mdi:wifi-off",
+}
+
+MIWIFI_SWITCHS: tuple[SwitchEntityDescription, ...] = (
+    SwitchEntityDescription(
+        key=ATTR_SWITCH_WIFI_2_4,
+        name=ATTR_SWITCH_WIFI_2_4_NAME,
+        icon=ICONS[f"{ATTR_SWITCH_WIFI_2_4}_{STATE_ON}"],
+        entity_category=ENTITY_CATEGORY_CONFIG,
+        entity_registry_enabled_default=True,
+    ),
+    SwitchEntityDescription(
+        key=ATTR_SWITCH_WIFI_5_0,
+        name=ATTR_SWITCH_WIFI_5_0_NAME,
+        icon=ICONS[f"{ATTR_SWITCH_WIFI_5_0}_{STATE_ON}"],
+        entity_category=ENTITY_CATEGORY_CONFIG,
+        entity_registry_enabled_default=True,
+    ),
+    SwitchEntityDescription(
+        key=ATTR_SWITCH_WIFI_5_0_GAME,
+        name=ATTR_SWITCH_WIFI_5_0_GAME_NAME,
+        icon=ICONS[f"{ATTR_SWITCH_WIFI_5_0_GAME}_{STATE_ON}"],
+        entity_category=ENTITY_CATEGORY_CONFIG,
+        entity_registry_enabled_default=True,
+    ),
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities) -> None:
-    luci = hass.data[DOMAIN][config_entry.entry_id]
-    switchs = []
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up MiWifi switch entry.
 
-    for switch, data in SWITCHS.items():
-        switchs.append(MiWiFiSwitch(hass, luci, switch, data))
+    :param hass: HomeAssistant: Home Assistant object
+    :param config_entry: ConfigEntry: ConfigEntry object
+    :param async_add_entities: AddEntitiesCallback: AddEntitiesCallback callback object
+    """
 
-    async_add_entities(switchs, True)
+    data: dict = hass.data[DOMAIN][config_entry.entry_id]
+    updater: LuciUpdater = data[UPDATER]
 
-class MiWiFiSwitch(SwitchEntity):
-    def __init__(self, hass: HomeAssistant, luci: LuciData, code: str, data: dict) -> None:
-        self.hass = hass
-        self.luci = luci
-        self.unsub_update = None
+    if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
+        _LOGGER.error("Failed to initialize switch: Missing mac address. Restart HASS.")
 
-        self._code = code
-        self._data = data
-        self._state = False
-        self._is_block = False
-        self._attr_entity_category = ENTITY_CATEGORY_DIAGNOSTIC
+    entities: list[MiWifiSwitch] = [
+        MiWifiSwitch(
+            f"{config_entry.unique_id}-{description.key}",
+            description,
+            updater,
+        )
+        for description in MIWIFI_SWITCHS \
+        if description.key != ATTR_SWITCH_WIFI_5_0_GAME or \
+           updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
+    ]
+    async_add_entities(entities)
 
-        self.entity_id = _generate_entity_id(
+class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
+    """MiWifi switch entry."""
+
+    _attr_attribution: str = ATTRIBUTION
+
+    def __init__(
+        self,
+        unique_id: str,
+        description: SwitchEntityDescription,
+        updater: LuciUpdater,
+    ) -> None:
+        """Initialize switch.
+
+        :param unique_id: str: Unique ID
+        :param description: SwitchEntityDescription: SwitchEntityDescription object
+        :param updater: LuciUpdater: Luci updater object
+        """
+
+        CoordinatorEntity.__init__(self, coordinator=updater)
+        RestoreEntity.__init__(self)
+
+        self.entity_description = description
+        self._updater: LuciUpdater = updater
+
+        self.entity_id = generate_entity_id(
             ENTITY_ID_FORMAT,
-            "{}_{}".format(luci.api.device_data["name"], code)
+            updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
+            description.name
         )
 
-    @property
-    def name(self) -> str:
-        return self._data["name"]
+        self._attr_name = description.name
+        self._attr_unique_id = unique_id
 
-    @property
-    def unique_id(self) -> str:
-        return self.entity_id
+        self._attr_device_info = updater.device_info
 
-    @property
-    def icon(self) -> str:
-        return self._data["icon_on"] if self._state else self._data["icon_off"]
+        self._attr_is_on = updater.data.get(description.key, False)
 
-    @property
-    def available(self) -> bool:
-        if "skip_available" in self._data and self._data["skip_available"]:
-            return True
-
-        return self.luci.available
-
-    @property
-    def device_info(self) -> dict:
-        return {"connections": {(dr.CONNECTION_NETWORK_MAC, self.luci.api.device_data["mac"])}}
-
-    @property
-    def is_on(self) -> bool:
-        return self._state
-
-    @property
-    def should_poll(self) -> bool:
-        return False
+        self._additional_prepare()
 
     async def async_added_to_hass(self) -> None:
-        self.unsub_update = async_dispatcher_connect(
-            self.hass, DATA_UPDATED, self._schedule_immediate_update
+        """When entity is added to hass."""
+
+        await RestoreEntity.async_added_to_hass(self)
+        await CoordinatorEntity.async_added_to_hass(self)
+
+        state = await self.async_get_last_state()
+        if not state:
+            return
+
+        self._attr_is_on = state.state == STATE_ON
+
+        self.async_write_ha_state()
+
+    def _handle_coordinator_update(self) -> None:
+        """Update state."""
+
+        is_available: bool = self._updater.data.get(ATTR_STATE, False)
+        is_on: bool = self._updater.data.get(
+            self.entity_description.key, False
         )
 
-    @callback
-    def _schedule_immediate_update(self) -> None:
-        if self._update():
-            self.async_schedule_update_ha_state(True)
+        self._additional_prepare()
 
-    async def will_remove_from_hass(self) -> None:
-        if self.unsub_update:
-            self.unsub_update()
+        if self._attr_is_on == is_on and self._attr_available == is_available:
+            return
 
-        self.unsub_update = None
+        self._attr_available = is_available
+        self._attr_is_on = is_on
 
-    def _update(self) -> bool:
-        if self._is_block:
-            self._is_block = False
+        icon_name: str = "{}_{}".format(self.entity_description.key, STATE_ON if is_on else STATE_OFF)
+        if icon_name in ICONS:
+            self._attr_icon = ICONS[icon_name]
 
-            return False
+        self.async_write_ha_state()
+
+    async def _wifi_2_4_on(self, **kwargs: Any) -> None:
+        """Wifi 2.4G on action
+
+        :param kwargs: Any: Any arguments
+        """
+
+        await self._async_wifi_turn_on(1)
+
+    async def _wifi_2_4_off(self, **kwargs: Any) -> None:
+        """Wifi 2.4G off action
+
+        :param kwargs: Any: Any arguments
+        """
+
+        await self._async_wifi_turn_off(2)
+
+    async def _wifi_5_0_on(self, **kwargs: Any) -> None:
+        """Wifi 5G on action
+
+        :param kwargs: Any: Any arguments
+        """
+
+        await self._async_wifi_turn_on(2)
+
+    async def _wifi_5_0_off(self, **kwargs: Any) -> None:
+        """Wifi 5G off action
+
+        :param kwargs: Any: Any arguments
+        """
+
+        await self._async_wifi_turn_off(2)
+
+    async def _wifi_5_0_game_on(self, **kwargs: Any) -> None:
+        """Wifi 5G Game on action
+
+        :param kwargs: Any: Any arguments
+        """
+
+        await self._async_wifi_turn_on(3)
+
+    async def _wifi_5_0_game_off(self, **kwargs: Any) -> None:
+        """Wifi 5G game off action
+
+        :param kwargs: Any: Any arguments
+        """
+
+        await self._async_wifi_turn_off(3)
+
+    async def _async_wifi_turn_on(self, index: int) -> None:
+        """Turn on wifi with index
+
+        :param index: int: Wifi device index
+        """
 
         try:
-            if self._state == self.luci.api.data["switch"][self._code]:
-                return False
-
-            self._state = self.luci.api.data["switch"][self._code]
-        except KeyError:
-            self._state = False
-
-        return True
-
-    async def reboot(self) -> None:
-        try:
-            await self.luci.api.reboot()
+            await self._updater.luci.wifi_turn_on(index)
         except:
-            self._state = True
+            pass
 
-        self._state = True
+    async def _async_wifi_turn_off(self, index: int) -> None:
+        """Turn off wifi with index
 
-    async def async_turn_on(self, **kwargs) -> None:
-        action = getattr(self, self._data["action_on"])
+        :param index: int: Wifi device index
+        """
 
-        await action()
+        try:
+            await self._updater.luci.wifi_turn_off(index)
+        except:
+            pass
 
-        self.async_schedule_update_ha_state(True)
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn on action
 
-        if self._data["blocked"]:
-            self._is_block = True
+        :param kwargs: Any: Any arguments
+        """
 
-    async def async_turn_off(self, **kwargs) -> None:
-        action = getattr(self, self._data["action_off"])
+        await self._async_call(f"_{self.entity_description.key}_{STATE_ON}", STATE_ON, **kwargs)
 
-        await action()
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn off action
 
-        self.async_schedule_update_ha_state(True)
+        :param kwargs: Any: Any arguments
+        """
 
-        if self._data["blocked"]:
-            self._is_block = True
+        await self._async_call(f"_{self.entity_description.key}_{STATE_OFF}", STATE_OFF, **kwargs)
+
+    async def _async_call(self, method: str, state: str, **kwargs: Any) -> None:
+        """Async turn action
+
+        :param method: str: Call method
+        :param state: str: Call state
+        :param kwargs: Any: Any arguments
+        """
+
+        action = getattr(self, method)
+
+        if action:
+            await action(**kwargs)
+
+            self._updater.data[self.entity_description.key] = state == STATE_ON
+
+    def _additional_prepare(self) -> None:
+        """Prepare wifi switch"""
+        
+        if self._updater.data.get(ATTR_BINARY_SENSOR_DUAL_BAND, False):
+            if self.entity_description.key in [ATTR_SWITCH_WIFI_5_0, ATTR_SWITCH_WIFI_5_0_GAME]:
+                self._attr_entity_registry_enabled_default = False
+                self._attr_available = False
+
+            if self.entity_description.key == ATTR_SWITCH_WIFI_2_4:
+                self._attr_name = ATTR_WIFI_NAME

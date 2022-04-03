@@ -1,42 +1,40 @@
 {
+  "title": "MiWifi",
   "config": {
-    "abort": {
-      "updated": "Data is updated, restart Home Assistant"
-    },
     "error": {
       "ip_address.not_matched": "Invalid IP",
       "password.not_matched": "Invalid password",
       "connection": "Failed to establish connection"
     },
     "step": {
-      "auth": {
+      "discovery_confirm": {
+        "title": "MiWiFi settings",
         "description": "Enter the IP address and password from your MiWiFi router",
         "data": {
           "ip_address": "IP address",
-          "password": "Password"
+          "password": "Password",
+          "scan_interval": "Scan interval in seconds"
         }
       }
     }
   },
   "options": {
-    "abort": {
-      "updated": "Data is updated, restart Home Assistant"
-    },
     "error": {
       "ip_address.not_matched": "Invalid IP",
       "password.not_matched": "Invalid password",
       "connection": "Failed to establish connection"
     },
     "step": {
-      "settings": {
+      "init": {
+        "title": "MiWiFi settings",
         "description": "Enter the IP address and password from your MiWiFi router",
         "data": {
           "ip_address": "IP address",
           "password": "Password",
-          "scan_interval": "Scan interval in seconds [PRO]",
+          "scan_interval": "Scan interval in seconds",
+          "activity_days": "Allowed number of days to wait after the last activity [PRO]",
           "timeout": "Timeout of requests in seconds [PRO]",
-          "force_load_repeater_devices": "Forced booting of devices in repeater mode [PRO]",
-          "last_activity_days": "Allowed number of days to wait after the last activity [PRO]"
+          "is_force_load": "Forced booting of devices in repeater mode [PRO]"
         }
       }
     }

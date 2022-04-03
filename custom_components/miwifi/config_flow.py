@@ -1,130 +1,264 @@
-import logging
-import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
+"""Configuration flows."""
 
+from __future__ import annotations
+
+import logging
+
+from httpx import codes
+import voluptuous as vol
+
+import homeassistant.helpers.config_validation as cv
+from homeassistant import config_entries
 from homeassistant.core import callback
-from homeassistant.config_entries import ConfigFlow, OptionsFlow, ConfigEntry
+from homeassistant.components import dhcp, ssdp
+from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.const import (
     CONF_IP_ADDRESS,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
     CONF_TIMEOUT
 )
-from homeassistant.helpers.httpx_client import get_async_client
 
-from .core.const import (
+from .discovery import async_start_discovery
+from .helper import get_config_value, async_verify_access, async_user_documentation_url
+from .const import (
     DOMAIN,
-    CONF_LAST_ACTIVITY_DAYS,
-    CONF_FORCE_LOAD_REPEATER_DEVICES,
-    SCAN_INTERVAL,
+    UPDATER,
+    CONF_IS_FORCE_LOAD,
+    CONF_ACTIVITY_DAYS,
+    OPTION_IS_FROM_FLOW,
+    DEFAULT_SCAN_INTERVAL,
     DEFAULT_TIMEOUT,
-    DEFAULT_LAST_ACTIVITY_DAYS
+    DEFAULT_ACTIVITY_DAYS,
 )
-
-from .core import exceptions
-from .core.luci import Luci
 
 _LOGGER = logging.getLogger(__name__)
 
-AUTH_SCHEMA = vol.Schema({
-    vol.Required(CONF_IP_ADDRESS): str,
-    vol.Required(CONF_PASSWORD): str
-})
+class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """First time set up flow."""
 
-class MiWifiFlowHandler(ConfigFlow, domain = DOMAIN):
-    async def async_step_import(self, data: dict):
-        await self.async_set_unique_id(data[CONF_IP_ADDRESS])
-        self._abort_if_unique_id_configured()
-
-        return self.async_create_entry(title = data[CONF_IP_ADDRESS], data = data)
-
-    async def async_step_user(self, user_input = None):
-        return self.async_show_form(step_id = 'auth', data_schema = AUTH_SCHEMA)
-
-    async def async_step_auth(self, user_input):
-        if user_input is None:
-            return self.cur_step
-
-        client = Luci(self.hass, get_async_client(self.hass, False), user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD])
-
-        try:
-            await client.login()
-        except exceptions.LuciConnectionError as e:
-            return await self._prepare_error('ip_address.not_matched', e)
-        except exceptions.LuciTokenError as e:
-            return await self._prepare_error('password.not_matched', e)
-
-        entry = await self.async_set_unique_id(user_input[CONF_IP_ADDRESS])
-
-        if entry:
-            self.hass.config_entries.async_update_entry(entry, data = user_input)
-
-            return self.async_abort(reason = 'account_updated')
-
-        return self.async_create_entry(title = user_input[CONF_IP_ADDRESS], data = user_input)
+    _discovered_device: ConfigType | None = None
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
-        return OptionsFlowHandler(config_entry)
+    def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> MiWifiOptionsFlow:
+        """Get the options flow for this handler.
 
-    async def _prepare_error(self, code: str, err):
-        _LOGGER.error("Error setting up MiWiFi API: %r", err)
+        :param config_entry: config_entries.ConfigEntry: Config Entry object
+        :return MiWifiOptionsFlow: Options Flow object
+        """
+
+        return MiWifiOptionsFlow(config_entry)
+
+    async def async_step_ssdp(self, discovery_info: ssdp.SsdpServiceInfo) -> FlowResult:
+        """Handle discovery via ssdp.
+
+        :param discovery_info: ssdp.SsdpServiceInfo: Ssdp Service Info object
+        :return FlowResult: Result object
+        """
+
+        _LOGGER.debug("Starting discovery via ssdp: %s", discovery_info)
+
+        return await self._async_discovery_handoff()
+
+    async def async_step_dhcp(self, discovery_info: dhcp.DhcpServiceInfo) -> FlowResult:
+        """Handle discovery via dhcp.
+
+        :param discovery_info: dhcp.DhcpServiceInfo: Dhcp Service Info object
+        :return FlowResult: Result object
+        """
+
+        _LOGGER.debug("Starting discovery via dhcp: %s", discovery_info)
+
+        return await self._async_discovery_handoff()
+
+    async def _async_discovery_handoff(self) -> FlowResult:
+        """Ensure discovery is active.
+
+        :return FlowResult: Result object
+        """
+        # Discovery requires an additional check so we use
+        # SSDP and DHCP to tell us to start it so it only
+        # runs on networks where miwifi devices are present.
+
+        async_start_discovery(self.hass)
+
+        return self.async_abort(reason="discovery_started")
+
+    async def async_step_integration_discovery(self, discovery_info: DiscoveryInfoType) -> FlowResult:
+        """Handle discovery via integration.
+
+        :param discovery_info: DiscoveryInfoType: Discovery Info object
+        :return FlowResult: Result object
+        """
+
+        await self.async_set_unique_id(discovery_info[CONF_IP_ADDRESS])
+        self._abort_if_unique_id_configured()
+
+        self._discovered_device = discovery_info
+
+        return await self.async_step_discovery_confirm()
+
+    async def async_step_user(
+            self,
+            user_input: ConfigType | None = None,
+            errors: dict[str, str] | None = None
+    ) -> FlowResult:
+        """Handle a flow initialized by the user.
+
+        :param user_input: ConfigType | None: User data
+        :param errors: dict | None: Errors list
+        :return FlowResult: Result object
+        """
+
+        if errors is None:
+            errors = {}
 
         return self.async_show_form(
-            step_id = 'auth',
-            data_schema = AUTH_SCHEMA,
-            errors = {'base': code}
+            step_id='discovery_confirm',
+            data_schema=vol.Schema({
+                vol.Required(CONF_IP_ADDRESS): str,
+                vol.Required(CONF_PASSWORD): str,
+                vol.Required(
+                    CONF_SCAN_INTERVAL,
+                    default=DEFAULT_SCAN_INTERVAL
+                ): vol.All(vol.Coerce(int), vol.Range(min=10))
+            }),
+            errors=errors
         )
 
-class OptionsFlowHandler(OptionsFlow):
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        self.config_entry = config_entry
+    async def async_step_discovery_confirm(self, user_input: ConfigType | None = None) -> FlowResult:
+        """Handle a flow initialized by discovery.
 
-    async def async_step_init(self, user_input = None):
-        return await self.async_step_settings()
+        :param user_input: ConfigType | None: User data
+        :return FlowResult: Result object
+        """
 
-    async def async_step_settings(self, user_input = None):
-        options_schema = vol.Schema({
-            vol.Required(CONF_IP_ADDRESS, default = self.config_entry.options.get(CONF_IP_ADDRESS, "")): str,
-            vol.Required(CONF_PASSWORD, default = self.config_entry.options.get(CONF_PASSWORD, "")): str,
-            vol.Optional(
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            code: codes = await async_verify_access(self.hass, user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD])
+
+            _LOGGER.debug("Verify access code: %s", code)
+
+            if codes.is_success(code):
+                return self.async_create_entry(
+                    title=user_input[CONF_IP_ADDRESS], data=user_input, options={OPTION_IS_FROM_FLOW: True}
+                )
+            elif code == codes.FORBIDDEN:
+                errors["base"] = "password.not_matched"
+            else:
+                errors["base"] = "ip_address.not_matched"
+
+        if self._discovered_device is None:
+            return await self.async_step_user(user_input, errors)
+
+        ip: str = self._discovered_device[CONF_IP_ADDRESS]
+
+        placeholders: dict[str, str] = {
+            "name": ip,
+            "ip_address": ip,
+        }
+        self.context["title_placeholders"] = placeholders
+
+        return self.async_show_form(
+            step_id="discovery_confirm",
+            description_placeholders={
+                **placeholders,
+                "local_user_documentation_url": await async_user_documentation_url(self.hass),
+            },
+            data_schema=vol.Schema({
+                vol.Required(CONF_IP_ADDRESS, default=ip): str,
+                vol.Required(CONF_PASSWORD): str,
+                vol.Required(
+                    CONF_SCAN_INTERVAL,
+                    default=DEFAULT_SCAN_INTERVAL
+                ): vol.All(vol.Coerce(int), vol.Range(min=10))
+            }),
+            errors=errors,
+        )
+
+class MiWifiOptionsFlow(config_entries.OptionsFlow):
+    """Changing options flow."""
+    
+    _config_entry: config_entries.ConfigEntry
+    
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow.
+
+        :param config_entry: config_entries.ConfigEntry: Config Entry object
+        """
+        
+        self._config_entry = config_entry
+
+    async def async_step_init(self, user_input: ConfigType | None = None) -> FlowResult:
+        """Manage the options.
+
+        :param user_input: ConfigType | None: User data
+        """
+        
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            code: codes = await async_verify_access(self.hass, user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD])
+
+            _LOGGER.debug("Verify access code: %s", code)
+
+            if codes.is_success(code):
+                return self.async_create_entry(
+                    title=user_input[CONF_IP_ADDRESS], data=user_input
+                )
+            elif code == codes.FORBIDDEN:
+                errors["base"] = "password.not_matched"
+            else:
+                errors["base"] = "ip_address.not_matched"
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=self._get_options_schema(),
+            errors=errors
+        )
+
+    def _get_options_schema(self) -> vol.Schema:
+        """Options schema.
+
+        :return vol.Schema: Options schema
+        """
+
+        schema: dict = {
+            vol.Required(
+                CONF_IP_ADDRESS,
+                default=get_config_value(self._config_entry, CONF_IP_ADDRESS, "")
+            ): str,
+            vol.Required(
+                CONF_PASSWORD,
+                default=get_config_value(self._config_entry, CONF_PASSWORD, "")
+            ): str,
+            vol.Required(
                 CONF_SCAN_INTERVAL,
-                default = self.config_entry.options.get(CONF_SCAN_INTERVAL, SCAN_INTERVAL)
+                default=get_config_value(self._config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+            vol.Optional(
+                CONF_ACTIVITY_DAYS,
+                default=get_config_value(self._config_entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS)
             ): cv.positive_int,
             vol.Optional(
                 CONF_TIMEOUT,
-                default = self.config_entry.options.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
-            ): cv.positive_int,
-            vol.Optional(
-                CONF_LAST_ACTIVITY_DAYS,
-                default = self.config_entry.options.get(CONF_LAST_ACTIVITY_DAYS, DEFAULT_LAST_ACTIVITY_DAYS)
-            ): cv.positive_int,
-            vol.Optional(
-                CONF_FORCE_LOAD_REPEATER_DEVICES,
-                default = self.config_entry.options.get(CONF_FORCE_LOAD_REPEATER_DEVICES, False)
-            ): cv.boolean,
-        })
+                default=get_config_value(self._config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT)
+            ): vol.All(vol.Coerce(int), vol.Range(min=5))
+        }
 
-        if user_input:
-            client = Luci(self.hass, get_async_client(self.hass, False), user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD])
-
-            try:
-                await client.login()
-            except exceptions.LuciConnectionError as e:
-                return await self._prepare_error('ip_address.not_matched', e, options_schema)
-            except exceptions.LuciTokenError as e:
-                return await self._prepare_error('password.not_matched', e, options_schema)
-
-            return self.async_create_entry(title = '', data = user_input)
-
-        return self.async_show_form(step_id = "settings", data_schema = options_schema)
-
-    async def _prepare_error(self, code: str, err, options_schema):
-        _LOGGER.error("Error setting up MiWiFi API: %r", err)
-
-        return self.async_show_form(
-            step_id = 'settings',
-            data_schema = options_schema,
-            errors = {'base': code}
-        )
+        if (
+            DOMAIN not in self.hass.data
+            or self._config_entry.entry_id not in self.hass.data[DOMAIN]
+            or UPDATER not in self.hass.data[DOMAIN][self._config_entry.entry_id]
+            or self.hass.data[DOMAIN][self._config_entry.entry_id][UPDATER].is_repeater
+        ):
+            schema |= {
+                vol.Optional(
+                    CONF_IS_FORCE_LOAD,
+                    default=get_config_value(self._config_entry, CONF_IS_FORCE_LOAD, False)
+                ): cv.boolean,
+            }
+        
+        return vol.Schema(schema)

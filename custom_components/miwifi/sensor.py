@@ -1,105 +1,270 @@
+"""Sensor component."""
+
+from __future__ import annotations
+
 import logging
+from typing import Any, Final
+from enum import Enum
 
-import homeassistant.helpers.device_registry as dr
-
-from typing import Optional
-
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.components.sensor import ENTITY_ID_FORMAT
+from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.components.sensor import (
+    ENTITY_ID_FORMAT,
+    SensorEntityDescription,
+    SensorDeviceClass,
+    SensorStateClass,
+    SensorEntity
+)
+from homeassistant.const import (
+    ENTITY_CATEGORY_DIAGNOSTIC,
+    ENTITY_CATEGORY_SYSTEM,
+    PERCENTAGE,
+    DATA_MEGABYTES,
+    TEMP_CELSIUS,
+)
 
-from .core.util import _generate_entity_id
-from .core.const import DATA_UPDATED, DOMAIN, SENSORS
-from .core.luci_data import LuciData
+from .updater import LuciUpdater
+from .helper import generate_entity_id
+from .const import (
+    DOMAIN,
+    UPDATER,
+
+    ATTRIBUTION,
+    ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_STATE,
+
+    ATTR_WIFI_ADAPTER_LENGTH,
+
+    ATTR_SENSOR_UPTIME,
+    ATTR_SENSOR_UPTIME_NAME,
+
+    ATTR_SENSOR_MEMORY_USAGE,
+    ATTR_SENSOR_MEMORY_USAGE_NAME,
+
+    ATTR_SENSOR_MEMORY_TOTAL,
+    ATTR_SENSOR_MEMORY_TOTAL_NAME,
+
+    ATTR_SENSOR_TEMPERATURE,
+    ATTR_SENSOR_TEMPERATURE_NAME,
+
+    ATTR_SENSOR_MODE,
+    ATTR_SENSOR_MODE_NAME,
+
+    ATTR_SENSOR_DEVICES,
+    ATTR_SENSOR_DEVICES_NAME,
+
+    ATTR_SENSOR_DEVICES_LAN,
+    ATTR_SENSOR_DEVICES_LAN_NAME,
+
+    ATTR_SENSOR_DEVICES_GUEST,
+    ATTR_SENSOR_DEVICES_GUEST_NAME,
+
+    ATTR_SENSOR_DEVICES_2_4,
+    ATTR_SENSOR_DEVICES_2_4_NAME,
+
+    ATTR_SENSOR_DEVICES_5_0,
+    ATTR_SENSOR_DEVICES_5_0_NAME,
+
+    ATTR_SENSOR_DEVICES_5_0_GAME,
+    ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
+)
+
+PCS: Final = "pcs"
+
+MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
+    SensorEntityDescription(
+        key=ATTR_SENSOR_UPTIME,
+        name=ATTR_SENSOR_UPTIME_NAME,
+        icon="mdi:timer-sand",
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_MEMORY_USAGE,
+        name=ATTR_SENSOR_MEMORY_USAGE_NAME,
+        icon="mdi:memory",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_MEMORY_TOTAL,
+        name=ATTR_SENSOR_MEMORY_TOTAL_NAME,
+        icon="mdi:memory",
+        native_unit_of_measurement=DATA_MEGABYTES,
+        state_class=SensorStateClass.TOTAL,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_TEMPERATURE,
+        name=ATTR_SENSOR_TEMPERATURE_NAME,
+        icon="mdi:timer-sand",
+        native_unit_of_measurement=TEMP_CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_MODE,
+        name=ATTR_SENSOR_MODE_NAME,
+        icon="mdi:transit-connection-variant",
+        state_class=SensorStateClass.TOTAL,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_registry_enabled_default=True,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_DEVICES,
+        name=ATTR_SENSOR_DEVICES_NAME,
+        icon="mdi:counter",
+        native_unit_of_measurement=PCS,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_registry_enabled_default=True,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_DEVICES_LAN,
+        name=ATTR_SENSOR_DEVICES_LAN_NAME,
+        icon="mdi:counter",
+        native_unit_of_measurement=PCS,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_DEVICES_GUEST,
+        name=ATTR_SENSOR_DEVICES_GUEST_NAME,
+        icon="mdi:counter",
+        native_unit_of_measurement=PCS,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_DEVICES_2_4,
+        name=ATTR_SENSOR_DEVICES_2_4_NAME,
+        icon="mdi:counter",
+        native_unit_of_measurement=PCS,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_DEVICES_5_0,
+        name=ATTR_SENSOR_DEVICES_5_0_NAME,
+        icon="mdi:counter",
+        native_unit_of_measurement=PCS,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_DEVICES_5_0_GAME,
+        name=ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
+        icon="mdi:counter",
+        native_unit_of_measurement=PCS,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_registry_enabled_default=False,
+    ),
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities) -> None:
-    luci = hass.data[DOMAIN][config_entry.entry_id]
-    sensors = []
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up MiWifi sensor entry.
 
-    for sensor, data in SENSORS.items():
-        if sensor in luci.api.data["sensor"]:
-            sensors.append(MiWiFiSensor(hass, luci, sensor, data))
+    :param hass: HomeAssistant: Home Assistant object
+    :param config_entry: ConfigEntry: ConfigEntry object
+    :param async_add_entities: AddEntitiesCallback: AddEntitiesCallback callback object
+    """
 
-    async_add_entities(sensors, True)
+    data: dict = hass.data[DOMAIN][config_entry.entry_id]
+    updater: LuciUpdater = data[UPDATER]
 
-class MiWiFiSensor(Entity):
-    def __init__(self, hass: HomeAssistant, luci: LuciData, code: str, data: dict) -> None:
-        self.hass = hass
-        self.luci = luci
-        self.unsub_update = None
+    if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
+        _LOGGER.error("Failed to initialize sensor: Missing mac address. Restart HASS.")
 
-        self._code = code
-        self._data = data
-        self._state = None
+    entities: list[MiWifiSensor] = [
+        MiWifiSensor(
+            f"{config_entry.unique_id}-{description.key}",
+            description,
+            updater,
+        )
+        for description in MIWIFI_SENSORS \
+        if description.key != ATTR_SENSOR_DEVICES_5_0_GAME or \
+           updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
+    ]
+    async_add_entities(entities)
 
-        self.entity_id = _generate_entity_id(
+class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
+    """MiWifi binary sensor entry."""
+
+    _attr_attribution: str = ATTRIBUTION
+
+    def __init__(
+        self,
+        unique_id: str,
+        description: SensorEntityDescription,
+        updater: LuciUpdater,
+    ) -> None:
+        """Initialize sensor.
+
+        :param unique_id: str: Unique ID
+        :param description: SensorEntityDescription: SensorEntityDescription object
+        :param updater: LuciUpdater: Luci updater object
+        """
+
+        CoordinatorEntity.__init__(self, coordinator=updater)
+        RestoreEntity.__init__(self)
+
+        self.entity_description = description
+        self._updater: LuciUpdater = updater
+
+        self.entity_id = generate_entity_id(
             ENTITY_ID_FORMAT,
-            "{}_{}".format(luci.api.device_data["name"], code)
+            updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
+            description.name
         )
 
-    @property
-    def name(self) -> str:
-        return self._data["name"]
+        self._attr_name = description.name
+        self._attr_unique_id = unique_id
 
-    @property
-    def unique_id(self) -> str:
-        return self.entity_id
-
-    @property
-    def icon(self) -> str:
-        return self._data["icon"]
-
-    @property
-    def available(self) -> bool:
-        return self.luci.available
-
-    @property
-    def device_info(self) -> dict:
-        return {"connections": {(dr.CONNECTION_NETWORK_MAC, self.luci.api.device_data["mac"])}}
-
-    @property
-    def device_class(self) -> Optional[str]:
-         return self._data["device_class"] if "device_class" in self._data else None
-
-    @property
-    def unit_of_measurement(self) -> Optional[str]:
-        return self._data["unit"] if "unit" in self._data else None
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def should_poll(self) -> bool:
-        return False
+        self._attr_device_info = updater.device_info
 
     async def async_added_to_hass(self) -> None:
-        self.unsub_update = async_dispatcher_connect(
-            self.hass, DATA_UPDATED, self._schedule_immediate_update
+        """When entity is added to hass."""
+
+        await RestoreEntity.async_added_to_hass(self)
+        await CoordinatorEntity.async_added_to_hass(self)
+
+        state = await self.async_get_last_state()
+        if not state:
+            return
+
+        self._attr_native_value = state.state
+
+        self.async_write_ha_state()
+
+    def _handle_coordinator_update(self) -> None:
+        """Update state."""
+
+        is_available: bool = self._updater.data.get(ATTR_STATE, False)
+
+        state: Any = self._updater.data.get(
+            self.entity_description.key, None
         )
 
-    @callback
-    def _schedule_immediate_update(self) -> None:
-        if self._update():
-            self.async_schedule_update_ha_state(True)
+        if state is not None and isinstance(state, Enum):
+            state = state.phrase
 
-    async def will_remove_from_hass(self) -> None:
-        if self.unsub_update:
-            self.unsub_update()
+        if self._attr_native_value == state and self._attr_available == is_available:
+            return
 
-        self.unsub_update = None
+        self._attr_available = is_available
+        self._attr_native_value = state
 
-    def _update(self) -> bool:
-        try:
-            if self._state == self.luci.api.data["sensor"][self._code]:
-                return False
-
-            self._state = self.luci.api.data["sensor"][self._code]
-        except KeyError:
-            self._state = None
-
-        return True
+        self.async_write_ha_state()

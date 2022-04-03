@@ -1,105 +1,173 @@
+"""Binary sensor component."""
+
+from __future__ import annotations
+
 import logging
+from typing import Final
 
-import homeassistant.helpers.device_registry as dr
-
-from typing import Optional
-
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.components.binary_sensor import ENTITY_ID_FORMAT, BinarySensorEntity
+from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ENTITY_CATEGORY_DIAGNOSTIC
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.components.binary_sensor import (
+    ENTITY_ID_FORMAT,
+    BinarySensorEntityDescription,
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
+from homeassistant.const import (
+    ENTITY_CATEGORY_DIAGNOSTIC,
+    STATE_ON,
+    STATE_OFF,
+)
 
-from .core.util import _generate_entity_id
-from .core.const import DATA_UPDATED, DOMAIN, BINARY_SENSORS
-from .core.luci_data import LuciData
+from .updater import LuciUpdater
+from.helper import generate_entity_id
+from .const import (
+    DOMAIN,
+    UPDATER,
+
+    ATTRIBUTION,
+    ATTR_DEVICE_MAC_ADDRESS,
+
+    ATTR_STATE,
+    ATTR_STATE_NAME,
+
+    ATTR_BINARY_SENSOR_WAN_STATE,
+    ATTR_BINARY_SENSOR_WAN_STATE_NAME,
+
+    ATTR_BINARY_SENSOR_DUAL_BAND,
+    ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
+)
+
+ICONS: Final = {
+    f"{ATTR_STATE}_{STATE_ON}": "mdi:router-wireless",
+    f"{ATTR_STATE}_{STATE_OFF}": "router-wireless-off"
+}
+
+MIWIFI_BINARY_SENSORS: tuple[BinarySensorEntityDescription, ...] = (
+    BinarySensorEntityDescription(
+        key=ATTR_STATE,
+        name=ATTR_STATE_NAME,
+        icon=ICONS[f"{ATTR_STATE}_{STATE_ON}"],
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_registry_enabled_default=True,
+    ),
+    BinarySensorEntityDescription(
+        key=ATTR_BINARY_SENSOR_WAN_STATE,
+        name=ATTR_BINARY_SENSOR_WAN_STATE_NAME,
+        icon="mdi:wan",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_registry_enabled_default=True,
+    ),
+    BinarySensorEntityDescription(
+        key=ATTR_BINARY_SENSOR_DUAL_BAND,
+        name=ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
+        icon="mdi:wifi-plus",
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    ),
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities) -> None:
-    luci = hass.data[DOMAIN][config_entry.entry_id]
-    sensors = []
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up MiWifi binary sensor entry.
 
-    for sensor, data in BINARY_SENSORS.items():
-        if sensor in luci.api.data["binary_sensor"]:
-            sensors.append(MiWiFiBinarySensor(hass, luci, sensor, data))
+    :param hass: HomeAssistant: Home Assistant object
+    :param config_entry: ConfigEntry: Config Entry object
+    :param async_add_entities: AddEntitiesCallback: Async add callback
+    """
 
-    async_add_entities(sensors, True)
+    data: dict = hass.data[DOMAIN][config_entry.entry_id]
+    updater: LuciUpdater = data[UPDATER]
 
-class MiWiFiBinarySensor(BinarySensorEntity):
-    def __init__(self, hass: HomeAssistant, luci: LuciData, code: str, data: dict) -> None:
-        self.hass = hass
-        self.luci = luci
-        self.unsub_update = None
+    if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
+        _LOGGER.error("Failed to initialize binary sensor: Missing mac address. Restart HASS.")
 
-        self._code = code
-        self._data = data
-        self._state = False
-        self._attr_entity_category = ENTITY_CATEGORY_DIAGNOSTIC
+    entities: list[MiWifiBinarySensor] = [
+        MiWifiBinarySensor(
+            f"{config_entry.unique_id}-{description.key}",
+            description,
+            updater,
+        )
+        for description in MIWIFI_BINARY_SENSORS
+    ]
+    async_add_entities(entities)
 
-        self.entity_id = _generate_entity_id(
+class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
+    """MiWifi binary sensor entry."""
+
+    _attr_attribution: str = ATTRIBUTION
+
+    def __init__(
+        self,
+        unique_id: str,
+        description: BinarySensorEntityDescription,
+        updater: LuciUpdater,
+    ) -> None:
+        """Initialize sensor.
+
+        :param unique_id: str: Unique ID
+        :param description: BinarySensorEntityDescription: BinarySensorEntityDescription object
+        :param updater: LuciUpdater: Luci updater object
+        """
+
+        CoordinatorEntity.__init__(self, coordinator=updater)
+        RestoreEntity.__init__(self)
+
+        self.entity_description = description
+        self._updater: LuciUpdater = updater
+
+        self.entity_id = generate_entity_id(
             ENTITY_ID_FORMAT,
-            "{}_{}".format(luci.api.device_data["name"], code)
+            updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
+            description.name
         )
 
-    @property
-    def name(self) -> str:
-        return self._data["name"]
+        self._attr_name = description.name
+        self._attr_unique_id = unique_id
 
-    @property
-    def unique_id(self) -> str:
-        return self.entity_id
-
-    @property
-    def icon(self) -> str:
-        return self._data["icon"]
-
-    @property
-    def available(self) -> bool:
-        if "skip_available" in self._data and self._data["skip_available"]:
-            return True
-
-        return self.luci.available
-
-    @property
-    def device_info(self) -> dict:
-        return {"connections": {(dr.CONNECTION_NETWORK_MAC, self.luci.api.device_data["mac"])}}
-
-    @property
-    def device_class(self) -> Optional[str]:
-         return self._data["device_class"] if "device_class" in self._data else None
-
-    @property
-    def is_on(self) -> bool:
-        return self._state
-
-    @property
-    def should_poll(self) -> bool:
-        return False
+        self._attr_device_info = updater.device_info
 
     async def async_added_to_hass(self) -> None:
-        self.unsub_update = async_dispatcher_connect(
-            self.hass, DATA_UPDATED, self._schedule_immediate_update
+        """When entity is added to hass."""
+
+        await RestoreEntity.async_added_to_hass(self)
+        await CoordinatorEntity.async_added_to_hass(self)
+
+        state = await self.async_get_last_state()
+        if not state:
+            return
+
+        self._attr_is_on = state.state == STATE_ON
+
+        self.async_write_ha_state()
+
+    def _handle_coordinator_update(self) -> None:
+        """Update state."""
+
+        is_available: bool = self._updater.data.get(ATTR_STATE, False) \
+            if self.entity_description.key != ATTR_STATE else True
+
+        is_on: bool = self._updater.data.get(
+            self.entity_description.key, False
         )
 
-    @callback
-    def _schedule_immediate_update(self) -> None:
-        if self._update():
-            self.async_schedule_update_ha_state(True)
+        if self._attr_is_on == is_on and self._attr_available == is_available:
+            return
 
-    async def will_remove_from_hass(self) -> None:
-        if self.unsub_update:
-            self.unsub_update()
+        self._attr_available = is_available
+        self._attr_is_on = is_on
 
-        self.unsub_update = None
+        icon_name: str = "{}_{}".format(self.entity_description.key, STATE_ON if is_on else STATE_OFF)
+        if icon_name in ICONS:
+            self._attr_icon = ICONS[icon_name]
 
-    def _update(self) -> bool:
-        try:
-            if self._state == self.luci.api.data["binary_sensor"][self._code]:
-                return False
-
-            self._state = self.luci.api.data["binary_sensor"][self._code]
-        except KeyError:
-            self._state = False
-
-        return True
+        self.async_write_ha_state()

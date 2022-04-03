@@ -1,42 +1,40 @@
 {
+  "title": "MiWifi",
   "config": {
-    "abort": {
-      "updated": "Daten wurden aktualisiert. Bitte Home Assistant neustarten."
-    },
     "error": {
       "ip_address.not_matched": "Ungültige IP Adresse",
       "password.not_matched": "Ungültiges Passwort",
       "connection": "Fehler bei der Herstellung einer Verbindung"
     },
     "step": {
-      "auth": {
+      "discovery_confirm": {
+        "title": "MiWiFi Einstellungen",
         "description": "Gib die IP Adresse und das Passwort deines MiWifi Routers ein",
         "data": {
           "ip_address": "IP Adresse",
-          "password": "Passwort"
+          "password": "Passwort",
+          "scan_interval": "Scanintervall in Sekunden"
         }
       }
     }
   },
   "options": {
-    "abort": {
-      "updated": "Daten wurden aktualisiert. Bitte Home Assistant neustarten."
-    },
     "error": {
       "ip_address.not_matched": "Ungültige IP Adresse",
       "password.not_matched": "Ungültiges Passwort",
       "connection": "Fehler bei der Herstellung einer Verbindung"
     },
     "step": {
-      "settings": {
+      "init": {
+        "title": "MiWiFi Einstellungen",
         "description": "Gib die IP Adresse und das Passwort deines MiWifi Routers ein",
         "data": {
           "ip_address": "IP Adresse",
           "password": "Passwort",
-          "scan_interval": "Scanintervall in Sekunden [PRO]",
+          "scan_interval": "Scanintervall in Sekunden",
+          "activity_days": "Anzahl an Tagen, die nach der letzten Aktivität gewartet werden soll [PRO]",
           "timeout": "Timeout von Anfragen in Sekunden [PRO]",
-          "force_load_repeater_devices": "Erzwungenes Booten von Geräten im Repeater-Modus [PRO]",
-          "last_activity_days": "Anzahl an Tagen, die nach der letzten Aktivität gewartet werden soll [PRO]"
+          "is_force_load": "Erzwungenes Booten von Geräten im Repeater-Modus [PRO]"
         }
       }
     }

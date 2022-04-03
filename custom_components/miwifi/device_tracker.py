@@ -1,342 +1,378 @@
+"""Device tracker component."""
+
+from __future__ import annotations
+
 import logging
+import socket
+from contextlib import closing
+from typing import Any, Final
+from functools import cached_property
 
-import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
-import homeassistant.helpers.device_registry as dr
-
-from typing import Optional
-from datetime import datetime, timedelta
-
-from homeassistant.const import CONF_NAME, CONF_ICON, CONF_MAC, ATTR_GPS_ACCURACY, ATTR_LATITUDE, ATTR_LONGITUDE
-from homeassistant.core import HomeAssistant, State, callback
-from homeassistant.components.device_tracker import SOURCE_TYPE_ROUTER
-from homeassistant.components.device_tracker.config_entry import ScannerEntity, TrackerEntity
-from homeassistant.config import load_yaml_config_file
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.components.device_tracker import ENTITY_ID_FORMAT, SOURCE_TYPE_ROUTER
+from homeassistant.components.device_tracker.config_entry import ScannerEntity, TrackerEntity
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.typing import UNDEFINED
-from homeassistant.components.zone import ENTITY_ID_HOME
 
-from .core.const import DEVICES_UPDATED, DOMAIN, DEVICE_TRACKER_ENTITY_ID_FORMAT, LEGACY_YAML_DEVICES
-from .core.luci_data import LuciData
-from .core.util import _generate_entity_id
+from .updater import LuciUpdater
+from .helper import generate_entity_id, parse_last_activity, pretty_size
+from .enum import Connection
+from .const import (
+    DOMAIN,
+    UPDATER,
+    DEFAULT_CALL_DELAY,
+    SIGNAL_NEW_DEVICE,
+
+    ATTRIBUTION,
+
+    ATTR_STATE,
+    ATTR_DEVICE_MAC_ADDRESS,
+
+    ATTR_TRACKER_ENTRY_ID,
+    ATTR_TRACKER_UPDATER_ENTRY_ID,
+    ATTR_TRACKER_SCANNER,
+    ATTR_TRACKER_MAC,
+    ATTR_TRACKER_ROUTER_MAC_ADDRESS,
+    ATTR_TRACKER_SIGNAL,
+    ATTR_TRACKER_NAME,
+    ATTR_TRACKER_CONNECTION,
+    ATTR_TRACKER_IP,
+    ATTR_TRACKER_ONLINE,
+    ATTR_TRACKER_DOWN_SPEED,
+    ATTR_TRACKER_UP_SPEED,
+    ATTR_TRACKER_LAST_ACTIVITY,
+)
+
+ATTR_CHANGES: Final = [
+    ATTR_TRACKER_IP,
+    ATTR_TRACKER_ONLINE,
+    ATTR_TRACKER_CONNECTION,
+    ATTR_TRACKER_ROUTER_MAC_ADDRESS,
+    ATTR_TRACKER_SIGNAL,
+    ATTR_TRACKER_DOWN_SPEED,
+    ATTR_TRACKER_UP_SPEED,
+]
+
+CONFIGURATION_PORTS: Final = [
+    80,
+    443
+]
 
 _LOGGER = logging.getLogger(__name__)
 
-legacy_schema = vol.Schema(
-    {
-        vol.Required(CONF_NAME): cv.string,
-        vol.Optional(CONF_ICON, default = None): vol.Any(None, cv.icon),
-        vol.Optional("track", default = False): cv.boolean,
-        vol.Optional(CONF_MAC, default = None): vol.Any(
-            None, vol.All(cv.string, vol.Upper)
-        )
-    }
-)
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up MiWifi device tracker entry.
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities) -> None:
-    luci = hass.data[DOMAIN][config_entry.entry_id]
+    :param hass: HomeAssistant: Home Assistant object
+    :param config_entry: ConfigEntry: ConfigEntry object
+    :param async_add_entities: AddEntitiesCallback: Async add callback
+    """
 
-    legacy_devices = await _get_legacy_devices(hass)
-
-    zone_home = hass.states.get(ENTITY_ID_HOME)
-
-    add_devices = []
-    for mac in luci._devices:
-        add_devices.append(
-            MiWiFiDevice(hass, config_entry, luci, mac, luci._devices[mac], zone_home, False)
-        )
-
-    if add_devices:
-        async_add_entities(add_devices)
+    data: dict = hass.data[DOMAIN][config_entry.entry_id]
+    updater: LuciUpdater = data[UPDATER]
 
     @callback
-    def update_devices() -> None:
-        if len(luci.api._new_devices) == 0:
+    def add_device(device: dict) -> None:
+        """Add device.
+
+        :param device: dict: Device object
+        """
+
+        if device[ATTR_TRACKER_UPDATER_ENTRY_ID] != config_entry.entry_id:
             return
 
-        new_devices = []
-        for mac in luci.api._new_devices:
-            if mac not in luci.api._devices_list or mac in luci._devices:
-                continue
-
-            new_device = _get_new_device(
-                hass,
-                luci.api._devices_list[mac],
-                legacy_devices[mac] if mac in legacy_devices else {}
+        async_add_entities([
+            MiWifiDeviceTracker(
+                f"{DOMAIN}-{device.get(ATTR_TRACKER_MAC)}",
+                device,
+                updater
             )
+        ])
 
-            new_device["last_activity"] = datetime.now().replace(microsecond=0).isoformat()
+    for device in updater.devices.values():
+        add_device(device)
 
-            _LOGGER.info("New device {} ({}) from {}".format(new_device["name"], mac, luci.api._ip))
+    updater.new_device_callback = async_dispatcher_connect(hass, SIGNAL_NEW_DEVICE, add_device)
 
-            new_devices.append(
-                MiWiFiDevice(hass, config_entry, luci, mac, new_device, zone_home)
-            )
-            luci.add_device(mac, new_device)
+class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
+    """MiWifi device tracker entry."""
 
-        if new_devices:
-            async_add_entities(new_devices)
+    _attr_attribution: str = ATTRIBUTION
+    _configuration_port: int | None = None
+    _is_connected: bool = False
+    _device: dict
 
-    async_dispatcher_connect(
-        hass, DEVICES_UPDATED, update_devices
-    )
-
-    update_devices()
-
-def _get_new_device(hass: HomeAssistant, device: dict, legacy_device: dict) -> dict:
-    return {
-        "ip": device["ip"][0]["ip"] if "ip" in device else "0:0:0:0",
-        "connection": device["connection"] if "connection" in device else "undefined",
-        "router_mac": device["router_mac"],
-        "name": legacy_device["name"] if "name" in legacy_device else device["name"],
-        "icon": legacy_device["icon"] if "icon" in legacy_device else None,
-        "signal": device["signal"],
-        "online": device["ip"][0]["online"] if "ip" in device else "0",
-        "unique_id": _generate_entity_id(
-            DEVICE_TRACKER_ENTITY_ID_FORMAT,
-            legacy_device["dev_id"] if "dev_id" in legacy_device else device["name"]
-        )
-    }
-
-async def _get_legacy_devices(hass: HomeAssistant) -> dict:
-    legacy_devices = {}
-
-    try:
-        devices = await hass.async_add_executor_job(load_yaml_config_file, hass.config.path(LEGACY_YAML_DEVICES))
-    except HomeAssistantError:
-        return {}
-    except FileNotFoundError:
-        return {}
-
-    for dev_id, device in devices.items():
-        try:
-            device = legacy_schema(device)
-            device["dev_id"] = cv.slugify(dev_id)
-        except vol.Invalid:
-            continue
-        else:
-            legacy_devices[device["mac"]] = dict(device)
-
-    return legacy_devices
-
-class MiWiFiDevice(ScannerEntity, TrackerEntity):
     def __init__(
         self,
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
-        luci: LuciData,
-        mac: str,
+        unique_id: str,
         device: dict,
-        zone_home: Optional[State] = None,
-        is_active: bool = True
+        updater: LuciUpdater,
     ) -> None:
-        self.hass = hass
-        self.luci = luci
-        self.entity_id = device["unique_id"]
+        """Initialize device_tracker.
 
-        self._config_entry = config_entry
-        self._unsub_update = None
+        :param unique_id: str: Unique ID
+        :param device: dict: Device data
+        :param updater: LuciUpdater: Luci updater object
+        """
 
-        self._mac = mac
+        CoordinatorEntity.__init__(self, coordinator=updater)
+
         self._device = device
-        self._name = device["name"]
-        self._icon = device["icon"]
-        self._active = is_active
-        self._available = True
+        self._updater = updater
 
-        self._attrs = {"scanner": DOMAIN}
+        self._attr_name = device.get(ATTR_TRACKER_NAME, self.mac_address)
 
-        if zone_home:
-            self._attrs[ATTR_LATITUDE] = zone_home.attributes[ATTR_LATITUDE]
-            self._attrs[ATTR_LONGITUDE] = zone_home.attributes[ATTR_LONGITUDE]
-            self._attrs[ATTR_GPS_ACCURACY] = 0
+        self.entity_id = generate_entity_id(
+            ENTITY_ID_FORMAT, self.mac_address
+        )
+
+        self._attr_unique_id = unique_id
+
+    async def async_added_to_hass(self) -> None:
+        """When entity is added to hass."""
+
+        await CoordinatorEntity.async_added_to_hass(self)
+
+        self.hass.loop.call_later(
+            DEFAULT_CALL_DELAY, lambda: self.hass.async_create_task(self.check_ports()),
+        )
+
+    @cached_property
+    def mac_address(self) -> str | None:
+        """Return the mac address of the device.
+
+        :return str | None: Mac address
+        """
+
+        return self._device.get(ATTR_TRACKER_MAC, None)
+
+    @cached_property
+    def manufacturer(self) -> str | None:
+        """Return manufacturer of the device.
+
+        :return str | None: Manufacturer
+        """
+
+        return self._updater.manufacturer(self.mac_address)
 
     @property
+    def ip_address(self) -> str | None:
+        """Return the primary ip address of the device.
+
+        :return str | None: IP address
+        """
+
+        return self._device.get(ATTR_TRACKER_IP, None)
+
+    @property
+    def is_connected(self) -> bool:
+        """Return true if the device is connected to the network.
+
+        :return bool: Is connected
+        """
+
+        return self._is_connected
+
+    @cached_property
     def unique_id(self) -> str:
-        return self.entity_id
+        """Return unique ID of the entity.
 
-    @property
-    def name(self) -> str:
-        return self._name
+        :return str: Unique ID
+        """
+
+        return self._attr_unique_id
 
     @property
     def icon(self) -> str:
-        if self._icon:
-            self._icon.replace("-android", "")
+        """Return device icon.
 
-        return self._icon
+        :return str: Default icon
+        """
 
-    @property
-    def is_connected(self):
-        return self._active
+        return "mdi:lan-connect" if self.is_connected else "mdi:lan-disconnect"
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """ Return extra state attributes.
+
+        :return dict[str, Any]: Extra state attributes
+        """
+
+        signal: Any = self._device.get(ATTR_TRACKER_SIGNAL, "")
+        connection: Any = self._device.get(ATTR_TRACKER_CONNECTION, None)
+
+        if isinstance(connection, int):
+            connection = Connection(connection)
+
+        if not self.is_connected or connection == Connection.LAN:
+            signal = ""
+
+        if connection is not None and isinstance(connection, Connection):
+            connection = connection.phrase
+
+        return {
+            ATTR_TRACKER_SCANNER: DOMAIN,
+            ATTR_TRACKER_MAC: self.mac_address,
+            ATTR_TRACKER_IP: self.ip_address,
+            ATTR_TRACKER_ONLINE: self._device.get(ATTR_TRACKER_ONLINE, None) \
+                if self.is_connected else "",
+            ATTR_TRACKER_CONNECTION: connection,
+            ATTR_TRACKER_ROUTER_MAC_ADDRESS: self._device.get(ATTR_TRACKER_ROUTER_MAC_ADDRESS, None),
+            ATTR_TRACKER_SIGNAL: signal,
+            ATTR_TRACKER_DOWN_SPEED: pretty_size(float(self._device.get(ATTR_TRACKER_DOWN_SPEED, 0.0))) \
+                if self.is_connected else "",
+            ATTR_TRACKER_UP_SPEED: pretty_size(float(self._device.get(ATTR_TRACKER_UP_SPEED, 0.0))) \
+                if self.is_connected else "",
+            ATTR_TRACKER_LAST_ACTIVITY: self._device.get(ATTR_TRACKER_LAST_ACTIVITY, None),
+        }
+
+    @property
+    def configuration_url(self) -> str | None:
+        """Configuration url
+
+        :return str | None: Url
+        """
+
+        if self._configuration_port is None:
+            return None
+
+        if self._configuration_port == 80:
+            return f"http://{self.ip_address}"
+
+        if self._configuration_port == 443:
+            return f"https://{self.ip_address}"
+
+        return f"http://{self.ip_address}:{self._configuration_port}"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """ Return device info.
+
+        :return DeviceInfo: Device Info
+        """
+
+        return DeviceInfo(
+            connections={(dr.CONNECTION_NETWORK_MAC, self.mac_address)},
+            identifiers={(DOMAIN, self.mac_address)},
+            name=self._attr_name,
+            configuration_url=self.configuration_url,
+            manufacturer=self.manufacturer
+        )
+
+    @cached_property
     def source_type(self) -> str:
+        """ Return source type.
+
+        :return str: Source type router
+        """
+
         return SOURCE_TYPE_ROUTER
 
-    @property
-    def ip_address(self) -> str:
-        return self._device["ip"]
+    @cached_property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if entity is enabled by default.
 
-    @property
-    def mac_address(self) -> str:
-        return self._mac
+        :return bool: Force enabled
+        """
 
-    @property
-    def available(self) -> bool:
-        return self._available
+        return True
 
-    @property
-    def extra_state_attributes(self) -> dict:
-        return {
-            "mac": self._mac,
-            "ip": self._device["ip"],
-            "online": str(timedelta(seconds = int(self._device["online"]))),
-            "connection": self._device["connection"],
-            "router_mac": self._device["router_mac"],
-            "signal": self._device["signal"],
-            "last_activity": self._device["last_activity"],
-        }
+    def _handle_coordinator_update(self) -> None:
+        """Update state."""
 
-    @property
-    def device_info(self) -> dict:
-        return {
-            'connections': {(dr.CONNECTION_NETWORK_MAC, self._mac)},
-            'identifiers': {(DOMAIN, self._mac)},
-            'name': self._name,
-            'via_device': (DOMAIN, self._device["router_mac"])
-        }
+        is_available: bool = self._updater.data.get(ATTR_STATE, False)
+        device = self._updater.devices.get(self.mac_address, None)
 
-    @property
-    def location_accuracy(self) -> Optional[int]:
-        return self._attrs[ATTR_GPS_ACCURACY] if self._active and ATTR_GPS_ACCURACY in self._attrs else None
+        if device is None or self._device is None:
+            if self._attr_available:
+                self._attr_available = False
 
-    @property
-    def latitude(self) -> Optional[float]:
-        return self._attrs[ATTR_LATITUDE] if self._active and ATTR_LATITUDE in self._attrs else None
+                self.async_write_ha_state()
 
-    @property
-    def longitude(self) -> Optional[float]:
-        return self._attrs[ATTR_LONGITUDE] if self._active and ATTR_LONGITUDE in self._attrs else None
-
-    @property
-    def state_attributes(self) -> dict:
-        return self._attrs if self._active else {"scanner": DOMAIN}
-
-    @property
-    def should_poll(self) -> bool:
-        return False
-
-    async def async_added_to_hass(self) -> None:
-        self.unsub_update = async_dispatcher_connect(
-            self.hass, DEVICES_UPDATED, self._schedule_immediate_update
-        )
-
-    @callback
-    def _schedule_immediate_update(self) -> None:
-        if self._update():
-            self.async_schedule_update_ha_state(True)
-
-    async def will_remove_from_hass(self) -> None:
-        if self.unsub_update:
-            self.unsub_update()
-
-        self.unsub_update = None
-        self.luci.remove_device(self._mac)
-
-    async def async_removed_from_registry(self) -> None:
-        self.luci.remove_device(self._mac)
-
-    def _update(self) -> bool:
-        is_changed = False
-        is_active = False
-        is_available = False
-        is_available_all = False
-
-        remove_enries = []
-        for entry_id in dict(self.hass.data[DOMAIN]):
-            if self.hass.data[DOMAIN][entry_id].available:
-                is_available_all = True
-
-            if self._mac in self.hass.data[DOMAIN][entry_id].api._current_devices:
-                is_active = True
-
-                old_device = self._device.copy()
-                device = self.hass.data[DOMAIN][entry_id].api._devices_list[self._mac]
-
-                if "ip" in device and len(device["ip"]) > 0:
-                    self._device["ip"] = device["ip"][0]["ip"] if "ip" in device["ip"][0] else "127.0.0.1"
-                    self._device["online"] = device["ip"][0]["online"] if "online" in device["ip"][0] else "0"
-                else:
-                    self._device["ip"] = "127.0.0.1"
-                    self._device["online"] = "0"
-
-                self._device["connection"] = device["connection"] if "connection" in device else "undefined"
-                self._device["signal"] = device["signal"]
-                self._device["router_mac"] = device["router_mac"]
-
-                if old_device["router_mac"] != self._device["router_mac"]:
-                    self.luci.remove_device(self._mac)
-                    remove_enries.append(self._config_entry)
-
-                    self.luci = self.hass.data[DOMAIN][entry_id]
-                    self._config_entry = self.luci.config_entry
-
-                is_available = self.hass.data[DOMAIN][entry_id].available
-
-                for field in ["ip", "online", "connection", "signal", "router_mac"]:
-                    if old_device[field] != self._device[field]:
-                        is_changed = True
-            else:
-                remove_enries.append(self.hass.data[DOMAIN][entry_id].config_entry)
-
-        if is_active:
-            self._device["last_activity"] = datetime.now().replace(microsecond=0).isoformat()
-
-            self.luci.add_device(self._mac, self._device)
-
-            for entry in remove_enries:
-                self._update_device(self._config_entry, entry)
-        else:
-            is_available = is_available_all
-            if self._device["signal"] != 0 and self._device["online"] != 0:
-                is_changed = True
-
-            self._device["signal"] = 0
-            self._device["online"] = 0
-
-        if self._available != is_available or self._active != is_active:
-            is_changed = True
-
-        self._available = is_available
-        self._active = is_active
-
-        return is_changed
-
-    def _update_device(self, new_entry: ConfigEntry, remove_entry: ConfigEntry) -> None:
-        device_registry = dr.async_get(self.hass)
-
-        connections = dr._normalize_connections({(dr.CONNECTION_NETWORK_MAC, self._mac)})
-        device = device_registry.async_get_device({(DOMAIN, self._mac)}, connections)
-
-        if not device:
             return
 
-        via = device_registry.async_get_device({(DOMAIN, self._device["router_mac"])})
+        self._update_entry(device.get(ATTR_TRACKER_ENTRY_ID, None))
 
-        device_registry.async_update_device(
-            device.id,
-            add_config_entry_id = new_entry.entry_id,
-            remove_config_entry_id = remove_entry.entry_id,
-            via_device_id = via.id if via else UNDEFINED,
-            merge_connections = connections,
-            merge_identifiers = {(DOMAIN, self._mac)},
-            manufacturer = UNDEFINED,
-            model = UNDEFINED,
-            name = self._name,
-            sw_version = UNDEFINED,
-            entry_type = UNDEFINED,
-            disabled_by = UNDEFINED,
+        if not device.get(ATTR_TRACKER_LAST_ACTIVITY, False):
+            is_connected = False
+        elif not self._device.get(ATTR_TRACKER_LAST_ACTIVITY, False):
+            is_connected = True
+        else:
+            is_connected = parse_last_activity(device.get(ATTR_TRACKER_LAST_ACTIVITY)) \
+                           > parse_last_activity(self._device.get(ATTR_TRACKER_LAST_ACTIVITY))
+
+        is_update = False
+        for attr in ATTR_CHANGES:
+            if self._device.get(attr, None) != device.get(attr, None):
+                is_update = True
+
+                break
+
+        if self._attr_available == is_available and self._is_connected == is_connected and not is_update:
+            return
+
+        self._attr_available = is_available
+        self._is_connected = is_connected
+        self._device = device
+
+        self.async_write_ha_state()
+
+    def _update_entry(self, entry_id: str) -> None:
+        """Update device entry.
+
+        :param entry_id: str: To entry id
+        """
+
+        device_registry = dr.async_get(self.hass)
+        device = device_registry.async_get_device(
+            set(), {(dr.CONNECTION_NETWORK_MAC, self.mac_address)}
         )
+
+        if device is not None:
+            if len(device.config_entries) > 0 and entry_id not in device.config_entries:
+                device_registry.async_update_device(
+                    device.id,
+                    add_config_entry_id=entry_id
+                )
+
+            if device.configuration_url is None and self.configuration_url is not None:
+                device_registry.async_update_device(
+                    device.id,
+                    configuration_url=self.configuration_url
+                )
+
+            if device.manufacturer is None and self.manufacturer is not None:
+                device_registry.async_update_device(
+                    device.id,
+                    manufacturer=self.manufacturer
+                )
+
+        if self._updater == self.hass.data[DOMAIN][entry_id][UPDATER]:
+            return
+
+        self._updater = self.hass.data[DOMAIN][entry_id][UPDATER]
+        self._device[ATTR_TRACKER_ENTRY_ID] = entry_id
+
+    async def check_ports(self) -> None:
+        """Scan port to configuration url"""
+
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(5)
+
+            for port in CONFIGURATION_PORTS:
+                result = sock.connect_ex((self.ip_address, port))
+                if result == 0:
+                    self._configuration_port = port
+
+                    break
+
+            if self._configuration_port is not None:
+                _LOGGER.debug("Found open port %s: %s", self.ip_address, self._configuration_port)

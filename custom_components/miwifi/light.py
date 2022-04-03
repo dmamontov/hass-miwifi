@@ -1,136 +1,206 @@
+"""Light component."""
+
+from __future__ import annotations
+
 import logging
+from typing import Final, Any
 
-import homeassistant.helpers.device_registry as dr
-
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.components.light import ENTITY_ID_FORMAT, LightEntity
+from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ENTITY_CATEGORY_CONFIG
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.components.light import (
+    ENTITY_ID_FORMAT,
+    LightEntityDescription,
+    LightEntity,
+)
+from homeassistant.const import (
+    ENTITY_CATEGORY_CONFIG,
+    STATE_ON,
+    STATE_OFF,
+)
 
-from .core.util import _generate_entity_id
-from .core.const import DATA_UPDATED, DOMAIN, LIGHTS
-from .core.luci_data import LuciData
+from .updater import LuciUpdater
+from.helper import generate_entity_id
+from .const import (
+    DOMAIN,
+    UPDATER,
+
+    ATTRIBUTION,
+    ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_STATE,
+
+    ATTR_LIGHT_LED,
+    ATTR_LIGHT_LED_NAME,
+)
+
+ICONS: Final = {
+    f"{ATTR_LIGHT_LED}_{STATE_ON}": "mdi:led-on",
+    f"{ATTR_LIGHT_LED}_{STATE_OFF}": "mdi:led-off"
+}
+
+MIWIFI_LIGHTS: tuple[LightEntityDescription, ...] = (
+    LightEntityDescription(
+        key=ATTR_LIGHT_LED,
+        name=ATTR_LIGHT_LED_NAME,
+        icon=ICONS[f"{ATTR_LIGHT_LED}_{STATE_ON}"],
+        entity_category=ENTITY_CATEGORY_CONFIG,
+        entity_registry_enabled_default=True,
+    ),
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities) -> None:
-    luci = hass.data[DOMAIN][config_entry.entry_id]
-    lights = []
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up MiWifi light entry.
 
-    for light, data in LIGHTS.items():
-        lights.append(MiWiFiLight(hass, luci, light, data))
+    :param hass: HomeAssistant: Home Assistant object
+    :param config_entry: ConfigEntry: ConfigEntry object
+    :param async_add_entities: AddEntitiesCallback: AddEntitiesCallback callback object
+    """
 
-    async_add_entities(lights, True)
+    data: dict = hass.data[DOMAIN][config_entry.entry_id]
+    updater: LuciUpdater = data[UPDATER]
 
-class MiWiFiLight(LightEntity):
-    def __init__(self, hass: HomeAssistant, luci: LuciData, code: str, data: dict) -> None:
-        self.hass = hass
-        self.luci = luci
-        self.unsub_update = None
+    if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
+        _LOGGER.error("Failed to initialize light: Missing mac address. Restart HASS.")
 
-        self._code = code
-        self._data = data
-        self._state = False
-        self._is_block = False
-        self._attr_entity_category = ENTITY_CATEGORY_CONFIG
+    entities: list[MiWifiLight] = [
+        MiWifiLight(
+            f"{config_entry.unique_id}-{description.key}",
+            description,
+            updater,
+        )
+        for description in MIWIFI_LIGHTS
+    ]
+    async_add_entities(entities)
 
-        self.entity_id = _generate_entity_id(
+class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
+    """MiWifi light entry."""
+
+    _attr_attribution: str = ATTRIBUTION
+
+    def __init__(
+        self,
+        unique_id: str,
+        description: LightEntityDescription,
+        updater: LuciUpdater,
+    ) -> None:
+        """Initialize light.
+
+        :param unique_id: str: Unique ID
+        :param description: LightEntityDescription: LightEntityDescription object
+        :param updater: LuciUpdater: Luci updater object
+        """
+
+        CoordinatorEntity.__init__(self, coordinator=updater)
+        RestoreEntity.__init__(self)
+
+        self.entity_description = description
+        self._updater = updater
+
+        self.entity_id = generate_entity_id(
             ENTITY_ID_FORMAT,
-            "{}_{}".format(luci.api.device_data["name"], code)
+            updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
+            description.name
         )
 
-    @property
-    def name(self) -> str:
-        return self._data["name"]
+        self._attr_name = description.name
+        self._attr_unique_id = unique_id
 
-    @property
-    def unique_id(self) -> str:
-        return self.entity_id
+        self._attr_device_info = updater.device_info
 
-    @property
-    def icon(self) -> str:
-        return self._data["icon_on"] if self._state else self._data["icon_off"]
-
-    @property
-    def available(self) -> bool:
-        if "skip_available" in self._data and self._data["skip_available"]:
-            return True
-
-        return self.luci.available
-
-    @property
-    def device_info(self) -> dict:
-        return {"connections": {(dr.CONNECTION_NETWORK_MAC, self.luci.api.device_data["mac"])}}
-
-    @property
-    def is_on(self) -> bool:
-        return self._state
-
-    @property
-    def should_poll(self) -> bool:
-        return False
+        self._attr_is_on = updater.data.get(description.key, False)
 
     async def async_added_to_hass(self) -> None:
-        self.unsub_update = async_dispatcher_connect(
-            self.hass, DATA_UPDATED, self._schedule_immediate_update
+        """When entity is added to hass."""
+
+        await RestoreEntity.async_added_to_hass(self)
+        await CoordinatorEntity.async_added_to_hass(self)
+
+        state = await self.async_get_last_state()
+        if not state:
+            return
+
+        self._attr_is_on = state.state == STATE_ON
+
+        self.async_write_ha_state()
+
+    def _handle_coordinator_update(self) -> None:
+        """Update state."""
+
+        is_available: bool = self._updater.data.get(ATTR_STATE, False)
+
+        is_on: bool = self._updater.data.get(
+            self.entity_description.key, False
         )
 
-    @callback
-    def _schedule_immediate_update(self) -> None:
-        if self._update():
-            self.async_schedule_update_ha_state(True)
+        if self._attr_is_on == is_on and self._attr_available == is_available:
+            return
 
-    async def will_remove_from_hass(self) -> None:
-        if self.unsub_update:
-            self.unsub_update()
+        self._attr_available = is_available
+        self._attr_is_on = is_on
 
-        self.unsub_update = None
+        icon_name: str = "{}_{}".format(self.entity_description.key, STATE_ON if is_on else STATE_OFF)
+        if icon_name in ICONS:
+            self._attr_icon = ICONS[icon_name]
 
-    def _update(self) -> bool:
-        if self._is_block:
-            self._is_block = False
+        self.async_write_ha_state()
 
-            return False
+    async def _led_on(self, **kwargs: Any) -> None:
+        """Led on action
+
+        :param kwargs: Any: Any arguments
+        """
 
         try:
-            if self._state == self.luci.api.data["light"][self._code]:
-                return False
-
-            self._state = self.luci.api.data["light"][self._code]
-        except KeyError:
-            self._state = False
-
-        return True
-
-    async def led_on(self) -> None:
-        try:
-            await self.luci.api.led(1)
+            await self._updater.luci.led(1)
         except:
-            self._state = True
+            pass
 
-        self._state = True
+    async def _led_off(self, **kwargs: Any) -> None:
+        """Led off action
 
-    async def led_off(self) -> None:
+        :param kwargs: Any: Any arguments
+        """
+
         try:
-            await self.luci.api.led(0)
+            await self._updater.luci.led(0)
         except:
-            self._state = False
+            pass
 
-        self._state = False
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn on action
 
-    async def async_turn_on(self, **kwargs) -> None:
-        action = getattr(self, self._data["action_on"])
+        :param kwargs: Any: Any arguments
+        """
 
-        await action()
+        await self._async_call(f"_{self.entity_description.key}_{STATE_ON}", STATE_ON, **kwargs)
 
-        self.async_schedule_update_ha_state(True)
-        self._is_block = True
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn off action
 
-    async def async_turn_off(self, **kwargs) -> None:
-        action = getattr(self, self._data["action_off"])
+        :param kwargs: Any: Any arguments
+        """
 
-        await action()
+        await self._async_call(f"_{self.entity_description.key}_{STATE_OFF}", STATE_OFF, **kwargs)
 
-        self.async_schedule_update_ha_state(True)
-        self._is_block = True
+    async def _async_call(self, method: str, state: str, **kwargs: Any) -> None:
+        """Async turn action
+
+        :param method: str: Call method
+        :param state: str: Call state
+        :param kwargs: Any: Any arguments
+        """
+
+        action = getattr(self, method)
+
+        if action:
+            await action(**kwargs)
+
+            self._updater.data[self.entity_description.key] = state == STATE_ON
