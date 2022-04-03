@@ -638,7 +638,9 @@ class LuciUpdater(DataUpdateCoordinator):
         else:
             self.data[code] += 1
 
-    def _mass_update_device(self, device: dict, integrations: dict | None = None) -> bool:
+    def _mass_update_device(
+        self, device: dict, integrations: dict | None = None
+    ) -> bool:
         """Mass update devices
 
         :param device: Device data
