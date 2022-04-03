@@ -16,6 +16,7 @@ from homeassistant.helpers.storage import Store
 from .updater import LuciUpdater
 from .const import DOMAIN, STORAGE_VERSION
 
+
 def get_config_value(
     config_entry: config_entries | None,
     param: str,

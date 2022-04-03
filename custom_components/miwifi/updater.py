@@ -565,7 +565,7 @@ class LuciUpdater(DataUpdateCoordinator):
         """
 
         if ATTR_TRACKER_MAC not in device \
-            or (is_from_parent and self.is_force_load):
+                or (is_from_parent and self.is_force_load):
             return
 
         is_new: bool = device[ATTR_TRACKER_MAC] not in self.devices
@@ -584,12 +584,12 @@ class LuciUpdater(DataUpdateCoordinator):
             ATTR_TRACKER_NAME: device["name"] if "name" in device else device[ATTR_TRACKER_MAC],
             ATTR_TRACKER_IP: ip_attr["ip"] if ip_attr is not None else None,
             ATTR_TRACKER_CONNECTION: connection,
-            ATTR_TRACKER_DOWN_SPEED: float(ip_attr["downspeed"]) \
-                if ip_attr is not None and "downspeed" in ip_attr and float(ip_attr["downspeed"]) > 0
-                else 0.0,
-            ATTR_TRACKER_UP_SPEED: float(ip_attr["upspeed"]) \
-                if ip_attr is not None and "upspeed" in ip_attr and float(ip_attr["upspeed"]) > 0
-                else 0.0,
+            ATTR_TRACKER_DOWN_SPEED: float(ip_attr["downspeed"])
+            if ip_attr is not None and "downspeed" in ip_attr and float(ip_attr["downspeed"]) > 0
+            else 0.0,
+            ATTR_TRACKER_UP_SPEED: float(ip_attr["upspeed"])
+            if ip_attr is not None and "upspeed" in ip_attr and float(ip_attr["upspeed"]) > 0
+            else 0.0,
             ATTR_TRACKER_ONLINE: str(timedelta(seconds=int(ip_attr["online"] if ip_attr is not None else 0))),
             ATTR_TRACKER_LAST_ACTIVITY: datetime.now().replace(microsecond=0).isoformat()
         }
@@ -753,7 +753,7 @@ class LuciUpdater(DataUpdateCoordinator):
         """Async save devices to Store"""
 
         if self._store is None \
-            or (self.is_repeater and not self.is_force_load):
+                or (self.is_repeater and not self.is_force_load):
             return
 
         await self._store.async_save(self.devices)

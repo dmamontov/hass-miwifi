@@ -80,9 +80,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         UPDATER: updater,
     }
 
-    hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER] = entry.add_update_listener(
-        async_update_options
-    )
+    hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER] = \
+        entry.add_update_listener(async_update_options)
 
     async def async_start(with_sleep: bool = False) -> None:
         """Async start.

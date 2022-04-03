@@ -198,8 +198,8 @@ async def async_setup_entry(
             updater,
         )
         for description in MIWIFI_SENSORS
-        if description.key != ATTR_SENSOR_DEVICES_5_0_GAME \
-           or updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
+        if description.key != ATTR_SENSOR_DEVICES_5_0_GAME
+        or updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
     ]
     async_add_entities(entities)
 
