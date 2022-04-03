@@ -16,7 +16,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorDeviceClass,
     SensorStateClass,
-    SensorEntity
+    SensorEntity,
 )
 from homeassistant.const import (
     ENTITY_CATEGORY_DIAGNOSTIC,
@@ -31,43 +31,30 @@ from .helper import generate_entity_id
 from .const import (
     DOMAIN,
     UPDATER,
-
     ATTRIBUTION,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
-
     ATTR_WIFI_ADAPTER_LENGTH,
-
     ATTR_SENSOR_UPTIME,
     ATTR_SENSOR_UPTIME_NAME,
-
     ATTR_SENSOR_MEMORY_USAGE,
     ATTR_SENSOR_MEMORY_USAGE_NAME,
-
     ATTR_SENSOR_MEMORY_TOTAL,
     ATTR_SENSOR_MEMORY_TOTAL_NAME,
-
     ATTR_SENSOR_TEMPERATURE,
     ATTR_SENSOR_TEMPERATURE_NAME,
-
     ATTR_SENSOR_MODE,
     ATTR_SENSOR_MODE_NAME,
-
     ATTR_SENSOR_DEVICES,
     ATTR_SENSOR_DEVICES_NAME,
-
     ATTR_SENSOR_DEVICES_LAN,
     ATTR_SENSOR_DEVICES_LAN_NAME,
-
     ATTR_SENSOR_DEVICES_GUEST,
     ATTR_SENSOR_DEVICES_GUEST_NAME,
-
     ATTR_SENSOR_DEVICES_2_4,
     ATTR_SENSOR_DEVICES_2_4_NAME,
-
     ATTR_SENSOR_DEVICES_5_0,
     ATTR_SENSOR_DEVICES_5_0_NAME,
-
     ATTR_SENSOR_DEVICES_5_0_GAME,
     ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
 )
@@ -187,9 +174,7 @@ async def async_setup_entry(
     updater: LuciUpdater = data[UPDATER]
 
     if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
-        _LOGGER.error(
-            "Failed to initialize sensor: Missing mac address. Restart HASS."
-        )
+        _LOGGER.error("Failed to initialize sensor: Missing mac address. Restart HASS.")
 
     entities: list[MiWifiSensor] = [
         MiWifiSensor(
@@ -231,7 +216,7 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
         self.entity_id = generate_entity_id(
             ENTITY_ID_FORMAT,
             updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
-            description.name
+            description.name,
         )
 
         self._attr_name = description.name
@@ -258,9 +243,7 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
 
         is_available: bool = self._updater.data.get(ATTR_STATE, False)
 
-        state: Any = self._updater.data.get(
-            self.entity_description.key, None
-        )
+        state: Any = self._updater.data.get(self.entity_description.key, None)
 
         if state is not None and isinstance(state, Enum):
             state = state.phrase

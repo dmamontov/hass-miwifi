@@ -17,7 +17,7 @@ from homeassistant.const import (
     CONF_IP_ADDRESS,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
-    CONF_TIMEOUT
+    CONF_TIMEOUT,
 )
 
 from .discovery import async_start_discovery
@@ -44,7 +44,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(
-            config_entry: config_entries.ConfigEntry
+        config_entry: config_entries.ConfigEntry,
     ) -> MiWifiOptionsFlow:
         """Get the options flow for this handler.
 
@@ -89,7 +89,9 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_abort(reason="discovery_started")
 
-    async def async_step_integration_discovery(self, discovery_info: DiscoveryInfoType) -> FlowResult:
+    async def async_step_integration_discovery(
+        self, discovery_info: DiscoveryInfoType
+    ) -> FlowResult:
         """Handle discovery via integration.
 
         :param discovery_info: DiscoveryInfoType: Discovery Info object
@@ -104,9 +106,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_discovery_confirm()
 
     async def async_step_user(
-            self,
-            user_input: ConfigType | None = None,
-            errors: dict[str, str] | None = None
+        self, user_input: ConfigType | None = None, errors: dict[str, str] | None = None
     ) -> FlowResult:
         """Handle a flow initialized by the user.
 
@@ -119,19 +119,22 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors = {}
 
         return self.async_show_form(
-            step_id='discovery_confirm',
-            data_schema=vol.Schema({
-                vol.Required(CONF_IP_ADDRESS): str,
-                vol.Required(CONF_PASSWORD): str,
-                vol.Required(
-                    CONF_SCAN_INTERVAL,
-                    default=DEFAULT_SCAN_INTERVAL
-                ): vol.All(vol.Coerce(int), vol.Range(min=10))
-            }),
-            errors=errors
+            step_id="discovery_confirm",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_IP_ADDRESS): str,
+                    vol.Required(CONF_PASSWORD): str,
+                    vol.Required(
+                        CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+                    ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+                }
+            ),
+            errors=errors,
         )
 
-    async def async_step_discovery_confirm(self, user_input: ConfigType | None = None) -> FlowResult:
+    async def async_step_discovery_confirm(
+        self, user_input: ConfigType | None = None
+    ) -> FlowResult:
         """Handle a flow initialized by discovery.
 
         :param user_input: ConfigType | None: User data
@@ -142,9 +145,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             code: codes = await async_verify_access(
-                self.hass,
-                user_input[CONF_IP_ADDRESS],
-                user_input[CONF_PASSWORD]
+                self.hass, user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD]
             )
 
             _LOGGER.debug("Verify access code: %s", code)
@@ -153,7 +154,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=user_input[CONF_IP_ADDRESS],
                     data=user_input,
-                    options={OPTION_IS_FROM_FLOW: True}
+                    options={OPTION_IS_FROM_FLOW: True},
                 )
             elif code == codes.FORBIDDEN:
                 errors["base"] = "password.not_matched"
@@ -175,16 +176,19 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="discovery_confirm",
             description_placeholders={
                 **placeholders,
-                "local_user_documentation_url": await async_user_documentation_url(self.hass),
+                "local_user_documentation_url": await async_user_documentation_url(
+                    self.hass
+                ),
             },
-            data_schema=vol.Schema({
-                vol.Required(CONF_IP_ADDRESS, default=ip): str,
-                vol.Required(CONF_PASSWORD): str,
-                vol.Required(
-                    CONF_SCAN_INTERVAL,
-                    default=DEFAULT_SCAN_INTERVAL
-                ): vol.All(vol.Coerce(int), vol.Range(min=10))
-            }),
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_IP_ADDRESS, default=ip): str,
+                    vol.Required(CONF_PASSWORD): str,
+                    vol.Required(
+                        CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
+                    ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+                }
+            ),
             errors=errors,
         )
 
@@ -211,17 +215,14 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
         if user_input is not None:
             code: codes = await async_verify_access(
-                self.hass,
-                user_input[CONF_IP_ADDRESS],
-                user_input[CONF_PASSWORD]
+                self.hass, user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD]
             )
 
             _LOGGER.debug("Verify access code: %s", code)
 
             if codes.is_success(code):
                 return self.async_create_entry(
-                    title=user_input[CONF_IP_ADDRESS],
-                    data=user_input
+                    title=user_input[CONF_IP_ADDRESS], data=user_input
                 )
             elif code == codes.FORBIDDEN:
                 errors["base"] = "password.not_matched"
@@ -229,9 +230,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 errors["base"] = "ip_address.not_matched"
 
         return self.async_show_form(
-            step_id="init",
-            data_schema=self._get_options_schema(),
-            errors=errors
+            step_id="init", data_schema=self._get_options_schema(), errors=errors
         )
 
     def _get_options_schema(self) -> vol.Schema:
@@ -243,24 +242,30 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         schema: dict = {
             vol.Required(
                 CONF_IP_ADDRESS,
-                default=get_config_value(self._config_entry, CONF_IP_ADDRESS, "")
+                default=get_config_value(self._config_entry, CONF_IP_ADDRESS, ""),
             ): str,
             vol.Required(
                 CONF_PASSWORD,
-                default=get_config_value(self._config_entry, CONF_PASSWORD, "")
+                default=get_config_value(self._config_entry, CONF_PASSWORD, ""),
             ): str,
             vol.Required(
                 CONF_SCAN_INTERVAL,
-                default=get_config_value(self._config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+                default=get_config_value(
+                    self._config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                ),
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
             vol.Optional(
                 CONF_ACTIVITY_DAYS,
-                default=get_config_value(self._config_entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS)
+                default=get_config_value(
+                    self._config_entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS
+                ),
             ): cv.positive_int,
             vol.Optional(
                 CONF_TIMEOUT,
-                default=get_config_value(self._config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT)
-            ): vol.All(vol.Coerce(int), vol.Range(min=5))
+                default=get_config_value(
+                    self._config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT
+                ),
+            ): vol.All(vol.Coerce(int), vol.Range(min=5)),
         }
 
         if (
@@ -273,10 +278,8 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_IS_FORCE_LOAD,
                     default=get_config_value(
-                        self._config_entry,
-                        CONF_IS_FORCE_LOAD,
-                        False
-                    )
+                        self._config_entry, CONF_IS_FORCE_LOAD, False
+                    ),
                 ): cv.boolean,
             }
 

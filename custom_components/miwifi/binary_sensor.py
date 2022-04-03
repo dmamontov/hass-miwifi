@@ -4,16 +4,12 @@ from __future__ import annotations
 from .const import (
     DOMAIN,
     UPDATER,
-
     ATTRIBUTION,
     ATTR_DEVICE_MAC_ADDRESS,
-
     ATTR_STATE,
     ATTR_STATE_NAME,
-
     ATTR_BINARY_SENSOR_WAN_STATE,
     ATTR_BINARY_SENSOR_WAN_STATE_NAME,
-
     ATTR_BINARY_SENSOR_DUAL_BAND,
     ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
 )
@@ -39,11 +35,11 @@ from homeassistant.const import (
 )
 
 from .updater import LuciUpdater
-from.helper import generate_entity_id
+from .helper import generate_entity_id
 
 ICONS: Final = {
     f"{ATTR_STATE}_{STATE_ON}": "mdi:router-wireless",
-    f"{ATTR_STATE}_{STATE_OFF}": "router-wireless-off"
+    f"{ATTR_STATE}_{STATE_OFF}": "router-wireless-off",
 }
 
 MIWIFI_BINARY_SENSORS: tuple[BinarySensorEntityDescription, ...] = (
@@ -132,7 +128,7 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
         self.entity_id = generate_entity_id(
             ENTITY_ID_FORMAT,
             updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
-            description.name
+            description.name,
         )
 
         self._attr_name = description.name
@@ -157,12 +153,13 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
-        is_available: bool = self._updater.data.get(ATTR_STATE, False) \
-            if self.entity_description.key != ATTR_STATE else True
-
-        is_on: bool = self._updater.data.get(
-            self.entity_description.key, False
+        is_available: bool = (
+            self._updater.data.get(ATTR_STATE, False)
+            if self.entity_description.key != ATTR_STATE
+            else True
         )
+
+        is_on: bool = self._updater.data.get(self.entity_description.key, False)
 
         if self._attr_is_on == is_on and self._attr_available == is_available:
             return
@@ -171,8 +168,7 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
         self._attr_is_on = is_on
 
         icon_name: str = "{}_{}".format(
-            self.entity_description.key,
-            STATE_ON if is_on else STATE_OFF
+            self.entity_description.key, STATE_ON if is_on else STATE_OFF
         )
 
         if icon_name in ICONS:

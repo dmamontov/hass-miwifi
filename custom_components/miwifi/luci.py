@@ -11,7 +11,6 @@ import uuid
 import json
 
 from httpx import AsyncClient, Response, HTTPError
-from datetime import timedelta
 
 from .exceptions import LuciConnectionException, LuciTokenException
 from .const import (
@@ -21,7 +20,7 @@ from .const import (
     CLIENT_USERNAME,
     CLIENT_LOGIN_TYPE,
     CLIENT_NONCE_TYPE,
-    CLIENT_PUBLIC_KEY
+    CLIENT_PUBLIC_KEY,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -82,7 +81,7 @@ class LuciClient(object):
                         "password": self.generate_password_hash(nonce, self._password),
                         "nonce": nonce,
                     },
-                    timeout=self._timeout
+                    timeout=self._timeout,
                 )
 
             _LOGGER.debug("Successful request %s: %s", url, response.content)
@@ -110,16 +109,9 @@ class LuciClient(object):
 
         try:
             async with self._client as client:
-                response: Response = await client.get(
-                    url,
-                    timeout=self._timeout
-                )
+                response: Response = await client.get(url, timeout=self._timeout)
 
-                _LOGGER.debug(
-                    "Successful request %s: %s",
-                    url,
-                    response.content
-                )
+                _LOGGER.debug("Successful request %s: %s", url, response.content)
         except HTTPError as e:
             _LOGGER.debug("Logout error: %r", e)
 
@@ -132,9 +124,7 @@ class LuciClient(object):
         """
 
         url: str = "{}/{}api/{}".format(
-            self._url,
-            ";stok={}/".format(self._token) if use_stok else "",
-            path
+            self._url, ";stok={}/".format(self._token) if use_stok else "", path
         )
 
         try:
@@ -233,7 +223,9 @@ class LuciClient(object):
         :return dict: dict with api data.
         """
 
-        return await self.get("misystem/led{}".format(f"?on={state}" if state is not None else ""))
+        return await self.get(
+            "misystem/led{}".format(f"?on={state}" if state is not None else "")
+        )
 
     async def wifi_turn_on(self, index: int) -> dict:
         """xqnetwork/wifi_up method.
@@ -288,9 +280,7 @@ class LuciClient(object):
 
         as_hex: str = f"{uuid.getnode():012x}"
 
-        return ":".join(
-            as_hex[i: i + 2] for i in range(0, 12, 2)
-        )
+        return ":".join(as_hex[i : i + 2] for i in range(0, 12, 2))
 
     def generate_nonce(self) -> str:
         """Generate fake nonce.
@@ -302,7 +292,7 @@ class LuciClient(object):
             CLIENT_NONCE_TYPE,
             self.get_mac_address(),
             int(time.time()),
-            int(random.random() * 1000)
+            int(random.random() * 1000),
         )
 
     def generate_password_hash(self, nonce: str, password: str) -> str:

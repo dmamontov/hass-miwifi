@@ -4,11 +4,9 @@ from __future__ import annotations
 from .const import (
     DOMAIN,
     UPDATER,
-
     ATTRIBUTION,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
-
     ATTR_LIGHT_LED,
     ATTR_LIGHT_LED_NAME,
 )
@@ -33,11 +31,11 @@ from homeassistant.const import (
 )
 
 from .updater import LuciUpdater
-from.helper import generate_entity_id
+from .helper import generate_entity_id
 
 ICONS: Final = {
     f"{ATTR_LIGHT_LED}_{STATE_ON}": "mdi:led-on",
-    f"{ATTR_LIGHT_LED}_{STATE_OFF}": "mdi:led-off"
+    f"{ATTR_LIGHT_LED}_{STATE_OFF}": "mdi:led-off",
 }
 
 MIWIFI_LIGHTS: tuple[LightEntityDescription, ...] = (
@@ -69,9 +67,7 @@ async def async_setup_entry(
     updater: LuciUpdater = data[UPDATER]
 
     if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
-        _LOGGER.error(
-            "Failed to initialize light: Missing mac address. Restart HASS."
-        )
+        _LOGGER.error("Failed to initialize light: Missing mac address. Restart HASS.")
 
     entities: list[MiWifiLight] = [
         MiWifiLight(
@@ -111,7 +107,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         self.entity_id = generate_entity_id(
             ENTITY_ID_FORMAT,
             updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
-            description.name
+            description.name,
         )
 
         self._attr_name = description.name
@@ -140,9 +136,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
 
         is_available: bool = self._updater.data.get(ATTR_STATE, False)
 
-        is_on: bool = self._updater.data.get(
-            self.entity_description.key, False
-        )
+        is_on: bool = self._updater.data.get(self.entity_description.key, False)
 
         if self._attr_is_on == is_on and self._attr_available == is_available:
             return
@@ -151,8 +145,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         self._attr_is_on = is_on
 
         icon_name: str = "{}_{}".format(
-            self.entity_description.key,
-            STATE_ON if is_on else STATE_OFF
+            self.entity_description.key, STATE_ON if is_on else STATE_OFF
         )
 
         if icon_name in ICONS:
@@ -188,7 +181,9 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         :param kwargs: Any: Any arguments
         """
 
-        await self._async_call(f"_{self.entity_description.key}_{STATE_ON}", STATE_ON, **kwargs)
+        await self._async_call(
+            f"_{self.entity_description.key}_{STATE_ON}", STATE_ON, **kwargs
+        )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off action
@@ -196,7 +191,9 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         :param kwargs: Any: Any arguments
         """
 
-        await self._async_call(f"_{self.entity_description.key}_{STATE_OFF}", STATE_OFF, **kwargs)
+        await self._async_call(
+            f"_{self.entity_description.key}_{STATE_OFF}", STATE_OFF, **kwargs
+        )
 
     async def _async_call(self, method: str, state: str, **kwargs: Any) -> None:
         """Async turn action

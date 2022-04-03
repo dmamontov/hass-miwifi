@@ -44,7 +44,9 @@ def async_start_discovery(hass: HomeAssistant) -> None:
         :param _: Any
         """
 
-        async_trigger_discovery(hass, await async_discover_devices(get_async_client(hass, False)))
+        async_trigger_discovery(
+            hass, await async_discover_devices(get_async_client(hass, False))
+        )
 
     # Do not block startup since discovery takes 31s or more
     asyncio.create_task(_async_discovery())
@@ -69,9 +71,7 @@ async def async_discover_devices(client: AsyncClient) -> list:
     if "graph" not in response or "ip" not in response["graph"]:
         return []
 
-    devices = [
-        response["graph"]["ip"]
-    ]
+    devices = [response["graph"]["ip"]]
 
     if "leafs" in response["graph"]:
         devices = parse_leafs(devices, response["graph"]["leafs"])
@@ -96,12 +96,8 @@ def async_trigger_discovery(
         hass.async_create_task(
             hass.config_entries.flow.async_init(
                 DOMAIN,
-                context={
-                    "source": config_entries.SOURCE_INTEGRATION_DISCOVERY
-                },
-                data={
-                    CONF_IP_ADDRESS: device
-                },
+                context={"source": config_entries.SOURCE_INTEGRATION_DISCOVERY},
+                data={CONF_IP_ADDRESS: device},
             )
         )
 

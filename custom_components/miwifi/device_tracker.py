@@ -15,7 +15,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.components.device_tracker import ENTITY_ID_FORMAT, SOURCE_TYPE_ROUTER
-from homeassistant.components.device_tracker.config_entry import ScannerEntity, TrackerEntity
+from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 from .updater import LuciUpdater
@@ -26,12 +26,8 @@ from .const import (
     UPDATER,
     DEFAULT_CALL_DELAY,
     SIGNAL_NEW_DEVICE,
-
     ATTRIBUTION,
-
     ATTR_STATE,
-    ATTR_DEVICE_MAC_ADDRESS,
-
     ATTR_TRACKER_ENTRY_ID,
     ATTR_TRACKER_UPDATER_ENTRY_ID,
     ATTR_TRACKER_SCANNER,
@@ -57,10 +53,7 @@ ATTR_CHANGES: Final = [
     ATTR_TRACKER_UP_SPEED,
 ]
 
-CONFIGURATION_PORTS: Final = [
-    80,
-    443
-]
+CONFIGURATION_PORTS: Final = [80, 443]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,21 +83,19 @@ async def async_setup_entry(
         if device[ATTR_TRACKER_UPDATER_ENTRY_ID] != config_entry.entry_id:
             return
 
-        async_add_entities([
-            MiWifiDeviceTracker(
-                f"{DOMAIN}-{device.get(ATTR_TRACKER_MAC)}",
-                device,
-                updater
-            )
-        ])
+        async_add_entities(
+            [
+                MiWifiDeviceTracker(
+                    f"{DOMAIN}-{device.get(ATTR_TRACKER_MAC)}", device, updater
+                )
+            ]
+        )
 
     for device in updater.devices.values():
         add_device(device)
 
     updater.new_device_callback = async_dispatcher_connect(
-        hass,
-        SIGNAL_NEW_DEVICE,
-        add_device
+        hass, SIGNAL_NEW_DEVICE, add_device
     )
 
 
@@ -136,9 +127,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         self._attr_name = device.get(ATTR_TRACKER_NAME, self.mac_address)
 
-        self.entity_id = generate_entity_id(
-            ENTITY_ID_FORMAT, self.mac_address
-        )
+        self.entity_id = generate_entity_id(ENTITY_ID_FORMAT, self.mac_address)
 
         self._attr_unique_id = unique_id
 
@@ -149,9 +138,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         self.hass.loop.call_later(
             DEFAULT_CALL_DELAY,
-            lambda: self.hass.async_create_task(
-                self.check_ports()
-            ),
+            lambda: self.hass.async_create_task(self.check_ports()),
         )
 
     @cached_property
@@ -210,7 +197,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """ Return extra state attributes.
+        """Return extra state attributes.
 
         :return dict[str, Any]: Extra state attributes
         """
@@ -231,35 +218,26 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
             ATTR_TRACKER_SCANNER: DOMAIN,
             ATTR_TRACKER_MAC: self.mac_address,
             ATTR_TRACKER_IP: self.ip_address,
-            ATTR_TRACKER_ONLINE: self._device.get(
-                ATTR_TRACKER_ONLINE,
-                None
-            ) if self.is_connected else "",
+            ATTR_TRACKER_ONLINE: self._device.get(ATTR_TRACKER_ONLINE, None)
+            if self.is_connected
+            else "",
             ATTR_TRACKER_CONNECTION: connection,
             ATTR_TRACKER_ROUTER_MAC_ADDRESS: self._device.get(
-                ATTR_TRACKER_ROUTER_MAC_ADDRESS,
-                None
+                ATTR_TRACKER_ROUTER_MAC_ADDRESS, None
             ),
             ATTR_TRACKER_SIGNAL: signal,
             ATTR_TRACKER_DOWN_SPEED: pretty_size(
-                float(
-                    self._device.get(
-                        ATTR_TRACKER_DOWN_SPEED,
-                        0.0
-                    )
-                )
-            ) if self.is_connected else "",
+                float(self._device.get(ATTR_TRACKER_DOWN_SPEED, 0.0))
+            )
+            if self.is_connected
+            else "",
             ATTR_TRACKER_UP_SPEED: pretty_size(
-                float(
-                    self._device.get(
-                        ATTR_TRACKER_UP_SPEED,
-                        0.0
-                    )
-                )
-            ) if self.is_connected else "",
+                float(self._device.get(ATTR_TRACKER_UP_SPEED, 0.0))
+            )
+            if self.is_connected
+            else "",
             ATTR_TRACKER_LAST_ACTIVITY: self._device.get(
-                ATTR_TRACKER_LAST_ACTIVITY,
-                None
+                ATTR_TRACKER_LAST_ACTIVITY, None
             ),
         }
 
@@ -283,7 +261,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        """ Return device info.
+        """Return device info.
 
         :return DeviceInfo: Device Info
         """
@@ -293,12 +271,12 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
             identifiers={(DOMAIN, self.mac_address)},
             name=self._attr_name,
             configuration_url=self.configuration_url,
-            manufacturer=self.manufacturer
+            manufacturer=self.manufacturer,
         )
 
     @cached_property
     def source_type(self) -> str:
-        """ Return source type.
+        """Return source type.
 
         :return str: Source type router
         """
@@ -337,9 +315,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         else:
             is_connected = parse_last_activity(
                 device.get(ATTR_TRACKER_LAST_ACTIVITY)
-            ) > parse_last_activity(
-                self._device.get(ATTR_TRACKER_LAST_ACTIVITY)
-            )
+            ) > parse_last_activity(self._device.get(ATTR_TRACKER_LAST_ACTIVITY))
 
         is_update = False
         for attr in ATTR_CHANGES:
@@ -348,7 +324,11 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
                 break
 
-        if self._attr_available == is_available and self._is_connected == is_connected and not is_update:
+        if (
+            self._attr_available == is_available
+            and self._is_connected == is_connected
+            and not is_update
+        ):
             return
 
         self._attr_available = is_available
@@ -369,25 +349,19 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         )
 
         if device is not None:
-            if (
-                len(device.config_entries) > 0
-                and entry_id not in device.config_entries
-            ):
+            if len(device.config_entries) > 0 and entry_id not in device.config_entries:
                 device_registry.async_update_device(
-                    device.id,
-                    add_config_entry_id=entry_id
+                    device.id, add_config_entry_id=entry_id
                 )
 
             if device.configuration_url is None and self.configuration_url is not None:
                 device_registry.async_update_device(
-                    device.id,
-                    configuration_url=self.configuration_url
+                    device.id, configuration_url=self.configuration_url
                 )
 
             if device.manufacturer is None and self.manufacturer is not None:
                 device_registry.async_update_device(
-                    device.id,
-                    manufacturer=self.manufacturer
+                    device.id, manufacturer=self.manufacturer
                 )
 
         if self._updater == self.hass.data[DOMAIN][entry_id][UPDATER]:
@@ -411,7 +385,5 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
             if self._configuration_port is not None:
                 _LOGGER.debug(
-                    "Found open port %s: %s",
-                    self.ip_address,
-                    self._configuration_port
+                    "Found open port %s: %s", self.ip_address, self._configuration_port
                 )

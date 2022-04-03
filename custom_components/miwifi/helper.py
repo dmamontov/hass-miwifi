@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 import math
+from httpx import codes
 from typing import Any
 
 from homeassistant import config_entries
@@ -18,25 +19,24 @@ from .const import DOMAIN, STORAGE_VERSION
 
 
 def get_config_value(
-    config_entry: config_entries | None,
-    param: str,
-    default=None
+    config_entry: config_entries.ConfigEntry | None, param: str, default=None
 ) -> Any:
     """Get current value for configuration parameter.
 
-    :param config_entry: config_entries|None: config entry from Flow
+    :param config_entry: config_entries.ConfigEntry|None: config entry from Flow
     :param param: str: parameter name for getting value
     :param default: default value for parameter, defaults to None
     :return Any: parameter value, or default value or None
     """
 
-    return config_entry.options.get(
-        param,
-        config_entry.data.get(param, default)
-    ) if config_entry is not None else default
+    return (
+        config_entry.options.get(param, config_entry.data.get(param, default))
+        if config_entry is not None
+        else default
+    )
 
 
-async def async_verify_access(hass: HomeAssistant, ip: str, password: str) -> int:
+async def async_verify_access(hass: HomeAssistant, ip: str, password: str) -> codes:
     """Verify ip and password.
 
     :param hass: HomeAssistant: Home Assistant object
@@ -45,12 +45,7 @@ async def async_verify_access(hass: HomeAssistant, ip: str, password: str) -> in
     :return int: last update success
     """
 
-    updater = LuciUpdater(
-        hass=hass,
-        ip=ip,
-        password=password,
-        is_only_login=True
-    )
+    updater = LuciUpdater(hass=hass, ip=ip, password=password, is_only_login=True)
 
     await updater.async_request_refresh()
     await updater.async_stop()
@@ -70,11 +65,7 @@ async def async_user_documentation_url(hass: HomeAssistant) -> str:
     return f"{integration.documentation}"
 
 
-def generate_entity_id(
-    entity_id_format: str,
-    mac: str,
-    name: str | None = None
-) -> str:
+def generate_entity_id(entity_id_format: str, mac: str, name: str | None = None) -> str:
     """Generate Entity ID
 
     :param entity_id_format: str: Format
@@ -85,10 +76,7 @@ def generate_entity_id(
 
     return entity_id_format.format(
         slugify(
-            "miwifi_{}{}".format(
-                mac,
-                f"_{name}" if name is not None else ""
-            ).lower()
+            "miwifi_{}{}".format(mac, f"_{name}" if name is not None else "").lower()
         )
     )
 
@@ -101,12 +89,7 @@ def get_store(hass: HomeAssistant, ip: str) -> Store:
     :return Store: Store object
     """
 
-    return Store(
-        hass,
-        STORAGE_VERSION,
-        f"{DOMAIN}/{ip}.json",
-        encoder=JSONEncoder
-    )
+    return Store(hass, STORAGE_VERSION, f"{DOMAIN}/{ip}.json", encoder=JSONEncoder)
 
 
 def parse_last_activity(last_activity: str) -> datetime:

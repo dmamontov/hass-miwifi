@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import asyncio
 
-from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE, callback
+from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers import device_registry as dr
@@ -24,18 +24,14 @@ from .discovery import async_start_discovery
 from .const import (
     DOMAIN,
     PLATFORMS,
-
     CONF_IS_FORCE_LOAD,
     CONF_ACTIVITY_DAYS,
-
     OPTION_IS_FROM_FLOW,
-
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TIMEOUT,
     DEFAULT_ACTIVITY_DAYS,
     DEFAULT_SLEEP,
     DEFAULT_CALL_DELAY,
-
     UPDATER,
     UPDATE_LISTENER,
 )
@@ -56,9 +52,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     is_new: bool = get_config_value(entry, OPTION_IS_FROM_FLOW, False)
 
     if is_new:
-        hass.config_entries.async_update_entry(
-            entry, data=entry.data, options={}
-        )
+        hass.config_entries.async_update_entry(entry, data=entry.data, options={})
 
     ip: str = get_config_value(entry, CONF_IP_ADDRESS)
 
@@ -70,7 +64,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         get_config_value(entry, CONF_TIMEOUT, DEFAULT_TIMEOUT),
         get_config_value(entry, CONF_IS_FORCE_LOAD, False),
         get_config_value(entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS),
-        get_store(hass, ip)
+        get_store(hass, ip),
     )
 
     hass.data.setdefault(DOMAIN, {})
@@ -80,8 +74,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         UPDATER: updater,
     }
 
-    hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER] = \
-        entry.add_update_listener(async_update_options)
+    hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER] = entry.add_update_listener(
+        async_update_options
+    )
 
     async def async_start(with_sleep: bool = False) -> None:
         """Async start.
@@ -110,9 +105,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     else:
         hass.loop.call_later(
             DEFAULT_CALL_DELAY,
-            lambda: hass.async_create_task(
-                async_start(True)
-            ),
+            lambda: hass.async_create_task(async_start(True)),
         )
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_stop)
@@ -140,8 +133,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if CONF_IP_ADDRESS in hass.data[DOMAIN][entry.entry_id]:
         store: Store = get_store(
-            hass,
-            hass.data[DOMAIN][entry.entry_id][CONF_IP_ADDRESS]
+            hass, hass.data[DOMAIN][entry.entry_id][CONF_IP_ADDRESS]
         )
         await store.async_remove()
 

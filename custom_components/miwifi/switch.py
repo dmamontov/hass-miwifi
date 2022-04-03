@@ -4,22 +4,16 @@ from __future__ import annotations
 from .const import (
     DOMAIN,
     UPDATER,
-
     ATTRIBUTION,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
-
     ATTR_BINARY_SENSOR_DUAL_BAND,
-
     ATTR_WIFI_NAME,
     ATTR_WIFI_ADAPTER_LENGTH,
-
     ATTR_SWITCH_WIFI_2_4,
     ATTR_SWITCH_WIFI_2_4_NAME,
-
     ATTR_SWITCH_WIFI_5_0,
     ATTR_SWITCH_WIFI_5_0_NAME,
-
     ATTR_SWITCH_WIFI_5_0_GAME,
     ATTR_SWITCH_WIFI_5_0_GAME_NAME,
 )
@@ -36,7 +30,6 @@ from homeassistant.components.switch import (
     ENTITY_ID_FORMAT,
     SwitchEntityDescription,
     SwitchEntity,
-    SwitchDeviceClass
 )
 from homeassistant.const import (
     ENTITY_CATEGORY_CONFIG,
@@ -45,7 +38,7 @@ from homeassistant.const import (
 )
 
 from .updater import LuciUpdater
-from.helper import generate_entity_id
+from .helper import generate_entity_id
 
 ICONS: Final = {
     f"{ATTR_SWITCH_WIFI_2_4}_{STATE_ON}": "mdi:wifi",
@@ -56,7 +49,7 @@ ICONS: Final = {
     f"{ATTR_SWITCH_WIFI_5_0_GAME}_{STATE_OFF}": "mdi:wifi-off",
 }
 
-MIWIFI_SWITCHS: tuple[SwitchEntityDescription, ...] = (
+MIWIFI_SWITCHES: tuple[SwitchEntityDescription, ...] = (
     SwitchEntityDescription(
         key=ATTR_SWITCH_WIFI_2_4,
         name=ATTR_SWITCH_WIFI_2_4_NAME,
@@ -99,9 +92,7 @@ async def async_setup_entry(
     updater: LuciUpdater = data[UPDATER]
 
     if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
-        _LOGGER.error(
-            "Failed to initialize switch: Missing mac address. Restart HASS."
-        )
+        _LOGGER.error("Failed to initialize switch: Missing mac address. Restart HASS.")
 
     entities: list[MiWifiSwitch] = [
         MiWifiSwitch(
@@ -109,7 +100,7 @@ async def async_setup_entry(
             description,
             updater,
         )
-        for description in MIWIFI_SWITCHS
+        for description in MIWIFI_SWITCHES
         if description.key != ATTR_SWITCH_WIFI_5_0_GAME
         or updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
     ]
@@ -143,7 +134,7 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
         self.entity_id = generate_entity_id(
             ENTITY_ID_FORMAT,
             updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
-            description.name
+            description.name,
         )
 
         self._attr_name = description.name
@@ -173,9 +164,7 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
         """Update state."""
 
         is_available: bool = self._updater.data.get(ATTR_STATE, False)
-        is_on: bool = self._updater.data.get(
-            self.entity_description.key, False
-        )
+        is_on: bool = self._updater.data.get(self.entity_description.key, False)
 
         self._additional_prepare()
 
@@ -186,8 +175,7 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
         self._attr_is_on = is_on
 
         icon_name: str = "{}_{}".format(
-            self.entity_description.key,
-            STATE_ON if is_on else STATE_OFF
+            self.entity_description.key, STATE_ON if is_on else STATE_OFF
         )
 
         if icon_name in ICONS:
@@ -271,7 +259,9 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
         :param kwargs: Any: Any arguments
         """
 
-        await self._async_call(f"_{self.entity_description.key}_{STATE_ON}", STATE_ON, **kwargs)
+        await self._async_call(
+            f"_{self.entity_description.key}_{STATE_ON}", STATE_ON, **kwargs
+        )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off action
@@ -279,7 +269,9 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
         :param kwargs: Any: Any arguments
         """
 
-        await self._async_call(f"_{self.entity_description.key}_{STATE_OFF}", STATE_OFF, **kwargs)
+        await self._async_call(
+            f"_{self.entity_description.key}_{STATE_OFF}", STATE_OFF, **kwargs
+        )
 
     async def _async_call(self, method: str, state: str, **kwargs: Any) -> None:
         """Async turn action
@@ -301,7 +293,8 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
 
         if self._updater.data.get(ATTR_BINARY_SENSOR_DUAL_BAND, False):
             if self.entity_description.key in [
-                ATTR_SWITCH_WIFI_5_0, ATTR_SWITCH_WIFI_5_0_GAME
+                ATTR_SWITCH_WIFI_5_0,
+                ATTR_SWITCH_WIFI_5_0_GAME,
             ]:
                 self._attr_entity_registry_enabled_default = False
                 self._attr_available = False
