@@ -144,7 +144,7 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
 
         self._attr_is_on = updater.data.get(description.key, False)
 
-        self._additional_prepare()
+        self._attr_available = self._additional_prepare()
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
@@ -163,10 +163,9 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
-        is_available: bool = self._updater.data.get(ATTR_STATE, False)
         is_on: bool = self._updater.data.get(self.entity_description.key, False)
 
-        self._additional_prepare()
+        is_available: bool = self._additional_prepare()
 
         if self._attr_is_on == is_on and self._attr_available == is_available:
             return
@@ -288,8 +287,13 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
 
             self._updater.data[self.entity_description.key] = state == STATE_ON
 
-    def _additional_prepare(self) -> None:
-        """Prepare wifi switch"""
+    def _additional_prepare(self) -> bool:
+        """Prepare wifi switch
+
+        reuturn bool: is_available
+        """
+
+        is_available: bool = self._updater.data.get(ATTR_STATE, False)
 
         if self._updater.data.get(ATTR_BINARY_SENSOR_DUAL_BAND, False):
             if self.entity_description.key in [
@@ -297,7 +301,9 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
                 ATTR_SWITCH_WIFI_5_0_GAME,
             ]:
                 self._attr_entity_registry_enabled_default = False
-                self._attr_available = False
+                is_available = False
 
             if self.entity_description.key == ATTR_SWITCH_WIFI_2_4:
                 self._attr_name = ATTR_WIFI_NAME
+
+        return is_available
