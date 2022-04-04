@@ -128,3 +128,28 @@ class DeviceAction(IntEnum):
     ADD = 0, "Add"
     MOVE = 1, "Move"
     SKIP = 2, "Skip"
+
+
+class Model(str, Enum):
+    def __new__(cls, value: str) -> "Model":
+        """New Model.
+
+        :param value: str: Model
+        :return Model
+        """
+
+        obj = str.__new__(cls, value)  # type: ignore
+        obj._value_ = value
+
+        return obj
+
+    def __str__(self) -> str:
+        """Serialize to string.
+
+        :return str
+        """
+
+        return str(self.value)
+
+    NOT_KNOWN = "not_known"
+    R3G = "r3g"

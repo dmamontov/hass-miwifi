@@ -33,6 +33,7 @@ from .const import (
     DEFAULT_MANUFACTURER,
     DEFAULT_CALL_DELAY,
     ATTR_STATE,
+    ATTR_MODEL,
     ATTR_DEVICE_MODEL,
     ATTR_DEVICE_MANUFACTURER,
     ATTR_DEVICE_MAC_ADDRESS,
@@ -68,6 +69,7 @@ from .const import (
     ATTR_TRACKER_UP_SPEED,
 )
 from .enum import (
+    Model,
     Mode,
     Connection,
     IfName,
@@ -88,6 +90,8 @@ PREPARE_METHODS: Final = [
     "device_restore",
     "new_status",
 ]
+
+UNSUPPORTED: Final = {"new_status": [Model.R3G]}
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -310,6 +314,12 @@ class LuciUpdater(DataUpdateCoordinator):
         :param data: dict
         """
 
+        if (
+            method in UNSUPPORTED
+            and data.get(ATTR_MODEL, Model.NOT_KNOWN) in UNSUPPORTED[method]
+        ):
+            return
+
         action = getattr(self, f"_async_prepare_{method}")
 
         if action:
@@ -343,6 +353,11 @@ class LuciUpdater(DataUpdateCoordinator):
             ] = f"{response['romversion']} ({response['countrycode']})"
 
         if "hardware" in response:
+            try:
+                data[ATTR_MODEL] = Model(response["hardware"].lower())
+            except BaseException:
+                data[ATTR_MODEL] = Model.NOT_KNOWN
+
             data[ATTR_CAMERA_IMAGE] = await self.luci.image(response["hardware"])
 
     async def _async_prepare_status(self, data: dict) -> None:

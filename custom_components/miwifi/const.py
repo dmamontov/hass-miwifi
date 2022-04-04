@@ -57,6 +57,8 @@ CLIENT_PUBLIC_KEY: Final = "a2ffa5c9be07488bbb04a3a47d3c5f6a"
 ATTR_STATE: Final = "state"
 ATTR_STATE_NAME: Final = "State"
 
+ATTR_MODEL: Final = "model"
+
 ATTR_DEVICE_MODEL: Final = "device_model"
 ATTR_DEVICE_MAC_ADDRESS: Final = "device_mac_address"
 ATTR_DEVICE_NAME: Final = "device_name"
