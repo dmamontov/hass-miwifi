@@ -94,16 +94,22 @@ async def async_setup_entry(
     if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
         _LOGGER.error("Failed to initialize switch: Missing mac address. Restart HASS.")
 
-    entities: list[MiWifiSwitch] = [
-        MiWifiSwitch(
-            f"{config_entry.entry_id}-{description.key}",
-            description,
-            updater,
+    entities: list[MiWifiSwitch] = []
+    for description in MIWIFI_SWITCHES:
+        if (
+            description.key == ATTR_SWITCH_WIFI_5_0_GAME
+            and updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) != 3
+        ):
+            continue
+
+        entities.append(
+            MiWifiSwitch(
+                f"{config_entry.entry_id}-{description.key}",
+                description,
+                updater,
+            )
         )
-        for description in MIWIFI_SWITCHES
-        if description.key != ATTR_SWITCH_WIFI_5_0_GAME
-        or updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
-    ]
+
     async_add_entities(entities)
 
 

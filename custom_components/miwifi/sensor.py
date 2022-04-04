@@ -167,16 +167,25 @@ async def async_setup_entry(
     if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
         _LOGGER.error("Failed to initialize sensor: Missing mac address. Restart HASS.")
 
-    entities: list[MiWifiSensor] = [
-        MiWifiSensor(
-            f"{config_entry.entry_id}-{description.key}",
-            description,
-            updater,
+    entities: list[MiWifiSensor] = []
+    for description in MIWIFI_SENSORS:
+        if (
+            description.key == ATTR_SENSOR_DEVICES_5_0_GAME
+            and updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) != 3
+        ) or (
+            description.key == ATTR_SENSOR_TEMPERATURE
+            and updater.data.get(description.key, 0.0) == 0.0
+        ):
+            continue
+
+        entities.append(
+            MiWifiSensor(
+                f"{config_entry.entry_id}-{description.key}",
+                description,
+                updater,
+            )
         )
-        for description in MIWIFI_SENSORS
-        if description.key != ATTR_SENSOR_DEVICES_5_0_GAME
-        or updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
-    ]
+
     async_add_entities(entities)
 
 
