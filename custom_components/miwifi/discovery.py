@@ -15,6 +15,8 @@ from httpx import AsyncClient
 
 from .const import (
     DOMAIN,
+    CLIENT_ADDRESS,
+    CLIENT_ADDRESS_IP,
     DISCOVERY,
     DISCOVERY_INTERVAL,
 )
@@ -61,10 +63,13 @@ async def async_discover_devices(client: AsyncClient) -> list:
 
     response: dict = {}
 
-    try:
-        response = await LuciClient(client).topo_graph()
-    except BaseException:
-        pass
+    for address in [CLIENT_ADDRESS, CLIENT_ADDRESS_IP]:
+        try:
+            response = await LuciClient(client, address).topo_graph()
+
+            break
+        except BaseException:
+            pass
 
     if "graph" not in response or "ip" not in response["graph"]:
         return []

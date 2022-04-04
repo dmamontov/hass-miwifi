@@ -45,6 +45,7 @@ DEFAULT_MANUFACTURER: Final = "Xiaomi"
 
 """Luci API client const"""
 CLIENT_ADDRESS: Final = "miwifi.com"
+CLIENT_ADDRESS_IP: Final = "192.168.31.1"
 CLIENT_URL: Final = "http://{ip}/cgi-bin/luci"
 CLIENT_USERNAME: Final = "admin"
 CLIENT_LOGIN_TYPE: Final = 2
