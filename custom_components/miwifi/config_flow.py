@@ -43,7 +43,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(
-            config_entry: config_entries.ConfigEntry,
+        config_entry: config_entries.ConfigEntry,
     ) -> MiWifiOptionsFlow:
         """Get the options flow for this handler.
 
@@ -89,7 +89,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_abort(reason="discovery_started")
 
     async def async_step_integration_discovery(
-            self, discovery_info: DiscoveryInfoType
+        self, discovery_info: DiscoveryInfoType
     ) -> FlowResult:
         """Handle discovery via integration.
 
@@ -105,7 +105,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_discovery_confirm()
 
     async def async_step_user(
-            self, user_input: ConfigType | None = None, errors: dict[str, str] | None = None
+        self, user_input: ConfigType | None = None, errors: dict[str, str] | None = None
     ) -> FlowResult:
         """Handle a flow initialized by the user.
 
@@ -132,7 +132,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_discovery_confirm(
-            self, user_input: ConfigType | None = None
+        self, user_input: ConfigType | None = None
     ) -> FlowResult:
         """Handle a flow initialized by discovery.
 
@@ -268,10 +268,10 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         }
 
         if (
-                DOMAIN not in self.hass.data
-                or self._config_entry.entry_id not in self.hass.data[DOMAIN]
-                or UPDATER not in self.hass.data[DOMAIN][self._config_entry.entry_id]
-                or self.hass.data[DOMAIN][self._config_entry.entry_id][UPDATER].is_repeater
+            DOMAIN not in self.hass.data
+            or self._config_entry.entry_id not in self.hass.data[DOMAIN]
+            or UPDATER not in self.hass.data[DOMAIN][self._config_entry.entry_id]
+            or self.hass.data[DOMAIN][self._config_entry.entry_id][UPDATER].is_repeater
         ):
             schema |= {
                 vol.Optional(

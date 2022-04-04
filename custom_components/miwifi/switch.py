@@ -77,9 +77,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
-        async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up MiWifi switch entry.
 
@@ -96,13 +96,13 @@ async def async_setup_entry(
 
     entities: list[MiWifiSwitch] = [
         MiWifiSwitch(
-            f"{config_entry.unique_id}-{description.key}",
+            f"{config_entry.entry_id}-{description.key}",
             description,
             updater,
         )
         for description in MIWIFI_SWITCHES
         if description.key != ATTR_SWITCH_WIFI_5_0_GAME
-           or updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
+        or updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
     ]
     async_add_entities(entities)
 
@@ -113,10 +113,10 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
     _attr_attribution: str = ATTRIBUTION
 
     def __init__(
-            self,
-            unique_id: str,
-            description: SwitchEntityDescription,
-            updater: LuciUpdater,
+        self,
+        unique_id: str,
+        description: SwitchEntityDescription,
+        updater: LuciUpdater,
     ) -> None:
         """Initialize switch.
 

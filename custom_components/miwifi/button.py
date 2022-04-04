@@ -45,9 +45,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
-        async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up MiWifi button entry.
 
@@ -64,7 +64,7 @@ async def async_setup_entry(
 
     entities: list[MiWifiButton] = [
         MiWifiButton(
-            f"{config_entry.unique_id}-{description.key}",
+            f"{config_entry.entry_id}-{description.key}",
             description,
             updater,
         )
@@ -79,10 +79,10 @@ class MiWifiButton(ButtonEntity, CoordinatorEntity, RestoreEntity):
     _attr_attribution: str = ATTRIBUTION
 
     def __init__(
-            self,
-            unique_id: str,
-            description: ButtonEntityDescription,
-            updater: LuciUpdater,
+        self,
+        unique_id: str,
+        description: ButtonEntityDescription,
+        updater: LuciUpdater,
     ) -> None:
         """Initialize button.
 

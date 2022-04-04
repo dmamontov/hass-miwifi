@@ -121,14 +121,6 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         entity_registry_enabled_default=False,
     ),
     SensorEntityDescription(
-        key=ATTR_SENSOR_DEVICES_GUEST,
-        name=ATTR_SENSOR_DEVICES_GUEST_NAME,
-        icon="mdi:counter",
-        native_unit_of_measurement=PCS,
-        state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
-    ),
-    SensorEntityDescription(
         key=ATTR_SENSOR_DEVICES_2_4,
         name=ATTR_SENSOR_DEVICES_2_4_NAME,
         icon="mdi:counter",
@@ -158,9 +150,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
-        async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up MiWifi sensor entry.
 
@@ -177,13 +169,13 @@ async def async_setup_entry(
 
     entities: list[MiWifiSensor] = [
         MiWifiSensor(
-            f"{config_entry.unique_id}-{description.key}",
+            f"{config_entry.entry_id}-{description.key}",
             description,
             updater,
         )
         for description in MIWIFI_SENSORS
         if description.key != ATTR_SENSOR_DEVICES_5_0_GAME
-           or updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
+        or updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 3) == 3
     ]
     async_add_entities(entities)
 
@@ -194,10 +186,10 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
     _attr_attribution: str = ATTRIBUTION
 
     def __init__(
-            self,
-            unique_id: str,
-            description: SensorEntityDescription,
-            updater: LuciUpdater,
+        self,
+        unique_id: str,
+        description: SensorEntityDescription,
+        updater: LuciUpdater,
     ) -> None:
         """Initialize sensor.
 

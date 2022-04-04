@@ -52,9 +52,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
-        async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up MiWifi light entry.
 
@@ -71,7 +71,7 @@ async def async_setup_entry(
 
     entities: list[MiWifiLight] = [
         MiWifiLight(
-            f"{config_entry.unique_id}-{description.key}",
+            f"{config_entry.entry_id}-{description.key}",
             description,
             updater,
         )
@@ -86,10 +86,10 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
     _attr_attribution: str = ATTRIBUTION
 
     def __init__(
-            self,
-            unique_id: str,
-            description: LightEntityDescription,
-            updater: LuciUpdater,
+        self,
+        unique_id: str,
+        description: LightEntityDescription,
+        updater: LuciUpdater,
     ) -> None:
         """Initialize light.
 

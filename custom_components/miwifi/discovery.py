@@ -81,8 +81,8 @@ async def async_discover_devices(client: AsyncClient) -> list:
 
 @callback
 def async_trigger_discovery(
-        hass: HomeAssistant,
-        discovered_devices: list,
+    hass: HomeAssistant,
+    discovered_devices: list,
 ) -> None:
     """Trigger config flows for discovered devices.
 
@@ -109,7 +109,7 @@ def parse_leafs(devices: list, leafs: list) -> list:
     """
 
     for leaf in leafs:
-        if "ip" not in leaf:
+        if "ip" not in leaf or len(leaf["ip"]) == 0:
             continue
 
         devices.append(leaf["ip"])
