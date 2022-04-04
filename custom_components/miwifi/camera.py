@@ -100,7 +100,9 @@ class MiWifiCamera(Camera):
         )
 
         self._attr_available = updater.data.get(description.key, None) is not None
-        self._attr_is_on = True
+        self._attr_entity_registry_enabled_default = self._attr_available
+        self._attr_is_on = self._attr_available
+
         self._attr_name = description.name
         self._attr_unique_id = unique_id
 
