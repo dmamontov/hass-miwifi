@@ -71,7 +71,11 @@ async def async_discover_devices(client: AsyncClient) -> list:
         except BaseException:
             pass
 
-    if "graph" not in response or "ip" not in response["graph"]:
+    if (
+        "graph" not in response
+        or "ip" not in response["graph"]
+        or len(response["graph"]["ip"]) == 0
+    ):
         return []
 
     devices = [response["graph"]["ip"]]
