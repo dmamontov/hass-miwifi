@@ -16,6 +16,7 @@ PLATFORMS: Final = [
     Platform.BUTTON,
     Platform.SWITCH,
     Platform.DEVICE_TRACKER,
+    Platform.CAMERA,
 ]
 
 """Discovery const"""
@@ -123,6 +124,10 @@ ATTR_SWITCH_WIFI_5_0_NAME: Final = f"{ATTR_WIFI_NAME} 5G"
 
 ATTR_SWITCH_WIFI_5_0_GAME: Final = "wifi_5_0_game"
 ATTR_SWITCH_WIFI_5_0_GAME_NAME: Final = f"{ATTR_WIFI_NAME} 5G game"
+
+"""Camera attributes"""
+ATTR_CAMERA_IMAGE: Final = "image"
+ATTR_CAMERA_IMAGE_NAME: Final = "Image"
 
 """Device tracker attributes"""
 ATTR_TRACKER_ENTRY_ID: Final = "entry_id"

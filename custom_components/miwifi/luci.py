@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import logging
@@ -10,6 +11,8 @@ import time
 import uuid
 
 from httpx import AsyncClient, Response, HTTPError
+
+from homeassistant.util import slugify
 
 from .const import (
     DEFAULT_TIMEOUT,
@@ -259,6 +262,27 @@ class LuciClient(object):
         """
 
         return await self.get("xqnetwork/wifi_connect_devices")
+
+    async def image(self, hardware: str) -> bytes | None:
+        """router image  method.
+
+        :return dict: dict with api data.
+        """
+
+        hardware = slugify(hardware.lower())
+        url: str = (
+            f"http://{self._ip}/xiaoqiang/web/img/icons/router_{hardware}_100_on.png"
+        )
+
+        try:
+            async with self._client as client:
+                response: Response = await client.get(url, timeout=self._timeout)
+
+            _LOGGER.debug("Successful request image %s: %s", url)
+
+            return base64.b64encode(response.content)
+        except BaseException:
+            return None
 
     @staticmethod
     def sha1(key: str) -> str:

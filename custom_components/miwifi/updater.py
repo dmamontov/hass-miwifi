@@ -18,8 +18,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.httpx_client import get_async_client
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.util import json
-from homeassistant.util import utcnow
+from homeassistant.util import json, utcnow
 from httpx import codes
 
 from .const import (
@@ -52,6 +51,7 @@ from .const import (
     ATTR_SENSOR_DEVICES_2_4,
     ATTR_SENSOR_DEVICES_5_0,
     ATTR_SENSOR_DEVICES_5_0_GAME,
+    ATTR_CAMERA_IMAGE,
     ATTR_LIGHT_LED,
     ATTR_WIFI_ADAPTER_LENGTH,
     ATTR_TRACKER_ENTRY_ID,
@@ -341,6 +341,9 @@ class LuciUpdater(DataUpdateCoordinator):
             data[
                 ATTR_DEVICE_SW_VERSION
             ] = f"{response['romversion']} ({response['countrycode']})"
+
+        if "hardware" in response:
+            data[ATTR_CAMERA_IMAGE] = await self.luci.image(response["hardware"])
 
     async def _async_prepare_status(self, data: dict) -> None:
         """Prepare status.
