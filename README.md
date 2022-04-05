@@ -111,6 +111,9 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 - `xqsystem/reboot` - Reboot
 - `misystem/newstatus` - Additional information about connected devices for force load mode
 
+❗ If your router is not listed or not tested, try adding an integration, it will check everything and give a link to create an issue. You just have to click `Submit new issue`
+❗ If at the time of adding the integration only `Router {ip} not supported` message is displayed, please create an issue with the message that the router is not supported, indicating the model of the router.
+
 ### Summary
 
 - 🟢 - Supported
