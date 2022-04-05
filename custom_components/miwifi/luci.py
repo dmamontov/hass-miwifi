@@ -271,9 +271,9 @@ class LuciClient(object):
         """
 
         hardware = slugify(hardware.lower())
-        url: str = (
-            f"http://{self.ip}/xiaoqiang/web/img/icons/router_{hardware}_100_on.png"
-        )
+        # fmt: off
+        url: str = f"http://{self.ip}/xiaoqiang/web/img/icons/router_{hardware}_100_on.png"
+        # fmt: on
 
         try:
             async with self._client as client:
