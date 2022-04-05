@@ -91,7 +91,13 @@ PREPARE_METHODS: Final = [
     "new_status",
 ]
 
-UNSUPPORTED: Final = {"new_status": [Model.R3G]}
+UNSUPPORTED: Final = {
+    "new_status": [
+        Model.R3G,
+        Model.R4,
+        Model.D01,
+    ]
+}
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -10,9 +10,11 @@ Component for tracking devices and managing routers based on [MiWiFi](http://miw
 - [Conflicts](#conflicts)
 - [Install](#install)
 - [Config](#config)
-- [Advanced config](#advanced-config)
+  - [Advanced config](#advanced-config)
 - [Performance table](#performance-table)
-- [Routers tested](#routers-tested)
+- [Supported routers](#supported-routers)
+  - [API check list](#api-check-list)
+  - [Summary](#summary)
 
 ## FAQ
 **Q. Do I need to get telnet or ssh?**
@@ -68,7 +70,7 @@ For authorization, use the ip of your router and its password
 
 **Via YAML (legacy way) not supported**
 
-## Advanced config
+### Advanced config
 #### Automatically remove devices
 The component supports automatic deletion of monitored devices after a specified number of days (Default: 30 days) after the last activity. If you specify 0, then automatic deletion will be disabled.
 
@@ -86,22 +88,64 @@ The component supports automatic deletion of monitored devices after a specified
    - [example](https://gist.github.com/dmamontov/d977cd01c861d1f5e66327af22fd084b)
    - [example (force mode)](https://gist.github.com/dmamontov/95990dfd155c6ef92e0e7f46762bfcc2)
 
-## Routers tested
+## Supported routers
 Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 
-| Image                                               | Router               | Firmware version (tested)                                                | Status                                                                                                                    |
-| --------------------------------------------------- | -------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| ![](http://www1.miwifi.com/statics/img/RA70.png)     | **Xiaomi AX9000**    | <ul><li>1.0.108(CN)</li><li>1.0.140(CN)</li><li>3.0.40(Global)</li></ul> | Supported                                                                                                                 |
-| ![](http://www1.miwifi.com/statics/img/RA72.png)     | **Xiaomi AX3600**    | <ul><li>1.1.19(CN)</li><li>3.0.22(Global)</li></ul>                      | Supported                                                                                                                 |
-| ![](http://www1.miwifi.com/statics/img/AX1800.png)   | **Xiaomi AX1800**    | <ul><li>1.0.378(CN)</li></ul>                                            | Supported                                                                                                                 |
-| ![](http://miwifi.com/statics/img/RA67.png)          | **Redmi AX5**        | <ul><li>1.0.33(CN)</li><li>3.0.34(Global)</li></ul>                      | Supported                                                                                                                 |
-| ![](http://www1.miwifi.com/statics/img/2100@1x.png)  | **Xiaomi AC2100**    | <ul><li>2.0.23(CN)</li><li>2.0.743(CN)</li></ul>                         | Supported                                                                                                                 |
-| ![](http://www1.miwifi.com/statics/img/R4AC.png)     | **Xiaomi Mi Wifi 4A** | <ul><li>2.28.58(CN)</li></ul>                                            | Supported                                                                                                                 |
-| ![](http://www1.miwifi.com/statics/img/r3p.png)      | **Xiaomi PRO R3P**   | <ul><li>2.16.29(CN)</li></ul>                                            | Supported with restrictions<sup>*</sup>                                                                                   |
-| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Xiaomi 3G**        | <ul><li>2.28.44(CN)</li></ul>                                            | Supported with restrictions<sup>*</sup><br><ul><li>Device counting by channels does not work in force load mode</li></ul> |
-| ![](http://www1.miwifi.com/statics/img/R1CL.png)     | **Xiaomi R1CL**      | <ul><li>2.22.19(CN)</li></ul>                                            | Not supported                                                                                                             |
-| ![](http://www1.miwifi.com/statics/img/R1C.png)      | **Xiaomi R1CM**      | <ul><li>2.12.9(CN)</li></ul>                                             | Not supported                                                                                                             |
-| ![](http://www1.miwifi.com/statics/img/R2D.png)      | **Xiaomi R2D**       | <ul><li>2.24.10(CN)</li></ul>                                            | Not supported                                                                                                             |
-| ![](http://www1.miwifi.com/statics/img/R1D.png)      | **Xiaomi R1D**       | <ul><li>2.26.5(CN)</li></ul>                                             | Not supported                                                                                                             |
+### API check list
 
-<sup>*</sup> Not all integration options may be supported.
+##### Required
+- `xqsystem/login` - Authorization.
+- `xqsystem/init_info` - Basic information about the router.
+- `misystem/status` - Basic information about the router. Diagnostic data, memory, temperature, etc.
+- `xqnetwork/mode` - Operating mode. Repeater, Access Point, Mesh, etc.
+
+##### Additional
+- `misystem/topo_graph` - Topography, auto discovery does not work without it.
+- `xqnetwork/wan_info` - WAN port information.
+- `misystem/led` - Interaction with LEDs.
+- `xqnetwork/wifi_detail_all` - Getting information about WiFi adapters
+  - `xqnetwork/wifi_up` - Turning on
+  - `xqnetwork/wifi_down` - Turning off
+- `xqnetwork/wifi_connect_devices` - Get information about connected devices
+- `misystem/devicelist` - More information about connected devices
+- `xqsystem/reboot` - Reboot
+- `misystem/newstatus` - Additional information about connected devices for force load mode
+
+### Summary
+
+- 🟢 - Supported
+- 🔴 - Not supported
+- ⚪ - Not tested
+
+| Image                                               | Router                              | API check list           |
+| --------------------------------------------------- | ----------------------------------- | ------------------------ |
+| ![](http://www1.miwifi.com/statics/img/RA70.png)     | **Xiaomi AX9000 (RA70)**            | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA72.png)     | **Xiaomi AX6000 (RA72)**            | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA80.png)     | **Xiaomi AX3000 (RA80)**            | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RB03.png)     | **Redmi AX6S (RB03)**               | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA81.png)     | **Redmi AX3000 (RA81)**             | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA71.png)     | **Redmi AX1800 (RA71)**             | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA69.png)     | **Redmi AX6 (RA69)**                | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA67.png)     | **Redmi AX5 (RA67)**                | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/AX1800.png)   | **Xiaomi AX1800 (RM1800)**          | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/AX3600.png)   | **Xiaomi AIoT AX3600 (R3600)**      | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RM2100.png)   | **Readmi AC2100 (RM2100)**          | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/2100@1x.png)  | **Xiaomi AC2100 (R2100)**           | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/mesh@1x.png)  | **Xiaomi Mesh (D01)**               | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R4.png)       | **Xiaomi 4 (R4)**                   | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Xiaomi 3G (R3G)**                 | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R1350.png)    | **Xiaomi 4 Pro (R1350)**            | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R2350.png)    | **Xiaomi AIoT AC2350 (R2350)**      | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R4AC.png)     | **Xiaomi 4A (R4AC)**                | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R4A.png)      | **Xiaomi 4A GE (R4A)**              | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R4CM.png)     | **Xiaomi 4C (R4CM)**                | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R4C.png)      | **Xiaomi 4Q (R4C)**                 | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R3L.png)      | **Xiaomi 3A (R3A)**                 | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R3L.png)      | **Xiaomi 3C (R3L)**                 | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/r3dxf.png)    | **Xiaomi HD (R3D)**                 | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/r3p.png)      | **Xiaomi Pro (R3P)**                | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Xiaomi 3 (R3)**                   | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R1CL.png)     | **Xiaomi (R1CL)**                   | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R1C.png)      | **Xiaomi (R1CM)**                   | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R2D.png)      | **Xiaomi (R2D)**                    | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R1D.png)      | **Xiaomi (R1D)**                    | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
