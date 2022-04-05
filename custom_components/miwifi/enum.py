@@ -155,6 +155,7 @@ class Model(str, Enum):
     R3 = "r3"
     R3G = "r3g"
     R4 = "r4"
+    R4A = "r4a"
     D01 = "d01"
     R2100 = "r2100"
     RM2100 = "rm2100"

@@ -136,13 +136,13 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 | ![](http://www1.miwifi.com/statics/img/RM2100.png)   | **Redmi Router AC2100**                | RM2100 | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
 | ![](http://www1.miwifi.com/statics/img/2100@1x.png)  | **Mi Router AC2100**                   | R2100  | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
 | ![](http://www1.miwifi.com/statics/img/mesh@1x.png)  | **Mi Router Mesh**                     | D01    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R4A.png)      | **Mi Router 4A Gigabit**               | R4A    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
 | ![](http://www1.miwifi.com/statics/img/R4.png)       | **Mi Router 4**                        | R4     | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
 | ![](http://www1.miwifi.com/statics/img/R3.png)       | **Mi Router 3G**                       | R3G    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
 | ![](http://www1.miwifi.com/statics/img/R3.png)       | **Mi Router 3**                        | R3     | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
 | ![](http://www1.miwifi.com/statics/img/R1350.png)    | **Mi Router 4 Pro**                    | R1350  | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/R2350.png)    | **Mi AIoT Router AC2350**              | R2350  | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/R4AC.png)     | **Mi Router 4A**                       | R4AC   | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R4A.png)      | **Mi Router 4A Gigabit**               | R4A    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/R4CM.png)     | **Mi Router 4C**                       | R4CM   | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/R4C.png)      | **Mi Router 4Q**                       | R4C    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/R3L.png)      | **Mi Router 3A**                       | R3A    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
