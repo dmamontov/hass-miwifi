@@ -65,12 +65,12 @@ async def async_self_check(hass: HomeAssistant, client: LuciClient, model: str) 
 
     integration = await async_get_integration(hass, DOMAIN)
 
-    link: str = (
-        f"{integration.issue_tracker}/new?title="
-        + urllib.parse.quote_plus(f"Add supports {model}")
-        + "&body="
+    # fmt: off
+    link: str = f"{integration.issue_tracker}/new?title=" \
+        + urllib.parse.quote_plus(f"Add supports {model}") \
+        + "&body=" \
         + urllib.parse.quote_plus(message)
-    )
+    # fmt: on
 
     message = f"{title}\n\n{message}"
     message += f'\n\n <a href="{link}" target="_blank">Create an issue with the data from this post to add support</a>'

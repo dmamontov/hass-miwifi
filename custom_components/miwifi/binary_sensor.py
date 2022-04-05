@@ -153,11 +153,11 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
-        is_available: bool = (
-            self._updater.data.get(ATTR_STATE, False)
-            if self.entity_description.key != ATTR_STATE
+        # fmt: off
+        is_available: bool = self._updater.data.get(ATTR_STATE, False) \
+            if self.entity_description.key != ATTR_STATE \
             else True
-        )
+        # fmt: on
 
         is_on: bool = self._updater.data.get(self.entity_description.key, False)
 

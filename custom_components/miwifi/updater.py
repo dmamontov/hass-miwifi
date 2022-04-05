@@ -526,9 +526,10 @@ class LuciUpdater(DataUpdateCoordinator):
                 integrations = self.get_integrations()
 
             for device in response["list"]:
-                self._signals[device["mac"]] = (
-                    device["signal"] if "signal" in device else 0
-                )
+                # fmt: off
+                self._signals[device["mac"]] = device["signal"] \
+                    if "signal" in device else 0
+                # fmt: on
 
                 if self.is_repeater and self.is_force_load:
                     device |= {
@@ -701,9 +702,10 @@ class LuciUpdater(DataUpdateCoordinator):
             device["type"] = 6 if device["wifiIndex"] == 3 else device["wifiIndex"]
 
         try:
-            connection: Connection | None = (
-                Connection(int(device["type"])) if "type" in device else None
-            )
+            # fmt: off
+            connection: Connection | None = Connection(int(device["type"])) \
+                if "type" in device else None
+            # fmt: on
         except ValueError:
             connection: None = None
 
@@ -833,10 +835,12 @@ class LuciUpdater(DataUpdateCoordinator):
         devices: dict = self.devices
 
         for mac, device in devices.items():
-            if ATTR_TRACKER_LAST_ACTIVITY not in device:
-                self.devices[mac][ATTR_TRACKER_LAST_ACTIVITY] = (
-                    datetime.now().replace(microsecond=0).isoformat(),
-                )
+            if ATTR_TRACKER_LAST_ACTIVITY not in device or not isinstance(
+                device[ATTR_TRACKER_LAST_ACTIVITY], str
+            ):
+                # fmt: off
+                self.devices[mac][ATTR_TRACKER_LAST_ACTIVITY] = datetime.now().replace(microsecond=0).isoformat(),
+                # fmt: on
 
                 continue
 
