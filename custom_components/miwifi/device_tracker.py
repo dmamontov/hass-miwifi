@@ -375,14 +375,13 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
     async def check_ports(self) -> None:
         """Scan port to configuration url"""
+        if self.ip_address is None:
+            return
 
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(5)
 
             for port in CONFIGURATION_PORTS:
-                if not isinstance(self.ip_address, str):
-                    break
-
                 result = sock.connect_ex((self.ip_address, port))
                 if result == 0:
                     self._configuration_port = port
