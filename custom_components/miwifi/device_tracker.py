@@ -206,7 +206,10 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         connection: Any = self._device.get(ATTR_TRACKER_CONNECTION, None)
 
         if isinstance(connection, int):
-            connection = Connection(connection)
+            try:
+                connection = Connection(connection)
+            except ValueError:
+                connection = None
 
         if not self.is_connected or connection == Connection.LAN:
             signal = ""

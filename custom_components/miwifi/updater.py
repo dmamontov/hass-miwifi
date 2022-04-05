@@ -430,7 +430,10 @@ class LuciUpdater(DataUpdateCoordinator):
         response: dict = await self.luci.mode()
 
         if "mode" in response:
-            data[ATTR_SENSOR_MODE] = Mode(int(response["mode"]))
+            try:
+                data[ATTR_SENSOR_MODE] = Mode(int(response["mode"]))
+            except ValueError:
+                pass
 
     async def _async_prepare_wan(self, data: dict) -> None:
         """Prepare mode.
@@ -486,8 +489,11 @@ class LuciUpdater(DataUpdateCoordinator):
                 continue
 
             if "status" in wifi:
-                length += 1
-                data[IfName(wifi["ifname"]).phrase] = int(wifi["status"]) > 0
+                try:
+                    data[IfName(wifi["ifname"]).phrase] = int(wifi["status"]) > 0
+                    length += 1
+                except ValueError:
+                    pass
 
         data[ATTR_WIFI_ADAPTER_LENGTH] = length
 
@@ -682,9 +688,12 @@ class LuciUpdater(DataUpdateCoordinator):
         if self.is_force_load and "wifiIndex" in device:
             device["type"] = 6 if device["wifiIndex"] == 3 else device["wifiIndex"]
 
-        connection: Connection | None = (
-            Connection(int(device["type"])) if "type" in device else None
-        )
+        try:
+            connection: Connection | None = (
+                Connection(int(device["type"])) if "type" in device else None
+            )
+        except ValueError:
+            connection: None = None
 
         self.devices[device[ATTR_TRACKER_MAC]] = {
             ATTR_TRACKER_ENTRY_ID: device[ATTR_TRACKER_ENTRY_ID],
