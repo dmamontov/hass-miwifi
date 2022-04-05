@@ -10,10 +10,11 @@ Component for tracking devices and managing routers based on [MiWiFi](http://miw
 - [Conflicts](#conflicts)
 - [Install](#install)
 - [Config](#config)
-- [Advanced config](#advanced-config)
-- [Services](#services)
+  - [Advanced config](#advanced-config)
 - [Performance table](#performance-table)
-- [Routers tested](#routers-tested)
+- [Supported routers](#supported-routers)
+  - [API check list](#api-check-list)
+  - [Summary](#summary)
 
 ## FAQ
 **Q. Do I need to get telnet or ssh?**
@@ -22,15 +23,7 @@ Component for tracking devices and managing routers based on [MiWiFi](http://miw
 
 **Q. How often are states updated?**
 
-**A.** Once every 10 seconds. This is the most optimal time for correct work.
-
-**Q. In addition to tracking devices, what else does the integration allow you to do?**
-
-**A.** The integration creates sensors to track the number of connected devices through different types of connections (`5 Ghz`, `2.4 Ghz`, `lan`, `guest`). Creates binary sensors that track (`mode`, `wifi state`, `wan state`). Creates switches to control `LEDs` and `reboot` the router. It also collects statistics on connected devices (Signal, Uptime, etc.)
-
-**Q. Does the integration support legacy device tracking via `known_devices.yaml`?**
-
-**A.** This is a legacy device tracking option. But the integration allows importing names, dev_id, icon from the file `known_devices.yaml` and associating with new devices by mac-address. To do this, simply create or rename the file to `legacy_known_devices.yaml`
+**A.** The default is every 30 seconds, but this setting can be configured. It is not recommended to set less than 10 seconds.
 
 **Q. Does the integration support routers connected in `repeater mode` or `access point mode`?**
 
@@ -38,7 +31,7 @@ Component for tracking devices and managing routers based on [MiWiFi](http://miw
 
 **Q. Can I use the router in `repeater mode` or `access point mode` without a parent MiWiFi device?**
 
-**A.** It is possible with the `force_load_repeater_devices` option enabled. But there is a limitation. You will not see IP, uptime, and connection type, but the name will be the mac-address.
+**A.** It is possible with the `is_force_load` option enabled. But there is a limitation. You will not see IP, uptime, and connection type, but the name will be the mac-address.
 
 **Q. Does Mesh support routers?**
 
@@ -53,7 +46,6 @@ The following component conflicts are currently known:
 * **xiaomi** (device_tracker)
   * **Cause**: Due to the fact that they use the same API, logout occurs after each scan 
   * **Solution**: I recommend turning it off for this router
-   
 
 * **nmap** (device_tracker)
    * **Cause**: Because nmap uses the old integration and finds your devices, it simply overwrites their attributes
@@ -70,54 +62,21 @@ Installed through the custom repository [HACS](https://hacs.xyz/) - `dmamontov/h
 Or by copying the `miwifi` folder from [the latest release](https://github.com/dmamontov/hass-miwifi/releases/latest) to the custom_components folder (create if necessary) of the configs directory.
 
 ## Config
-**Via GUI (Recommended)**
+**Via GUI**
 
 `Settings` > `Integrations` > `Plus` > `MiWiFi`
 
 For authorization, use the ip of your router and its password
 
-**Via YAML (legacy way)**
-```yaml
-miwifi:
-  ip_address: router_ip
-  password: router_pass
-  scan_interval: 10 # in seconds [PRO]
-  timeout: 5 # in seconds [PRO]
-  force_load_repeater_devices: False # [PRO]
-```
+❗ Via YAML (legacy way) not supported
 
-## Advanced config
+### Advanced config
 #### Automatically remove devices
 The component supports automatic deletion of monitored devices after a specified number of days (Default: 30 days) after the last activity. If you specify 0, then automatic deletion will be disabled.
 
 **Via GUI (Recommended)**
 
 `Settings` > `Integrations` > `Your integration MiWiFi` > `Settings`
-
-**Via YAML (legacy way)**
-```yaml
-miwifi:
-  ...
-  last_activity_days: 30 # [PRO]
-```
-
-## Services
-#### Remove devices
-The component contains a service that allows you to delete a device by device_id or entity_id
-
-**Via GUI (Recommended)**
-
-`Developer-tools` > `Service` > `miwifi.remove_devices`
-
-**Via YAML (legacy way)**
-```yaml
-service: miwifi.remove_devices
-target:
-  device_id:
-    - ...
-  entity_id:
-    - device_tracker....
-```
 
 ## Performance table
 ![](table.png)
@@ -126,20 +85,71 @@ target:
 2. Install [Flex Table](https://github.com/custom-cards/flex-table-card) from HACS
 3. Add new Lovelace tab with **Panel Mode**
 4. Add new Lovelace card:
-   - [example](https://gist.github.com/dmamontov/e6fa1842c486388387aaf061d3a82818)
-   - [example (force mode)](https://gist.github.com/dmamontov/9a6183ee5fafd32017c3e8fe0661dde4)
+   - [example](https://gist.github.com/dmamontov/d977cd01c861d1f5e66327af22fd084b)
+   - [example (force mode)](https://gist.github.com/dmamontov/95990dfd155c6ef92e0e7f46762bfcc2)
 
-## Routers tested
+## Supported routers
 Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 
-| Image                                               | Router                                                           | Firmware version                                     | Status                        |
-| --------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------- |
-| ![](http://www1.miwifi.com/statics/img/RA70.png)     | [Xiaomi AX9000](https://www.mi.com/mirouter/ax9000)              | <ul><li>1.0.108(CN)</li><li>3.0.40(Global)</li></ul> | Supported                     |
-| ![](http://www1.miwifi.com/statics/img/RA72.png)     | [Xiaomi AX3600](https://www.mi.com/r3600)                        | <ul><li>1.1.19(CN)</li><li>3.0.22(Global)</li></ul>  | Supported                     |
-| ![](http://www1.miwifi.com/statics/img/AX1800.png)   | [Xiaomi AX1800](https://www.mi.com/buy/detail?product_id=12027)  | <ul><li>1.0.378(CN)</li></ul>                        | Supported                     |
-| ![](http://miwifi.com/statics/img/RA67.png)          | [Redmi AX5](https://www.mi.com/buy/detail?product_id=12258)      | <ul><li>1.0.33(CN)</li><li>3.0.34(Global)</li></ul>  | Supported                     |
-| ![](http://www1.miwifi.com/statics/img/2100@1x.png)  | [Xiaomi AC2100](https://www.mi.com/miwifiac)                      | <ul><li>2.0.23(CN)</li><li>2.0.743(CN)</li></ul>     | Supported                     |
-| ![](http://www1.miwifi.com/statics/img/R4AC.png)     | [Xiaomi Mi Wifi 4A](https://www.mi.com/miwifi4a/)                  | <ul><li>2.28.58(CN)</li></ul>                        | Supported                     |
-| ![](http://www1.miwifi.com/statics/img/r3p.png)      | [Xiaomi PRO R3P](http://item.mi.com/1172800043.html)             | <ul><li>2.16.29(CN)</li></ul>                        | With restrictions<sup>*</sup> |
+### API check list
 
-<sup>*</sup> Not all integration options may be supported.
+##### Required
+- `xqsystem/login` - Authorization.
+- `xqsystem/init_info` - Basic information about the router.
+- `misystem/status` - Basic information about the router. Diagnostic data, memory, temperature, etc.
+- `xqnetwork/mode` - Operating mode. Repeater, Access Point, Mesh, etc.
+
+##### Additional
+- `misystem/topo_graph` - Topography, auto discovery does not work without it.
+- `xqnetwork/wan_info` - WAN port information.
+- `misystem/led` - Interaction with LEDs.
+- `xqnetwork/wifi_detail_all` - Getting information about WiFi adapters
+  - `xqnetwork/wifi_up` - Turning on
+  - `xqnetwork/wifi_down` - Turning off
+- `xqnetwork/wifi_connect_devices` - Get information about connected devices
+- `misystem/devicelist` - More information about connected devices
+- `xqsystem/reboot` - Reboot
+- `misystem/newstatus` - Additional information about connected devices for force load mode
+
+❗ If your router is not listed or not tested, try adding an integration, it will check everything and give a link to create an issue. You just have to click `Submit new issue`
+
+❗ If at the time of adding the integration only `Router {ip} not supported` message is displayed, please create an issue with the message that the router is not supported, indicating the model of the router.
+
+### Summary
+
+- 🟢 - Supported
+- 🔴 - Not supported
+- ⚪ - Not tested
+
+| Image                                               | Router                                 | Code   | API check list            |
+| --------------------------------------------------- | -------------------------------------- | ------ | ------------------------- |
+| ![](http://www1.miwifi.com/statics/img/RA70.png)     | **Xiaomi Router Xiaomi AX9000**        | RA70   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA72.png)     | **Xiaomi Router AX6000**               | RA72   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA80.png)     | **Xiaomi Router AX3000**               | RA80   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RB03.png)     | **Redmi Router AX6S**                  | RB03   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA81.png)     | **Redmi Router AX3000**                | RA81   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA71.png)     | **Redmi Router AX1800**                | RA71   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA69.png)     | **Redmi Router AX6**                   | RA69   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA67.png)     | **Redmi Router AX5**                   | RA67   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/AX1800.png)   | **Mi Router AX1800**                   | RM1800 | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/AX3600.png)   | **Xiaomi AIoT Router AX3600**          | R3600  | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RM2100.png)   | **Redmi Router AC2100**                | RM2100 | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/2100@1x.png)  | **Mi Router AC2100**                   | R2100  | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/R1350.png)    | **Mi Router 4 Pro**                    | R1350  | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/R2350.png)    | **Mi AIoT Router AC2350**              | R2350  | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/mesh@1x.png)  | **Mi Router Mesh**                     | D01    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R4AC.png)     | **Mi Router 4A**                       | R4AC   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R4A.png)      | **Mi Router 4A Gigabit**               | R4A    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R4CM.png)     | **Mi Router 4C**                       | R4CM   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R4.png)       | **Mi Router 4**                        | R4     | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R4C.png)      | **Mi Router 4Q**                       | R4C    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R3L.png)      | **Mi Router 3A**                       | R3A    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R3L.png)      | **Mi Router 3C**                       | R3L    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/r3dxf.png)    | **Mi Router HD**                       | R3D    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/r3p.png)      | **Mi Router Pro**                      | R3P    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Mi Router 3**                        | R3     | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Mi Router 3G**                       | R3G    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R1CL.png)     | **Mi Router Lite**                     | R1CL   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R1C.png)      | **Mi Router Mini**                     | R1CM   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R2D.png)      | **Mi Router R2D**                      | R2D    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R1D.png)      | **Mi Router R1D**                      | R1D    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |

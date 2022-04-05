@@ -1,4 +1,6 @@
 {
   "name": "MiWiFi",
-  "render_readme": true
+  "render_readme": true,
+  "iot_class": "local push",
+  "homeassistant": "2022.3.0"
 }

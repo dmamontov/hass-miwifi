@@ -1,147 +1,161 @@
-import logging
-import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
-import homeassistant.helpers.device_registry as dr
-import homeassistant.helpers.entity_registry as er
+"""MiWifi custom integration."""
 
-from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
+from __future__ import annotations
+
+import asyncio
+import logging
+
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_IP_ADDRESS,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
     CONF_TIMEOUT,
-    EVENT_HOMEASSISTANT_STOP
+    EVENT_HOMEASSISTANT_STOP,
 )
-from homeassistant.helpers.json import JSONEncoder
+from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.storage import Store
 
-from .core.const import (
+from .const import (
     DOMAIN,
-    CONF_FORCE_LOAD_REPEATER_DEVICES,
-    CONF_LAST_ACTIVITY_DAYS,
-    SCAN_INTERVAL,
+    PLATFORMS,
+    CONF_IS_FORCE_LOAD,
+    CONF_ACTIVITY_DAYS,
+    OPTION_IS_FROM_FLOW,
+    DEFAULT_SCAN_INTERVAL,
     DEFAULT_TIMEOUT,
-    DEFAULT_LAST_ACTIVITY_DAYS,
-    STORAGE_VERSION
+    DEFAULT_ACTIVITY_DAYS,
+    DEFAULT_SLEEP,
+    DEFAULT_CALL_DELAY,
+    UPDATER,
+    UPDATE_LISTENER,
 )
-from .core.luci_data import LuciData
+from .discovery import async_start_discovery
+from .helper import get_config_value, get_store
+from .updater import LuciUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
-CONFIG_SCHEMA = vol.Schema({
-    DOMAIN: vol.All(
-        cv.ensure_list,
-        [
-            vol.Schema({
-                vol.Required(CONF_IP_ADDRESS): cv.string,
-                vol.Required(CONF_PASSWORD): cv.string,
-                vol.Optional(CONF_SCAN_INTERVAL, default = SCAN_INTERVAL): cv.positive_int,
-                vol.Optional(CONF_TIMEOUT, default = DEFAULT_TIMEOUT): cv.positive_int,
-                vol.Optional(CONF_FORCE_LOAD_REPEATER_DEVICES, default = False): cv.boolean,
-                vol.Optional(CONF_LAST_ACTIVITY_DAYS, default = DEFAULT_LAST_ACTIVITY_DAYS): cv.positive_int,
-            })
-        ]
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up entry configured via user interface.
+
+    :param hass: HomeAssistant: Home Assistant object
+    :param entry: ConfigEntry: Config Entry object
+    :return bool: Is success
+    """
+
+    async_start_discovery(hass)
+
+    is_new: bool = get_config_value(entry, OPTION_IS_FROM_FLOW, False)
+
+    if is_new:
+        hass.config_entries.async_update_entry(entry, data=entry.data, options={})
+
+    ip: str = get_config_value(entry, CONF_IP_ADDRESS)
+
+    updater: LuciUpdater = LuciUpdater(
+        hass,
+        ip,
+        get_config_value(entry, CONF_PASSWORD),
+        get_config_value(entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        get_config_value(entry, CONF_TIMEOUT, DEFAULT_TIMEOUT),
+        get_config_value(entry, CONF_IS_FORCE_LOAD, False),
+        get_config_value(entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS),
+        get_store(hass, ip),
     )
-}, extra = vol.ALLOW_EXTRA)
-
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    success = True
-
-    if DOMAIN not in config:
-        return success
 
     hass.data.setdefault(DOMAIN, {})
 
-    for router in config[DOMAIN]:
-        hass.data[DOMAIN][router[CONF_IP_ADDRESS]] = router
+    hass.data[DOMAIN][entry.entry_id] = {
+        CONF_IP_ADDRESS: ip,
+        UPDATER: updater,
+    }
 
-        hass.async_create_task(hass.config_entries.flow.async_init(
-            DOMAIN, context = {'source': SOURCE_IMPORT}, data = router
-        ))
+    hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER] = entry.add_update_listener(
+        async_update_options
+    )
 
-    return success
+    async def async_start(with_sleep: bool = False) -> None:
+        """Async start.
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    if config_entry.data:
-        hass.config_entries.async_update_entry(config_entry, data = {} , options = config_entry.data)
+        :param with_sleep: bool
+        """
 
-    store = Store(hass, STORAGE_VERSION, "{}.{}".format(DOMAIN, config_entry.entry_id), encoder = JSONEncoder)
+        await updater.update(True)
 
-    devices = await store.async_load()
-    if devices is None:
-        devices = {}
+        if with_sleep:
+            await asyncio.sleep(DEFAULT_SLEEP)
 
-    client = LuciData(hass, config_entry, store, devices)
+        hass.config_entries.async_setup_platforms(entry, PLATFORMS)
 
-    hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = client
+    async def async_stop(event: Event) -> None:
+        """Async stop
 
-    async def async_close(event):
-        await client.save_to_store()
-        await client.api.logout()
+        :param event: Event: Home Assistant stop event
+        """
 
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_close)
+        await updater.async_stop()
 
-    await _init_services(hass, store)
+    if is_new:
+        await async_start()
+        await asyncio.sleep(DEFAULT_SLEEP)
+    else:
+        hass.loop.call_later(
+            DEFAULT_CALL_DELAY,
+            lambda: hass.async_create_task(async_start(True)),
+        )
 
-    if not await client.async_setup():
-        return False
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_stop)
 
     return True
 
-async def _init_services(hass: HomeAssistant, store: Store):
-    async def clear_store(call: ServiceCall):
-        await store.async_save({})
 
-    async def remove_devices(call: ServiceCall):
-        data = dict(call.data)
+async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Update options for entry that was configured via user interface.
 
-        entity_to_mac = {}
+    :param hass: HomeAssistant: Home Assistant object
+    :param entry: ConfigEntry: Config Entry object
+    """
 
-        devices = data.pop('device_id', [])
-        entities = data.pop('entity_id', None)
+    await hass.config_entries.async_reload(entry.entry_id)
 
-        entity_registry = await er.async_get_registry(hass)
 
-        if entities:
-            for entity_id in entities:
-                entity = entity_registry.async_get(entity_id)
-                if not entity:
-                    continue
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Remove entry configured via user interface.
 
-                devices.append(entity.device_id)
+    :param hass: HomeAssistant: Home Assistant object
+    :param entry: ConfigEntry: Config Entry object
+    :return bool: Is success
+    """
 
-        if devices:
-            device_registry = await dr.async_get_registry(hass)
+    if CONF_IP_ADDRESS in hass.data[DOMAIN][entry.entry_id]:
+        store: Store = get_store(
+            hass, hass.data[DOMAIN][entry.entry_id][CONF_IP_ADDRESS]
+        )
+        await store.async_remove()
 
-            for device in devices:
-                device_entry = device_registry.async_get(device)
-                if not device_entry:
-                    continue
+    is_unload = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if not is_unload:
+        return is_unload
 
-                device_entities = er.async_entries_for_device(entity_registry, device, True)
-                if device_entities:
-                    for entity in device_entities:
-                        entity_registry.async_remove(entity.entity_id)
+    update_listener: CALLBACK_TYPE = hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER]
+    update_listener()
+    hass.data[DOMAIN].pop(entry.entry_id)
 
-                device_registry.async_remove_device(device)
+    return is_unload
 
-                for entry in device_entry.config_entries:
-                    if entry not in entity_to_mac:
-                        entity_to_mac[entry] = []
 
-                    for domain, mac in device_entry.identifiers:
-                        entity_to_mac[entry].append(mac)
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Remove cast config entry from a device.
 
-        if not entity_to_mac:
-            return
+    :param hass: HomeAssistant: Home Assistant object
+    :param entry: ConfigEntry: Config Entry object
+    :param device_entry: dr.DeviceEntry: DeviceEntry object
+    :return bool: True
+    """
 
-        for entry_id in entity_to_mac:
-            if entry_id not in hass.data[DOMAIN]:
-                return
-
-            for mac in entity_to_mac[entry_id]:
-                hass.data[DOMAIN][entry_id].remove_device(mac)
-
-    hass.services.async_register(DOMAIN, 'remove_devices', remove_devices)
-    hass.services.async_register(DOMAIN, 'clear_store', clear_store)
+    return True

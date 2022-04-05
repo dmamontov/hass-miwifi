@@ -1,42 +1,42 @@
 {
+  "title": "MiWifi",
   "config": {
-    "abort": {
-      "updated": "Данные обновлены, перезапустите Home Assistant"
-    },
     "error": {
       "ip_address.not_matched": "Неверный IP",
       "password.not_matched": "Неверный пароль",
-      "connection": "Не удалось установить соединение"
+      "connection": "Не удалось установить соединение",
+      "router.not.supported": "Роутер не поддерживается. Подробная информация выслана в центр уведомлений."
     },
     "step": {
-      "auth": {
-        "description": "Введите IP адрес и пароль от вашего роутера с MiWiFi",
+      "discovery_confirm": {
+        "title": "Настройки MiWiFi",
+        "description": "Введите IP адрес и пароль от вашего роутера",
         "data": {
           "ip_address": "IP адрес",
-          "password": "Пароль"
+          "password": "Пароль",
+          "scan_interval": "Интервал сканирования в секундах"
         }
       }
     }
   },
   "options": {
-    "abort": {
-      "updated": "Данные обновлены, перезапустите Home Assistant"
-    },
     "error": {
       "ip_address.not_matched": "Неверный IP",
       "password.not_matched": "Неверный пароль",
-      "connection": "Не удалось установить соединение"
+      "connection": "Не удалось установить соединение",
+      "router.not.supported": "Роутер не поддерживается. Подробная информация выслана в центр уведомлений."
     },
     "step": {
-      "settings": {
+      "init": {
+        "title": "Настройки MiWiFi",
         "description": "Введите IP адрес и пароль от вашего роутера с MiWiFi",
         "data": {
           "ip_address": "IP адрес",
           "password": "Пароль",
-          "scan_interval": "Интервал сканирования в секундах [PRO]",
+          "scan_interval": "Интервал сканирования в секундах",
+          "activity_days": "Допустимое количество дней ожидания после последней активности [PRO]",
           "timeout": "Тайм-аут запросов в секундах [PRO]",
-          "force_load_repeater_devices": "Принудительная загрузка устройств в режиме репитера [PRO]",
-          "last_activity_days": "Допустимое количество дней ожидания после последней активности [PRO]"
+          "is_force_load": "Принудительная загрузка устройств в режиме репитера [PRO]"
         }
       }
     }
