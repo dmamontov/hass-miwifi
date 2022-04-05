@@ -380,6 +380,9 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
             sock.settimeout(5)
 
             for port in CONFIGURATION_PORTS:
+                if not isinstance(self.ip_address, str):
+                    break
+
                 result = sock.connect_ex((self.ip_address, port))
                 if result == 0:
                     self._configuration_port = port
