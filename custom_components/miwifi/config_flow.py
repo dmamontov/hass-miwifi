@@ -155,6 +155,8 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data=user_input,
                     options={OPTION_IS_FROM_FLOW: True},
                 )
+            elif code == codes.CONFLICT:
+                errors["base"] = "router.not.supported"
             elif code == codes.FORBIDDEN:
                 errors["base"] = "password.not_matched"
             else:
@@ -223,6 +225,8 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 return self.async_create_entry(
                     title=user_input[CONF_IP_ADDRESS], data=user_input
                 )
+            elif code == codes.CONFLICT:
+                errors["base"] = "router.not.supported"
             elif code == codes.FORBIDDEN:
                 errors["base"] = "password.not_matched"
             else:

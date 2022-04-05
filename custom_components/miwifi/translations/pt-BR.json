@@ -4,7 +4,8 @@
     "error": {
       "ip_address.not_matched": "IP inválido",
       "password.not_matched": "Senha inválida",
-      "connection": "Falha ao estabelecer conexão"
+      "connection": "Falha ao estabelecer conexão",
+      "router.not.supported": "O roteador não é suportado. Informações detalhadas foram enviadas para o centro de notificação."
     },
     "step": {
       "discovery_confirm": {
@@ -25,7 +26,8 @@
     "error": {
       "ip_address.not_matched": "IP inválido",
       "password.not_matched": "Senha inválida",
-      "connection": "Falha ao estabelecer conexão"
+      "connection": "Falha ao estabelecer conexão",
+      "router.not.supported": "O roteador não é suportado. Informações detalhadas foram enviadas para o centro de notificação."
     },
     "step": {
       "init": {

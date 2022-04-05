@@ -31,8 +31,9 @@ _LOGGER = logging.getLogger(__name__)
 class LuciClient(object):
     """Luci API Client."""
 
+    ip: str = CLIENT_ADDRESS
+
     _client: AsyncClient
-    _ip: str = CLIENT_ADDRESS
     _password: str | None = None
     _timeout: int = DEFAULT_TIMEOUT
 
@@ -58,7 +59,7 @@ class LuciClient(object):
             ip = ip[:-1]
 
         self._client = client
-        self._ip = ip
+        self.ip = ip
         self._password = password
         self._timeout = timeout
 
@@ -271,7 +272,7 @@ class LuciClient(object):
 
         hardware = slugify(hardware.lower())
         url: str = (
-            f"http://{self._ip}/xiaoqiang/web/img/icons/router_{hardware}_100_on.png"
+            f"http://{self.ip}/xiaoqiang/web/img/icons/router_{hardware}_100_on.png"
         )
 
         try:

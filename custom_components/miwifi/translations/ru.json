@@ -4,7 +4,8 @@
     "error": {
       "ip_address.not_matched": "Неверный IP",
       "password.not_matched": "Неверный пароль",
-      "connection": "Не удалось установить соединение"
+      "connection": "Не удалось установить соединение",
+      "router.not.supported": "Роутер не поддерживается. Подробная информация выслана в центр уведомлений."
     },
     "step": {
       "discovery_confirm": {
@@ -22,7 +23,8 @@
     "error": {
       "ip_address.not_matched": "Неверный IP",
       "password.not_matched": "Неверный пароль",
-      "connection": "Не удалось установить соединение"
+      "connection": "Не удалось установить соединение",
+      "router.not.supported": "Роутер не поддерживается. Подробная информация выслана в центр уведомлений."
     },
     "step": {
       "init": {

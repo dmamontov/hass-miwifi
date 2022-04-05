@@ -11,6 +11,7 @@ from typing import Final
 
 from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant, CALLBACK_TYPE
+import homeassistant.components.persistent_notification as pn
 from homeassistant.helpers import event
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -75,8 +76,9 @@ from .enum import (
     IfName,
     DeviceAction,
 )
-from .exceptions import LuciConnectionException, LuciTokenException
+from .exceptions import LuciConnectionException, LuciTokenException, LuciException
 from .luci import LuciClient
+from .self_check import async_self_check
 
 PREPARE_METHODS: Final = [
     "init",
@@ -217,10 +219,11 @@ class LuciUpdater(DataUpdateCoordinator):
 
             self.code = codes.OK
 
-            if not self._is_only_login or is_force:
-                for method in PREPARE_METHODS:
+            for method in PREPARE_METHODS:
+                if not self._is_only_login or is_force or method == "init":
                     await self._async_prepare(method, self.data)
 
+            if not self._is_only_login or is_force:
                 self._is_first_update = False
         except LuciConnectionException as e:
             err = e
@@ -362,10 +365,24 @@ class LuciUpdater(DataUpdateCoordinator):
         if "hardware" in response:
             try:
                 data[ATTR_MODEL] = Model(response["hardware"].lower())
-            except BaseException:
-                data[ATTR_MODEL] = Model.NOT_KNOWN
+            except ValueError:
+                await async_self_check(self.hass, self.luci, response["hardware"])
+
+                if not self._is_only_login:
+                    raise LuciException(f"Router {self.ip} not supported")
+                else:
+                    self.code = codes.CONFLICT
 
             data[ATTR_CAMERA_IMAGE] = await self.luci.image(response["hardware"])
+
+            return
+
+        pn.async_create(self.hass, f"Router {self.ip} not supported", "MiWifi")
+
+        if not self._is_only_login:
+            raise LuciException(f"Router {self.ip} not supported")
+        else:
+            self.code = codes.CONFLICT
 
     async def _async_prepare_status(self, data: dict) -> None:
         """Prepare status.

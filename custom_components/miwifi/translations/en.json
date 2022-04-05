@@ -4,7 +4,8 @@
     "error": {
       "ip_address.not_matched": "Invalid IP",
       "password.not_matched": "Invalid password",
-      "connection": "Failed to establish connection"
+      "connection": "Failed to establish connection",
+      "router.not.supported": "The router is not supported. Detailed information has been sent to the notification center."
     },
     "step": {
       "discovery_confirm": {
@@ -22,7 +23,8 @@
     "error": {
       "ip_address.not_matched": "Invalid IP",
       "password.not_matched": "Invalid password",
-      "connection": "Failed to establish connection"
+      "connection": "Failed to establish connection",
+      "router.not.supported": "The router is not supported. Detailed information has been sent to the notification center."
     },
     "step": {
       "init": {

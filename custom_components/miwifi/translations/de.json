@@ -4,7 +4,8 @@
     "error": {
       "ip_address.not_matched": "Ungültige IP Adresse",
       "password.not_matched": "Ungültiges Passwort",
-      "connection": "Fehler bei der Herstellung einer Verbindung"
+      "connection": "Fehler bei der Herstellung einer Verbindung",
+      "router.not.supported": "Der Router wird nicht unterstützt. Detaillierte Informationen wurden an das Benachrichtigungszentrum gesendet."
     },
     "step": {
       "discovery_confirm": {
@@ -22,7 +23,8 @@
     "error": {
       "ip_address.not_matched": "Ungültige IP Adresse",
       "password.not_matched": "Ungültiges Passwort",
-      "connection": "Fehler bei der Herstellung einer Verbindung"
+      "connection": "Fehler bei der Herstellung einer Verbindung",
+      "router.not.supported": "Der Router wird nicht unterstützt. Detaillierte Informationen wurden an das Benachrichtigungszentrum gesendet."
     },
     "step": {
       "init": {
