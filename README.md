@@ -68,7 +68,7 @@ Or by copying the `miwifi` folder from [the latest release](https://github.com/d
 
 For authorization, use the ip of your router and its password
 
-**Via YAML (legacy way) not supported**
+❗ Via YAML (legacy way) not supported
 
 ### Advanced config
 #### Automatically remove devices
