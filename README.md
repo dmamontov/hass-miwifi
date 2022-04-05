@@ -121,35 +121,35 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 - 🔴 - Not supported
 - ⚪ - Not tested
 
-| Image                                               | Router                              | API check list            |
-| --------------------------------------------------- | ----------------------------------- | ------------------------- |
-| ![](http://www1.miwifi.com/statics/img/RA70.png)     | **Xiaomi AX9000 (RA70)**            | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/RA72.png)     | **Xiaomi AX6000 (RA72)**            | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/RA80.png)     | **Xiaomi AX3000 (RA80)**            | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/RB03.png)     | **Redmi AX6S (RB03)**               | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/RA81.png)     | **Redmi AX3000 (RA81)**             | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/RA71.png)     | **Redmi AX1800 (RA71)**             | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/RA69.png)     | **Redmi AX6 (RA69)**                | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/RA67.png)     | **Redmi AX5 (RA67)**                | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/AX1800.png)   | **Xiaomi AX1800 (RM1800)**          | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/AX3600.png)   | **Xiaomi AIoT AX3600 (R3600)**      | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/RM2100.png)   | **Redmi AC2100 (RM2100)**           | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/2100@1x.png)  | **Xiaomi AC2100 (R2100)**           | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
-| ![](http://www1.miwifi.com/statics/img/mesh@1x.png)  | **Xiaomi Mesh (D01)**               | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
-| ![](http://www1.miwifi.com/statics/img/R4.png)       | **Xiaomi 4 (R4)**                   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
-| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Xiaomi 3G (R3G)**                 | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
-| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Xiaomi 3 (R3)**                   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
-| ![](http://www1.miwifi.com/statics/img/R1350.png)    | **Xiaomi 4 Pro (R1350)**            | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R2350.png)    | **Xiaomi AIoT AC2350 (R2350)**      | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R4AC.png)     | **Xiaomi 4A (R4AC)**                | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R4A.png)      | **Xiaomi 4A GE (R4A)**              | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R4CM.png)     | **Xiaomi 4C (R4CM)**                | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R4C.png)      | **Xiaomi 4Q (R4C)**                 | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R3L.png)      | **Xiaomi 3A (R3A)**                 | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R3L.png)      | **Xiaomi 3C (R3L)**                 | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/r3dxf.png)    | **Xiaomi HD (R3D)**                 | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/r3p.png)      | **Xiaomi Pro (R3P)**                | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R1CL.png)     | **Xiaomi (R1CL)**                   | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R1C.png)      | **Xiaomi (R1CM)**                   | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R2D.png)      | **Xiaomi (R2D)**                    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R1D.png)      | **Xiaomi (R1D)**                    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| Image                                               | Router                                 | Code   | API check list            |
+| --------------------------------------------------- | -------------------------------------- | ------ | ------------------------- |
+| ![](http://www1.miwifi.com/statics/img/RA70.png)     | **Xiaomi Router Xiaomi AX9000**        | RA70   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA72.png)     | **Xiaomi Router AX6000**               | RA72   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA80.png)     | **Xiaomi Router AX3000**               | RA80   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RB03.png)     | **Redmi Router AX6S**                  | RB03   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA81.png)     | **Redmi Router AX3000**                | RA81   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA71.png)     | **Redmi Router AX1800**                | RA71   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA69.png)     | **Redmi Router AX6**                   | RA69   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA67.png)     | **Redmi Router AX5**                   | RA67   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/AX1800.png)   | **Mi Router AX1800**                   | RM1800 | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/AX3600.png)   | **Xiaomi AIoT Router AX3600**          | R3600  | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RM2100.png)   | **Redmi Router AC2100**                | RM2100 | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/2100@1x.png)  | **Mi Router AC2100**                   | R2100  | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/mesh@1x.png)  | **Mi Router Mesh**                     | D01    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R4.png)       | **Mi Router 4**                        | R4     | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Mi Router 3G**                       | R3G    | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Mi Router 3**                        | R3     | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R1350.png)    | **Mi Router 4 Pro**                    | R1350  | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R2350.png)    | **Mi AIoT Router AC2350**              | R2350  | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R4AC.png)     | **Mi Router 4A**                       | R4AC   | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R4A.png)      | **Mi Router 4A Gigabit**               | R4A    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R4CM.png)     | **Mi Router 4C**                       | R4CM   | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R4C.png)      | **Mi Router 4Q**                       | R4C    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R3L.png)      | **Mi Router 3A**                       | R3A    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R3L.png)      | **Mi Router 3C**                       | R3L    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/r3dxf.png)    | **Mi Router HD**                       | R3D    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/r3p.png)      | **Mi Router Pro**                      | R3P    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R1CL.png)     | **Mi Router Lite**                     | R1CL   | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R1C.png)      | **Mi Router Mini**                     | R1CM   | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R2D.png)      | **Mi Router R2D**                      | R2D    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
+| ![](http://www1.miwifi.com/statics/img/R1D.png)      | **Mi Router R1D**                      | R1D    | ⚪⚪⚪⚪ ➖ ⚪⚪⚪⚪⚪⚪⚪⚪ |
