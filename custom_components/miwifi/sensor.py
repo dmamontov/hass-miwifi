@@ -137,6 +137,14 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         entity_registry_enabled_default=False,
     ),
     SensorEntityDescription(
+        key=ATTR_SENSOR_DEVICES_GUEST,
+        name=ATTR_SENSOR_DEVICES_GUEST_NAME,
+        icon="mdi:counter",
+        native_unit_of_measurement=PCS,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
         key=ATTR_SENSOR_DEVICES_5_0_GAME,
         name=ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
         icon="mdi:counter",
