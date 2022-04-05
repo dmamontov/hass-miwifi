@@ -134,6 +134,7 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 | ![](http://www1.miwifi.com/statics/img/mesh@1x.png)  | **Xiaomi Mesh (D01)**               | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🔴 |
 | ![](http://www1.miwifi.com/statics/img/R4.png)       | **Xiaomi 4 (R4)**                   | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🔴 |
 | ![](http://www1.miwifi.com/statics/img/R3.png)       | **Xiaomi 3G (R3G)**                 | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🔴 |
+| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Xiaomi 3 (R3)**                   | 🟢🟢🟢🟢 🟢🟢🟢🟢🟢🟢🟢🟢🔴 |
 | ![](http://www1.miwifi.com/statics/img/R1350.png)    | **Xiaomi 4 Pro (R1350)**            | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/R2350.png)    | **Xiaomi AIoT AC2350 (R2350)**      | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/R4AC.png)     | **Xiaomi 4A (R4AC)**                | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
@@ -144,7 +145,6 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 | ![](http://www1.miwifi.com/statics/img/R3L.png)      | **Xiaomi 3C (R3L)**                 | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/r3dxf.png)    | **Xiaomi HD (R3D)**                 | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/r3p.png)      | **Xiaomi Pro (R3P)**                | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
-| ![](http://www1.miwifi.com/statics/img/R3.png)       | **Xiaomi 3 (R3)**                   | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/R1CL.png)     | **Xiaomi (R1CL)**                   | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/R1C.png)      | **Xiaomi (R1CM)**                   | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |
 | ![](http://www1.miwifi.com/statics/img/R2D.png)      | **Xiaomi (R2D)**                    | ⚪⚪⚪⚪ ⚪⚪⚪⚪⚪⚪⚪⚪⚪ |

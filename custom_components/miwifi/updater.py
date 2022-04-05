@@ -93,6 +93,7 @@ PREPARE_METHODS: Final = [
 
 UNSUPPORTED: Final = {
     "new_status": [
+        Model.R3,
         Model.R3G,
         Model.R4,
         Model.D01,

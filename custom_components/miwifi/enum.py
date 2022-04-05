@@ -152,6 +152,7 @@ class Model(str, Enum):
         return str(self.value)
 
     NOT_KNOWN = "not_known"
+    R3 = "r3"
     R3G = "r3g"
     R4 = "r4"
     D01 = "d01"
