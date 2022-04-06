@@ -78,7 +78,7 @@ async def async_discover_devices(client: AsyncClient) -> list:
     ):
         return []
 
-    devices = [response["graph"]["ip"]]
+    devices = [response["graph"]["ip"].strip()]
 
     if "leafs" in response["graph"]:
         devices = parse_leafs(devices, response["graph"]["leafs"])
@@ -121,7 +121,7 @@ def parse_leafs(devices: list, leafs: list) -> list:
         if "ip" not in leaf or len(leaf["ip"]) == 0:
             continue
 
-        devices.append(leaf["ip"])
+        devices.append(leaf["ip"].strip())
 
         if "leafs" in leaf:
             devices = parse_leafs(devices, leaf["leafs"])

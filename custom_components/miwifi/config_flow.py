@@ -143,6 +143,10 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            if self._discovered_device is None:
+                await self.async_set_unique_id(user_input[CONF_IP_ADDRESS])
+                self._abort_if_unique_id_configured()
+
             code: codes = await async_verify_access(
                 self.hass, user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD]
             )
