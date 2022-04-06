@@ -11,10 +11,8 @@ from homeassistant.components.button import (
     ButtonDeviceClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    ENTITY_CATEGORY_CONFIG,
-)
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -36,7 +34,7 @@ MIWIFI_BUTTONS: tuple[ButtonEntityDescription, ...] = (
         key=ATTR_BUTTON_REBOOT,
         name=ATTR_BUTTON_REBOOT_NAME,
         device_class=ButtonDeviceClass.RESTART,
-        entity_category=ENTITY_CATEGORY_CONFIG,
+        entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=True,
     ),
 )

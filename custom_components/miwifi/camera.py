@@ -11,7 +11,6 @@ from homeassistant.components.camera import (
     Camera,
 )
 from homeassistant.config_entries import ConfigEntry
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 

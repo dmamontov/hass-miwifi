@@ -12,11 +12,11 @@ from homeassistant.components.switch import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ENTITY_CATEGORY_CONFIG,
     STATE_ON,
     STATE_OFF,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -54,21 +54,21 @@ MIWIFI_SWITCHES: tuple[SwitchEntityDescription, ...] = (
         key=ATTR_SWITCH_WIFI_2_4,
         name=ATTR_SWITCH_WIFI_2_4_NAME,
         icon=ICONS[f"{ATTR_SWITCH_WIFI_2_4}_{STATE_ON}"],
-        entity_category=ENTITY_CATEGORY_CONFIG,
+        entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=True,
     ),
     SwitchEntityDescription(
         key=ATTR_SWITCH_WIFI_5_0,
         name=ATTR_SWITCH_WIFI_5_0_NAME,
         icon=ICONS[f"{ATTR_SWITCH_WIFI_5_0}_{STATE_ON}"],
-        entity_category=ENTITY_CATEGORY_CONFIG,
+        entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=True,
     ),
     SwitchEntityDescription(
         key=ATTR_SWITCH_WIFI_5_0_GAME,
         name=ATTR_SWITCH_WIFI_5_0_GAME_NAME,
         icon=ICONS[f"{ATTR_SWITCH_WIFI_5_0_GAME}_{STATE_ON}"],
-        entity_category=ENTITY_CATEGORY_CONFIG,
+        entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=True,
     ),
 )

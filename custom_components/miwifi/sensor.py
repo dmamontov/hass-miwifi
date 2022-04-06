@@ -15,12 +15,12 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ENTITY_CATEGORY_DIAGNOSTIC,
     PERCENTAGE,
     DATA_MEGABYTES,
     TEMP_CELSIUS,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -65,7 +65,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         key=ATTR_SENSOR_UPTIME,
         name=ATTR_SENSOR_UPTIME_NAME,
         icon="mdi:timer-sand",
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     SensorEntityDescription(
@@ -74,7 +74,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         icon="mdi:memory",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     SensorEntityDescription(
@@ -83,7 +83,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         icon="mdi:memory",
         native_unit_of_measurement=DATA_MEGABYTES,
         state_class=SensorStateClass.TOTAL,
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     SensorEntityDescription(
@@ -93,7 +93,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         native_unit_of_measurement=TEMP_CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     SensorEntityDescription(
@@ -101,7 +101,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         name=ATTR_SENSOR_MODE_NAME,
         icon="mdi:transit-connection-variant",
         state_class=SensorStateClass.TOTAL,
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=True,
     ),
     SensorEntityDescription(

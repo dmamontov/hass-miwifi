@@ -13,11 +13,11 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ENTITY_CATEGORY_DIAGNOSTIC,
     STATE_ON,
     STATE_OFF,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -47,7 +47,7 @@ MIWIFI_BINARY_SENSORS: tuple[BinarySensorEntityDescription, ...] = (
         key=ATTR_STATE,
         name=ATTR_STATE_NAME,
         icon=ICONS[f"{ATTR_STATE}_{STATE_ON}"],
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=True,
     ),
     BinarySensorEntityDescription(
@@ -55,14 +55,14 @@ MIWIFI_BINARY_SENSORS: tuple[BinarySensorEntityDescription, ...] = (
         name=ATTR_BINARY_SENSOR_WAN_STATE_NAME,
         icon="mdi:wan",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=True,
     ),
     BinarySensorEntityDescription(
         key=ATTR_BINARY_SENSOR_DUAL_BAND,
         name=ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
         icon="mdi:wifi-plus",
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
 )

@@ -367,7 +367,10 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
                     device.id, manufacturer=self.manufacturer
                 )
 
-        if self._updater == self.hass.data[DOMAIN][entry_id][UPDATER]:
+        if (
+            entry_id not in self.hass.data[DOMAIN]
+            or self._updater == self.hass.data[DOMAIN][entry_id][UPDATER]
+        ):
             return
 
         self._updater = self.hass.data[DOMAIN][entry_id][UPDATER]

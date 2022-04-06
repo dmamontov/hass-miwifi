@@ -12,11 +12,11 @@ from homeassistant.components.light import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ENTITY_CATEGORY_CONFIG,
     STATE_ON,
     STATE_OFF,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -43,7 +43,7 @@ MIWIFI_LIGHTS: tuple[LightEntityDescription, ...] = (
         key=ATTR_LIGHT_LED,
         name=ATTR_LIGHT_LED_NAME,
         icon=ICONS[f"{ATTR_LIGHT_LED}_{STATE_ON}"],
-        entity_category=ENTITY_CATEGORY_CONFIG,
+        entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=True,
     ),
 )
