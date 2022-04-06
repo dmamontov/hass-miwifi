@@ -1,7 +1,7 @@
 # MiWiFi for Home Assistant
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![donate qiwi](https://img.shields.io/badge/Donate-Qiwi-orange)](qiwi.com/p/79185611444)
-[![donate tinkoff](https://img.shields.io/badge/Donate-Tinkoff-yellow.svg)](https://www.tinkoff.ru/sl/3FteV5DtBOV)
+[![donate qiwi](https://img.shields.io/badge/Donate-Qiwi-orange)](https://qiwi.com/p/79185611444)
+[![donate tinkoff](https://img.shields.io/badge/Donate-Tinkoff-yellow.svg)](https://www.tinkoff.ru/cf/3FteV5DtBOV)
 
 Component for tracking devices and managing routers based on [MiWiFi](http://miwifi.com/) from [Home Assistant](https://www.home-assistant.io/).
 
