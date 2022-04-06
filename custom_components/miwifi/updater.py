@@ -250,17 +250,20 @@ class LuciUpdater(DataUpdateCoordinator):
 
         self.data[ATTR_STATE] = codes.is_success(self.code)
 
-        if is_force and retry <= DEFAULT_RETRY and not self.data[ATTR_STATE]:
-            _LOGGER.error(
-                "Error connecting to router (attempt #%s of %s): %r",
-                retry,
-                DEFAULT_RETRY,
-                err,
-            )
+        if is_force and not self.data[ATTR_STATE]:
+            if retry <= DEFAULT_RETRY:
+                _LOGGER.warning(
+                    "Error connecting to router (attempt #%s of %s): %r",
+                    retry,
+                    DEFAULT_RETRY,
+                    err,
+                )
 
-            await asyncio.sleep(retry)
+                await asyncio.sleep(retry)
 
-            return await self.update(True, retry + 1)
+                return await self.update(True, retry + 1)
+            elif retry > DEFAULT_RETRY and err is not None:
+                raise err
 
         if not self._is_only_login:
             self._clean_devices()
