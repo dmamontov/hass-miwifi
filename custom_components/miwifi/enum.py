@@ -180,5 +180,6 @@ class Model(str, Enum):
     RA81 = "ra81"
     RB03 = "rb03"
     RA80 = "ra80"
+    RA82 = "ra82"
     RA72 = "ra72"
     RA70 = "ra70"

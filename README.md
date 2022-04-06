@@ -125,6 +125,7 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 | --------------------------------------------------- | -------------------------------------- | ------ | ------------------------- |
 | ![](http://www1.miwifi.com/statics/img/RA70.png)     | **Xiaomi Router Xiaomi AX9000**        | RA70   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
 | ![](http://www1.miwifi.com/statics/img/RA72.png)     | **Xiaomi Router AX6000**               | RA72   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
+| ![](http://www1.miwifi.com/statics/img/RA80.png)     | **Xiaomi Mesh System AX3000**          | RA82   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
 | ![](http://www1.miwifi.com/statics/img/RA80.png)     | **Xiaomi Router AX3000**               | RA80   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
 | ![](http://www1.miwifi.com/statics/img/RB03.png)     | **Redmi Router AX6S**                  | RB03   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
 | ![](http://www1.miwifi.com/statics/img/RA81.png)     | **Redmi Router AX3000**                | RA81   | 🟢🟢🟢🟢 ➖ 🟢🟢🟢🟢🟢🟢🟢🟢 |
