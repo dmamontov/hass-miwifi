@@ -117,9 +117,9 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 
 ### Summary
 
-- <sub>🟢</sub> - Supported
-- <sub>🔴</sub> - Not supported
-- <sub>⚪</sub> - Not tested
+- 🟢 - Supported
+- 🔴 - Not supported
+- ⚪ - Not tested
 
 | Image                                               | Router                                 | Code   | Required API       | Additional API            |
 | --------------------------------------------------- | -------------------------------------- |:------:|:------------------:|:-------------------------:|
