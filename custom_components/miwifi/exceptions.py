@@ -1,7 +1,7 @@
 """Luci API client exceptions."""
 
 
-class LuciException(Exception):
+class LuciException(BaseException):
     pass
 
 

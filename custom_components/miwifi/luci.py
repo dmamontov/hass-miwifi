@@ -93,10 +93,10 @@ class LuciClient(object):
         except HTTPError as e:
             _LOGGER.debug("Connection error %r", e)
 
-            raise LuciConnectionException()
+            raise LuciConnectionException("Connection error") from e
 
         if response.status_code != 200 or "token" not in data:
-            raise LuciTokenException()
+            raise LuciTokenException("Failed to get token")
 
         self._token = data["token"]
 
@@ -140,10 +140,10 @@ class LuciClient(object):
         except HTTPError as e:
             _LOGGER.debug("Connection error %r", e)
 
-            raise LuciConnectionException()
+            raise LuciConnectionException("Connection error") from e
 
         if "code" not in data or data["code"] > 0:
-            raise LuciTokenException()
+            raise LuciTokenException("Invalid error code received: %s".format(data))
 
         return data
 

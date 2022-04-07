@@ -15,7 +15,11 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import (
+    async_get_current_platform,
+    EntityPlatform,
+    AddEntitiesCallback,
+)
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -83,10 +87,29 @@ async def async_setup_entry(
         if device[ATTR_TRACKER_UPDATER_ENTRY_ID] != config_entry.entry_id:
             return
 
+        entity_id: str = generate_entity_id(
+            ENTITY_ID_FORMAT, device.get(ATTR_TRACKER_MAC)
+        )
+
+        try:
+            platform: EntityPlatform = async_get_current_platform()
+        except RuntimeError as e:
+            _LOGGER.error("An error occurred while adding the device: %r", e)
+
+            return
+
+        if entity_id in platform.entities:
+            _LOGGER.debug("Device already added: %s", entity_id)
+
+            return
+
         async_add_entities(
             [
                 MiWifiDeviceTracker(
-                    f"{DOMAIN}-{device.get(ATTR_TRACKER_MAC)}", device, updater
+                    f"{DOMAIN}-{device.get(ATTR_TRACKER_MAC)}",
+                    entity_id,
+                    device,
+                    updater,
                 )
             ]
         )
@@ -110,12 +133,14 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
     def __init__(
         self,
         unique_id: str,
+        entity_id: str,
         device: dict,
         updater: LuciUpdater,
     ) -> None:
         """Initialize device_tracker.
 
         :param unique_id: str: Unique ID
+        :param entity_id: str: Entity ID
         :param device: dict: Device data
         :param updater: LuciUpdater: Luci updater object
         """
@@ -127,7 +152,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         self._attr_name = device.get(ATTR_TRACKER_NAME, self.mac_address)
 
-        self.entity_id = generate_entity_id(ENTITY_ID_FORMAT, self.mac_address)
+        self.entity_id = entity_id
 
         self._attr_unique_id = unique_id
 
