@@ -94,7 +94,7 @@ async def async_setup_entry(
         try:
             platform: EntityPlatform = async_get_current_platform()
         except RuntimeError as e:
-            _LOGGER.error("An error occurred while adding the device: %r", e)
+            _LOGGER.debug("An error occurred while adding the device: %r", e)
 
             return
 

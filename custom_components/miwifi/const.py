@@ -15,6 +15,7 @@ PLATFORMS: Final = [
     Platform.LIGHT,
     Platform.BUTTON,
     Platform.SWITCH,
+    Platform.SELECT,
     Platform.DEVICE_TRACKER,
     Platform.CAMERA,
 ]
@@ -26,6 +27,7 @@ DISCOVERY_INTERVAL: Final = timedelta(minutes=60)
 """Helper const"""
 UPDATER: Final = "updater"
 UPDATE_LISTENER: Final = "update_listener"
+RELOAD_ENTRY: Final = "reload_entry"
 OPTION_IS_FROM_FLOW: Final = "is_from_flow"
 STORAGE_VERSION: Final = 1
 SIGNAL_NEW_DEVICE: Final = f"{DOMAIN}-device-new"
@@ -37,7 +39,7 @@ CONF_ACTIVITY_DAYS: Final = "activity_days"
 """Default settings"""
 DEFAULT_RETRY: Final = 10
 DEFAULT_SCAN_INTERVAL: Final = 30
-DEFAULT_TIMEOUT: Final = 5
+DEFAULT_TIMEOUT: Final = 20
 DEFAULT_ACTIVITY_DAYS: Final = 30
 DEFAULT_CALL_DELAY: Final = 1
 DEFAULT_SLEEP: Final = 3
@@ -66,6 +68,24 @@ ATTR_DEVICE_MANUFACTURER: Final = "device_manufacturer"
 ATTR_DEVICE_SW_VERSION: Final = "device_sw_version"
 
 ATTR_WIFI_NAME: Final = "Wifi"
+ATTR_WIFI_DATA_FIELDS: Final = {
+    "ssid": "ssid",
+    "password": "pwd",
+    "encryption": "encryption",
+    "channelInfo.channel": "channel",
+    "channelInfo.bandwidth": "bandwidth",
+    "txpwr": "txpwr",
+    "hidden": "hidden",
+    "status": "on",
+    "txbf": "txbf",
+    "weakenable": "weakenable",
+    "weakthreshold": "weakthreshold",
+    "kickthreshold": "kickthreshold",
+}
+ATTR_WIFI_2_4_DATA: Final = "wifi_2_4_data"
+ATTR_WIFI_5_0_DATA: Final = "wifi_5_0_data"
+ATTR_WIFI_5_0_GAME: Final = "wifi_5_0_game_data"
+
 ATTR_WIFI_ADAPTER_LENGTH: Final = "wifi_adapter_length"
 
 """Sensor attributes"""
@@ -126,6 +146,19 @@ ATTR_SWITCH_WIFI_5_0_NAME: Final = f"{ATTR_WIFI_NAME} 5G"
 
 ATTR_SWITCH_WIFI_5_0_GAME: Final = "wifi_5_0_game"
 ATTR_SWITCH_WIFI_5_0_GAME_NAME: Final = f"{ATTR_WIFI_NAME} 5G game"
+
+"""Select attributes"""
+ATTR_SELECT_WIFI_2_4_CHANNEL: Final = "wifi_2_4_channel"
+ATTR_SELECT_WIFI_2_4_CHANNELS: Final = "wifi_2_4_channels"
+ATTR_SELECT_WIFI_2_4_CHANNEL_NAME: Final = f"{ATTR_WIFI_NAME} 2.4G channel"
+
+ATTR_SELECT_WIFI_5_0_CHANNEL: Final = "wifi_5_0_channel"
+ATTR_SELECT_WIFI_5_0_CHANNELS: Final = "wifi_5_0_channels"
+ATTR_SELECT_WIFI_5_0_CHANNEL_NAME: Final = f"{ATTR_WIFI_NAME} 5G channel"
+
+ATTR_SELECT_WIFI_5_0_GAME_CHANNEL: Final = "wifi_5_0_game_channel"
+ATTR_SELECT_WIFI_5_0_GAME_CHANNELS: Final = "wifi_5_0_game_channels"
+ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME: Final = f"{ATTR_WIFI_NAME} 5G game channel"
 
 """Camera attributes"""
 ATTR_CAMERA_IMAGE: Final = "image"

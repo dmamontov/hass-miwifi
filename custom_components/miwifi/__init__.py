@@ -30,6 +30,7 @@ from .const import (
     DEFAULT_CALL_DELAY,
     UPDATER,
     UPDATE_LISTENER,
+    RELOAD_ENTRY,
 )
 from .discovery import async_start_discovery
 from .helper import get_config_value, get_store
@@ -71,6 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         CONF_IP_ADDRESS: ip,
         UPDATER: updater,
+        RELOAD_ENTRY: False,
     }
 
     hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER] = entry.add_update_listener(
@@ -119,6 +121,11 @@ async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
     :param entry: ConfigEntry: Config Entry object
     """
 
+    if entry.entry_id not in hass.data[DOMAIN]:
+        return
+
+    hass.data[DOMAIN][entry.entry_id][RELOAD_ENTRY] = True
+
     await hass.config_entries.async_reload(entry.entry_id)
 
 
@@ -130,7 +137,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     :return bool: Is success
     """
 
-    if CONF_IP_ADDRESS in hass.data[DOMAIN][entry.entry_id]:
+    if hass.data[DOMAIN][entry.entry_id].get(RELOAD_ENTRY, False):
+        hass.data[DOMAIN][RELOAD_ENTRY] = False
+    elif CONF_IP_ADDRESS in hass.data[DOMAIN][entry.entry_id]:
         store: Store = get_store(
             hass, hass.data[DOMAIN][entry.entry_id][CONF_IP_ADDRESS]
         )
@@ -145,17 +154,3 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN].pop(entry.entry_id)
 
     return is_unload
-
-
-async def async_remove_config_entry_device(
-    hass: HomeAssistant, entry: ConfigEntry, device_entry: dr.DeviceEntry
-) -> bool:
-    """Remove cast config entry from a device.
-
-    :param hass: HomeAssistant: Home Assistant object
-    :param entry: ConfigEntry: Config Entry object
-    :param device_entry: dr.DeviceEntry: DeviceEntry object
-    :return bool: True
-    """
-
-    return True

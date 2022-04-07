@@ -101,6 +101,35 @@ class IfName(str, Enum):
     WL2 = "wl2", ATTR_SWITCH_WIFI_5_0_GAME
 
 
+class Wifi(IntEnum):
+    def __new__(cls, value: int, phrase: str = "undefined") -> "Wifi":
+        """New Wifi.
+
+        :param value: int: WifiIndex
+        :param phrase: str: phrase
+        :return Wifi
+        """
+
+        obj = int.__new__(cls, value)  # type: ignore
+        obj._value_ = value
+
+        obj.phrase = phrase  # type: ignore
+
+        return obj
+
+    def __str__(self) -> str:
+        """Serialize to string.
+
+        :return str
+        """
+
+        return str(self.value)
+
+    ADAPTER_2_4 = 1, ATTR_SWITCH_WIFI_2_4
+    ADAPTER_5_0 = 2, ATTR_SWITCH_WIFI_5_0
+    ADAPTER_5_0_GAME = 3, ATTR_SWITCH_WIFI_5_0_GAME
+
+
 class DeviceAction(IntEnum):
     def __new__(cls, value: int, phrase: str = "undefined") -> "DeviceAction":
         """New device action.

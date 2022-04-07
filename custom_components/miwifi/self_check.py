@@ -20,6 +20,7 @@ SELF_CHECK_METHODS: Final = {
     "xqnetwork/wan_info": "wan_info",
     "misystem/led": "led",
     "xqnetwork/wifi_detail_all": "wifi_detail_all",
+    "xqnetwork/avaliable_channels": "avaliable_channels",
     "xqnetwork/wifi_connect_devices": "wifi_connect_devices",
     "misystem/devicelist": "device_list",
     "misystem/newstatus": "new_status",

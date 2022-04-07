@@ -9,6 +9,7 @@ import logging
 import random
 import time
 import uuid
+import urllib.parse
 
 from httpx import AsyncClient, Response, HTTPError
 
@@ -202,6 +203,26 @@ class LuciClient(object):
         """
 
         return await self.get("xqnetwork/wifi_detail_all")
+
+    async def set_wifi(self, data: dict) -> dict:
+        """xqnetwork/set_wifi method.
+
+        :param data: dict: Adapter data
+        :return dict: dict with api data.
+        """
+
+        return await self.get(
+            f"xqnetwork/set_wifi?{urllib.parse.urlencode(data, doseq=True)}"
+        )
+
+    async def avaliable_channels(self, wifiIndex: int = 1) -> dict:
+        """xqnetwork/avaliable_channels method.
+
+        :param wifiIndex: int: Index wifi adapter
+        :return dict: dict with api data.
+        """
+
+        return await self.get(f"xqnetwork/avaliable_channels?wifiIndex={wifiIndex}")
 
     async def wan_info(self) -> dict:
         """xqnetwork/wan_info method.

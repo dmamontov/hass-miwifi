@@ -55,6 +55,7 @@ from .const import (
     ATTR_SENSOR_DEVICES_5_0_GAME,
     ATTR_CAMERA_IMAGE,
     ATTR_LIGHT_LED,
+    ATTR_WIFI_DATA_FIELDS,
     ATTR_WIFI_ADAPTER_LENGTH,
     ATTR_TRACKER_ENTRY_ID,
     ATTR_TRACKER_UPDATER_ENTRY_ID,
@@ -74,6 +75,7 @@ from .enum import (
     Mode,
     Connection,
     IfName,
+    Wifi,
     DeviceAction,
 )
 from .exceptions import LuciConnectionException, LuciTokenException, LuciException
@@ -87,6 +89,7 @@ PREPARE_METHODS: Final = [
     "wan",
     "led",
     "wifi",
+    "channels",
     "devices",
     "device_list",
     "device_restore",
@@ -503,14 +506,57 @@ class LuciUpdater(DataUpdateCoordinator):
             if "ifname" not in wifi or wifi["ifname"] not in ["wl0", "wl1", "wl2"]:
                 continue
 
+            try:
+                adapter: IfName = IfName(wifi["ifname"])
+            except ValueError:
+                continue
+
             if "status" in wifi:
-                try:
-                    data[IfName(wifi["ifname"]).phrase] = int(wifi["status"]) > 0
-                    length += 1
-                except ValueError:
-                    pass
+                data[adapter.phrase] = int(wifi["status"]) > 0
+                length += 1
+
+            if "channelInfo" in wifi and "channel" in wifi["channelInfo"]:
+                data[f"{adapter.phrase}_channel"] = str(wifi["channelInfo"]["channel"])
+
+            wifi_data: dict = {}
+
+            for data_field, field in ATTR_WIFI_DATA_FIELDS.items():
+                if "channelInfo" in data_field and "channelInfo" in wifi:
+                    data_field = data_field.replace("channelInfo", "")
+
+                    if data_field in wifi["channelInfo"]:
+                        wifi_data[field] = wifi["channelInfo"][data_field]
+                elif data_field in wifi:
+                    wifi_data[field] = wifi[data_field]
+
+            if len(wifi_data) > 0:
+                data[f"{adapter.phrase}_data"] = wifi_data
 
         data[ATTR_WIFI_ADAPTER_LENGTH] = length
+
+    async def _async_prepare_channels(self, data: dict) -> None:
+        """Prepare channels.
+
+        :param data: dict
+        """
+
+        if not self._is_first_update or ATTR_WIFI_ADAPTER_LENGTH not in data:
+            return
+
+        for wifiIndex in range(1, data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) + 1):
+            response: dict = await self.luci.avaliable_channels(wifiIndex)
+
+            if "list" not in response or len(response["list"]) == 0:
+                continue
+
+            try:
+                data[Wifi(wifiIndex).phrase + "_channels"] = [
+                    str(channel["c"])
+                    for channel in response["list"]
+                    if "c" in channel and int(channel["c"]) > 0
+                ]
+            except ValueError:
+                pass
 
     async def _async_prepare_devices(self, data: dict) -> None:
         """Prepare devices.
