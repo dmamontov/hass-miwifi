@@ -126,7 +126,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
-                    vol.Optional(
+                    vol.Required(
                         CONF_TIMEOUT,
                         default=DEFAULT_TIMEOUT,
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
@@ -152,7 +152,10 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured()
 
             code: codes = await async_verify_access(
-                self.hass, user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD]
+                self.hass,
+                user_input[CONF_IP_ADDRESS],
+                user_input[CONF_PASSWORD],
+                user_input[CONF_TIMEOUT],
             )
 
             _LOGGER.debug("Verify access code: %s", code)
@@ -196,7 +199,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
-                    vol.Optional(
+                    vol.Required(
                         CONF_TIMEOUT,
                         default=DEFAULT_TIMEOUT,
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
@@ -228,7 +231,10 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
         if user_input is not None:
             code: codes = await async_verify_access(
-                self.hass, user_input[CONF_IP_ADDRESS], user_input[CONF_PASSWORD]
+                self.hass,
+                user_input[CONF_IP_ADDRESS],
+                user_input[CONF_PASSWORD],
+                user_input[CONF_TIMEOUT],
             )
 
             _LOGGER.debug("Verify access code: %s", code)

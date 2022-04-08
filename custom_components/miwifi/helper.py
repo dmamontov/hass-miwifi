@@ -14,7 +14,7 @@ from homeassistant.loader import async_get_integration
 from homeassistant.util import slugify
 from httpx import codes
 
-from .const import DOMAIN, STORAGE_VERSION
+from .const import DOMAIN, STORAGE_VERSION, DEFAULT_TIMEOUT
 from .updater import LuciUpdater
 
 
@@ -36,16 +36,21 @@ def get_config_value(
     )
 
 
-async def async_verify_access(hass: HomeAssistant, ip: str, password: str) -> codes:
+async def async_verify_access(
+    hass: HomeAssistant, ip: str, password: str, timeout: int = DEFAULT_TIMEOUT
+) -> codes:
     """Verify ip and password.
 
     :param hass: HomeAssistant: Home Assistant object
     :param ip: str: device ip address
     :param password: str: device password
+    :param timeout: int: Timeout
     :return int: last update success
     """
 
-    updater = LuciUpdater(hass=hass, ip=ip, password=password, is_only_login=True)
+    updater = LuciUpdater(
+        hass=hass, ip=ip, password=password, timeout=timeout, is_only_login=True
+    )
 
     await updater.async_request_refresh()
     await updater.async_stop()
