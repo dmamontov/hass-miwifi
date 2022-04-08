@@ -36,12 +36,19 @@ from .const import (
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNELS,
+    ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
+    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
+    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME,
+    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
+    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME,
+    ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
+    ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME,
 )
 from .enum import Wifi
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
-KEY_MAP: Final = {
+CHANNELS_MAP: Final = {
     ATTR_SELECT_WIFI_2_4_CHANNEL: ATTR_SELECT_WIFI_2_4_CHANNELS,
     ATTR_SELECT_WIFI_5_0_CHANNEL: ATTR_SELECT_WIFI_5_0_CHANNELS,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL: ATTR_SELECT_WIFI_5_0_GAME_CHANNELS,
@@ -51,6 +58,27 @@ DATA_MAP: Final = {
     ATTR_SELECT_WIFI_2_4_CHANNEL: ATTR_WIFI_2_4_DATA,
     ATTR_SELECT_WIFI_5_0_CHANNEL: ATTR_WIFI_5_0_DATA,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL: ATTR_WIFI_5_0_GAME,
+    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH: ATTR_WIFI_2_4_DATA,
+    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH: ATTR_WIFI_5_0_DATA,
+    ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH: ATTR_WIFI_5_0_GAME,
+}
+
+OPTIONS_MAP: Final = {
+    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH: ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
+    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH: ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
+    ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH: ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
+}
+
+ICONS: Final = {
+    f"{ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH}_min": "mdi:wifi-strength-1",
+    f"{ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH}_mid": "mdi:wifi-strength-2",
+    f"{ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH}_max": "mdi:wifi-strength-4",
+    f"{ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH}_min": "mdi:wifi-strength-1",
+    f"{ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH}_mid": "mdi:wifi-strength-2",
+    f"{ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH}_max": "mdi:wifi-strength-4",
+    f"{ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH}_min": "mdi:wifi-strength-1",
+    f"{ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH}_mid": "mdi:wifi-strength-2",
+    f"{ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH}_max": "mdi:wifi-strength-4",
 }
 
 MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
@@ -72,6 +100,27 @@ MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
         key=ATTR_SELECT_WIFI_5_0_GAME_CHANNEL,
         name=ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME,
         icon="mdi:format-list-numbered",
+        entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=False,
+    ),
+    SelectEntityDescription(
+        key=ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
+        name=ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME,
+        icon=ICONS[f"{ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH}_max"],
+        entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=False,
+    ),
+    SelectEntityDescription(
+        key=ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
+        name=ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME,
+        icon=ICONS[f"{ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH}_max"],
+        entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=False,
+    ),
+    SelectEntityDescription(
+        key=ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
+        name=ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME,
+        icon=ICONS[f"{ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH}_max"],
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
     ),
@@ -101,7 +150,11 @@ async def async_setup_entry(
     entities: list[MiWifiSelect] = []
     for description in MIWIFI_SELECTS:
         if (
-            description.key == ATTR_SELECT_WIFI_5_0_GAME_CHANNEL
+            description.key
+            in [
+                ATTR_SELECT_WIFI_5_0_GAME_CHANNEL,
+                ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
+            ]
             and updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) != 3
         ):
             continue
@@ -153,7 +206,13 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         self._attr_device_info = updater.device_info
 
         self._attr_current_option = updater.data.get(description.key, None)
-        self._attr_options = updater.data.get(KEY_MAP[description.key], [])
+        self._change_icon(self._attr_current_option)
+
+        if description.key in OPTIONS_MAP:
+            self._attr_options = OPTIONS_MAP[description.key]
+        else:
+            self._attr_options = updater.data.get(CHANNELS_MAP[description.key], [])
+
         self._wifi_data = updater.data.get(DATA_MAP[description.key], {})
 
         self._attr_available = len(self._attr_options) > 0
@@ -205,10 +264,12 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         self._attr_current_option = current_option
         self._wifi_data = wifi_data
 
+        self._change_icon(current_option)
+
         self.async_write_ha_state()
 
     async def _wifi_2_4_channel_change(self, option: str) -> None:
-        """Wifi 2.4G change option
+        """Wifi 2.4G change channel
 
         :param option: str: Option value
         """
@@ -218,7 +279,7 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         await self._async_update_wifi_adapter(data)
 
     async def _wifi_5_0_channel_change(self, option: str) -> None:
-        """Wifi 5G change option
+        """Wifi 5G change channel
 
         :param option: str: Option value
         """
@@ -228,12 +289,42 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         await self._async_update_wifi_adapter(data)
 
     async def _wifi_5_0_game_channel_change(self, option: str) -> None:
-        """Wifi 5G Game change option
+        """Wifi 5G Game change channel
 
         :param option: str: Option value
         """
 
         data: dict = {"wifiIndex": Wifi.ADAPTER_5_0_GAME.value, "channel": option}
+
+        await self._async_update_wifi_adapter(data)
+
+    async def _wifi_2_4_signal_strength_change(self, option: str) -> None:
+        """Wifi 2.4G change signal strength
+
+        :param option: str: Option value
+        """
+
+        data: dict = {"wifiIndex": Wifi.ADAPTER_2_4.value, "txpwr": option}
+
+        await self._async_update_wifi_adapter(data)
+
+    async def _wifi_5_0_signal_strength_change(self, option: str) -> None:
+        """Wifi 5G change signal strength
+
+        :param option: str: Option value
+        """
+
+        data: dict = {"wifiIndex": Wifi.ADAPTER_5_0.value, "txpwr": option}
+
+        await self._async_update_wifi_adapter(data)
+
+    async def _wifi_5_0_game_signal_strength_change(self, option: str) -> None:
+        """Wifi 5G Game change signal strength
+
+        :param option: str: Option value
+        """
+
+        data: dict = {"wifiIndex": Wifi.ADAPTER_5_0_GAME.value, "txpwr": option}
 
         await self._async_update_wifi_adapter(data)
 
@@ -243,8 +334,11 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         :param data: dict: Adapter data
         """
 
+        new_data: dict = self._wifi_data | data
+
         try:
-            await self._updater.luci.set_wifi(self._wifi_data | data)
+            await self._updater.luci.set_wifi(new_data)
+            self._wifi_data = new_data
         except BaseException as e:
             _LOGGER.debug("WiFi update error: %r", e)
 
@@ -265,3 +359,14 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
             await action(option)
 
             self._updater.data[self.entity_description.key] = option
+            self._change_icon(option)
+
+    def _change_icon(self, option: str) -> None:
+        """Change icon
+
+        :param option: str
+        """
+
+        icon_name: str = f"{self.entity_description.key}_{option}"
+        if icon_name in ICONS:
+            self._attr_icon = ICONS[icon_name]

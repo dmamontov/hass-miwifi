@@ -14,7 +14,8 @@
         "data": {
           "ip_address": "IP address",
           "password": "Password",
-          "scan_interval": "Scan interval in seconds"
+          "scan_interval": "Scan interval in seconds [PRO]",
+          "timeout": "Timeout of requests in seconds [PRO]"
         }
       }
     }
@@ -33,7 +34,7 @@
         "data": {
           "ip_address": "IP address",
           "password": "Password",
-          "scan_interval": "Scan interval in seconds",
+          "scan_interval": "Scan interval in seconds [PRO]",
           "activity_days": "Allowed number of days to wait after the last activity [PRO]",
           "timeout": "Timeout of requests in seconds [PRO]",
           "is_force_load": "Forced booting of devices in repeater mode [PRO]"

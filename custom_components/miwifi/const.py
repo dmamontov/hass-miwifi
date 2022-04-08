@@ -6,6 +6,7 @@ from typing import Final
 
 from homeassistant.const import Platform
 
+# fmt: off
 DOMAIN: Final = "miwifi"
 ATTRIBUTION: Final = "Data provided by MiWifi"
 
@@ -160,6 +161,17 @@ ATTR_SELECT_WIFI_5_0_GAME_CHANNEL: Final = "wifi_5_0_game_channel"
 ATTR_SELECT_WIFI_5_0_GAME_CHANNELS: Final = "wifi_5_0_game_channels"
 ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME: Final = f"{ATTR_WIFI_NAME} 5G game channel"
 
+ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS: Final = ["min", "mid", "max"]
+
+ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH: Final = "wifi_2_4_signal_strength"
+ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME: Final = f"{ATTR_WIFI_NAME} 2.4G signal strength"
+
+ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH: Final = "wifi_5_0_signal_strength"
+ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME: Final = f"{ATTR_WIFI_NAME} 5G signal strength"
+
+ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH: Final = "wifi_5_0_game_signal_strength"
+ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME: Final = f"{ATTR_WIFI_NAME} 5G game signal strength"
+
 """Camera attributes"""
 ATTR_CAMERA_IMAGE: Final = "image"
 ATTR_CAMERA_IMAGE_NAME: Final = "Image"
@@ -178,3 +190,4 @@ ATTR_TRACKER_ONLINE: Final = "online"
 ATTR_TRACKER_DOWN_SPEED: Final = "down_speed"
 ATTR_TRACKER_UP_SPEED: Final = "up_speed"
 ATTR_TRACKER_LAST_ACTIVITY: Final = "last_activity"
+# fmt: on

@@ -14,7 +14,8 @@
         "data": {
           "ip_address": "Endereço IP",
           "password": "Senha",
-          "scan_interval": "Intervalo de varredura em segundos"
+          "scan_interval": "Intervalo de varredura em segundos [PRO]",
+          "timeout": "Tempo limite de solicitações em segundos [PRO]"
         }
       }
     }
@@ -36,7 +37,7 @@
         "data": {
           "ip_address": "Endereço IP",
           "password": "Senha",
-          "scan_interval": "Intervalo de varredura em segundos",
+          "scan_interval": "Intervalo de varredura em segundos [PRO]",
           "activity_days": "Número permitido de dias de espera após a última atividade [PRO]",
           "timeout": "Tempo limite de solicitações em segundos [PRO]",
           "is_force_load": "Inicialização forçada de dispositivos no modo repetidor [PRO]"

@@ -518,6 +518,9 @@ class LuciUpdater(DataUpdateCoordinator):
             if "channelInfo" in wifi and "channel" in wifi["channelInfo"]:
                 data[f"{adapter.phrase}_channel"] = str(wifi["channelInfo"]["channel"])
 
+            if "txpwr" in wifi:
+                data[f"{adapter.phrase}_signal_strength"] = wifi["txpwr"]
+
             wifi_data: dict = {}
 
             for data_field, field in ATTR_WIFI_DATA_FIELDS.items():
