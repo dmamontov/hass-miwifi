@@ -82,7 +82,9 @@ class LuciClient(object):
                     data={
                         "username": CLIENT_USERNAME,
                         "logtype": str(CLIENT_LOGIN_TYPE),
-                        "password": self.generate_password_hash(nonce, self._password),
+                        "password": self.generate_password_hash(
+                            nonce, str(self._password)
+                        ),
                         "nonce": nonce,
                     },
                     timeout=self._timeout,
@@ -144,7 +146,7 @@ class LuciClient(object):
             raise LuciConnectionException("Connection error") from e
 
         if "code" not in data or data["code"] > 0:
-            raise LuciTokenException("Invalid error code received: %s".format(data))
+            raise LuciTokenException("Invalid error code received")
 
         return data
 

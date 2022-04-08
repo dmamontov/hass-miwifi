@@ -254,9 +254,9 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
         state: Any = self._updater.data.get(self.entity_description.key, None)
 
         if state is not None and isinstance(state, Enum):
-            state = state.phrase
+            state = state.phrase  # type: ignore
 
-        if self._attr_native_value == state and self._attr_available == is_available:
+        if self._attr_native_value == state and self._attr_available == is_available:  # type: ignore
             return
 
         self._attr_available = is_available

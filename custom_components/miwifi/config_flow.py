@@ -35,7 +35,7 @@ from .helper import get_config_value, async_verify_access, async_user_documentat
 _LOGGER = logging.getLogger(__name__)
 
 
-class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
     """First time set up flow."""
 
     _discovered_device: ConfigType | None = None

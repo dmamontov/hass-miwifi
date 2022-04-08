@@ -161,7 +161,7 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
 
         is_on: bool = self._updater.data.get(self.entity_description.key, False)
 
-        if self._attr_is_on == is_on and self._attr_available == is_available:
+        if self._attr_is_on == is_on and self._attr_available == is_available:  # type: ignore
             return
 
         self._attr_available = is_available

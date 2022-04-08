@@ -7,7 +7,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 from functools import cached_property
-from typing import Final
+from typing import Final, Any
 
 from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant, CALLBACK_TYPE
@@ -188,8 +188,8 @@ class LuciUpdater(DataUpdateCoordinator):
                 update_method=self.update,
             )
 
-        self.data = {}
-        self.devices: dict = {}
+        self.data: dict[str, Any] = {}
+        self.devices: dict[str, dict[str, Any]] = {}
 
         hass.loop.call_later(
             DEFAULT_CALL_DELAY,
@@ -325,8 +325,8 @@ class LuciUpdater(DataUpdateCoordinator):
         :param offset: timedelta
         """
 
-        if self._unsub_refresh:
-            self._unsub_refresh()
+        if self._unsub_refresh:  # type: ignore
+            self._unsub_refresh()  # type: ignore
             self._unsub_refresh = None
 
         self._unsub_refresh = event.async_track_point_in_utc_time(
@@ -512,14 +512,14 @@ class LuciUpdater(DataUpdateCoordinator):
                 continue
 
             if "status" in wifi:
-                data[adapter.phrase] = int(wifi["status"]) > 0
+                data[adapter.phrase] = int(wifi["status"]) > 0  # type: ignore
                 length += 1
 
             if "channelInfo" in wifi and "channel" in wifi["channelInfo"]:
-                data[f"{adapter.phrase}_channel"] = str(wifi["channelInfo"]["channel"])
+                data[f"{adapter.phrase}_channel"] = str(wifi["channelInfo"]["channel"])  # type: ignore
 
             if "txpwr" in wifi:
-                data[f"{adapter.phrase}_signal_strength"] = wifi["txpwr"]
+                data[f"{adapter.phrase}_signal_strength"] = wifi["txpwr"]  # type: ignore
 
             wifi_data: dict = {}
 
@@ -533,7 +533,7 @@ class LuciUpdater(DataUpdateCoordinator):
                     wifi_data[field] = wifi[data_field]
 
             if len(wifi_data) > 0:
-                data[f"{adapter.phrase}_data"] = wifi_data
+                data[f"{adapter.phrase}_data"] = wifi_data  # type: ignore
 
         data[ATTR_WIFI_ADAPTER_LENGTH] = length
 
@@ -553,7 +553,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 continue
 
             try:
-                data[Wifi(wifiIndex).phrase + "_channels"] = [
+                data[Wifi(wifiIndex).phrase + "_channels"] = [  # type: ignore
                     str(channel["c"])
                     for channel in response["list"]
                     if "c" in channel and int(channel["c"]) > 0
@@ -753,13 +753,15 @@ class LuciUpdater(DataUpdateCoordinator):
         if self.is_force_load and "wifiIndex" in device:
             device["type"] = 6 if device["wifiIndex"] == 3 else device["wifiIndex"]
 
+        connection: Connection | None = None
+
         try:
             # fmt: off
-            connection: Connection | None = Connection(int(device["type"])) \
+            connection = Connection(int(device["type"])) \
                 if "type" in device else None
             # fmt: on
         except ValueError:
-            connection: None = None
+            pass
 
         self.devices[device[ATTR_TRACKER_MAC]] = {
             ATTR_TRACKER_ENTRY_ID: device[ATTR_TRACKER_ENTRY_ID],

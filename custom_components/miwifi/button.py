@@ -111,7 +111,7 @@ class MiWifiButton(ButtonEntity, CoordinatorEntity, RestoreEntity):
 
         is_available: bool = self._updater.data.get(ATTR_STATE, False)
 
-        if self._attr_available == is_available:
+        if self._attr_available == is_available:  # type: ignore
             return
 
         self._attr_available = is_available

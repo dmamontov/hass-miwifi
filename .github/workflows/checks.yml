@@ -7,6 +7,15 @@ on:
     - cron: '22 20 * * 6'
 
 jobs:
+  mypy:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: jpetrucciani/mypy-check@master
+        with:
+          path: 'custom_components/miwifi'
+          mypy_flags: '--show-error-codes --show-error-context --ignore-missing-imports --pretty --show-error-codes'
+
   black:
     runs-on: "ubuntu-latest"
     steps:
@@ -17,7 +26,6 @@ jobs:
 
   codeql:
     runs-on: ubuntu-latest
-    needs: black
     permissions:
       actions: read
       contents: read
@@ -36,14 +44,12 @@ jobs:
 
   hassfest:
     runs-on: "ubuntu-latest"
-    needs: black
     steps:
       - uses: "actions/checkout@v2"
       - uses: "home-assistant/actions/hassfest@master"
 
   hacs:
     runs-on: "ubuntu-latest"
-    needs: black
     steps:
       - uses: "actions/checkout@v2"
       - uses: "hacs/action@main"

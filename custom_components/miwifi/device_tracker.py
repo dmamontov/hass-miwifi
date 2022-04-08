@@ -88,7 +88,7 @@ async def async_setup_entry(
             return
 
         entity_id: str = generate_entity_id(
-            ENTITY_ID_FORMAT, device.get(ATTR_TRACKER_MAC)
+            ENTITY_ID_FORMAT, str(device.get(ATTR_TRACKER_MAC))
         )
 
         try:
@@ -240,7 +240,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
             signal = ""
 
         if connection is not None and isinstance(connection, Connection):
-            connection = connection.phrase
+            connection = connection.phrase  # type: ignore
 
         return {
             ATTR_TRACKER_SCANNER: DOMAIN,
@@ -324,10 +324,14 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         """Update state."""
 
         is_available: bool = self._updater.data.get(ATTR_STATE, False)
+
+        if self.mac_address is None:
+            return
+
         device = self._updater.devices.get(self.mac_address, None)
 
         if device is None or self._device is None:
-            if self._attr_available:
+            if self._attr_available:  # type: ignore
                 self._attr_available = False
 
                 self.async_write_ha_state()
@@ -342,8 +346,8 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
             is_connected = True
         else:
             is_connected = parse_last_activity(
-                device.get(ATTR_TRACKER_LAST_ACTIVITY)
-            ) > parse_last_activity(self._device.get(ATTR_TRACKER_LAST_ACTIVITY))
+                str(device.get(ATTR_TRACKER_LAST_ACTIVITY))
+            ) > parse_last_activity(str(self._device.get(ATTR_TRACKER_LAST_ACTIVITY)))
 
         is_update = False
         for attr in ATTR_CHANGES:
@@ -353,7 +357,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
                 break
 
         if (
-            self._attr_available == is_available
+            self._attr_available == is_available  # type: ignore
             and self._is_connected == is_connected
             and not is_update
         ):
