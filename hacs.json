@@ -1,7 +1,6 @@
 {
   "name": "MiWiFi",
   "render_readme": true,
-  "iot_class": "local push",
   "domains": [
     "binary_sensor",
     "button",
