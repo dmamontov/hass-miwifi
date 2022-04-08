@@ -2,5 +2,15 @@
   "name": "MiWiFi",
   "render_readme": true,
   "iot_class": "local push",
+  "domains": [
+    "binary_sensor",
+    "button",
+    "camera",
+    "device_tracker",
+    "light",
+    "select",
+    "sensor",
+    "switch"
+  ],
   "homeassistant": "2022.3.0"
 }
