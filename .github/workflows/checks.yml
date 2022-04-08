@@ -1,0 +1,52 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '22 20 * * 6'
+
+jobs:
+  black:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: jpetrucciani/black-check@master
+        with:
+          path: 'custom_components/miwifi'
+
+  codeql:
+    runs-on: ubuntu-latest
+    needs: black
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'python' ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: github/codeql-action/init@v1
+        with:
+          languages: ${{ matrix.language }}
+      - uses: github/codeql-action/autobuild@v1
+      - uses: github/codeql-action/analyze@v1
+
+  hassfest:
+    runs-on: "ubuntu-latest"
+    needs: black
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: "home-assistant/actions/hassfest@master"
+
+  hacs:
+    runs-on: "ubuntu-latest"
+      needs: hassfest
+      steps:
+        - uses: "actions/checkout@v2"
+        - uses: "hacs/action@main"
+          with:
+            category: "integration"
+
