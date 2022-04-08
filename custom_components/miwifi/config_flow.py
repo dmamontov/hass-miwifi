@@ -126,6 +126,10 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+                    vol.Optional(
+                        CONF_TIMEOUT,
+                        default=DEFAULT_TIMEOUT,
+                    ): vol.All(vol.Coerce(int), vol.Range(min=10)),
                 }
             ),
             errors=errors,
