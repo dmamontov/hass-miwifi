@@ -1,11 +1,11 @@
-name: Validate HASS and HACS
+name: HASS and HACS
 
 on:
   push:
   pull_request:
 
 jobs:
-  validate:
+  analyze:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v2"

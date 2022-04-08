@@ -1,0 +1,14 @@
+name: Python Black
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  analyze:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: jpetrucciani/black-check@master
+        with:
+          path: 'custom_components/miwifi'
