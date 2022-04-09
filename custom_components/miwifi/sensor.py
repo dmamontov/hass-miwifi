@@ -32,6 +32,7 @@ from .const import (
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
     ATTR_WIFI_ADAPTER_LENGTH,
+    ATTR_BINARY_SENSOR_WAN_STATE,
     ATTR_SENSOR_UPTIME,
     ATTR_SENSOR_UPTIME_NAME,
     ATTR_SENSOR_MEMORY_USAGE,
@@ -44,6 +45,10 @@ from .const import (
     ATTR_SENSOR_MODE_NAME,
     ATTR_SENSOR_AP_SIGNAL,
     ATTR_SENSOR_AP_SIGNAL_NAME,
+    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
+    ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME,
+    ATTR_SENSOR_WAN_UPLOAD_SPEED,
+    ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME,
     ATTR_SENSOR_DEVICES,
     ATTR_SENSOR_DEVICES_NAME,
     ATTR_SENSOR_DEVICES_LAN,
@@ -57,8 +62,18 @@ from .const import (
     ATTR_SENSOR_DEVICES_5_0_GAME,
     ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
 )
-from .helper import generate_entity_id
+from .helper import generate_entity_id, pretty_size
 from .updater import LuciUpdater
+
+DISABLE_ZERO: Final = [
+    ATTR_SENSOR_TEMPERATURE,
+    ATTR_SENSOR_AP_SIGNAL,
+]
+
+ONLY_WAN: Final = [
+    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
+    ATTR_SENSOR_WAN_UPLOAD_SPEED,
+]
 
 PCS: Final = "pcs"
 
@@ -110,8 +125,22 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         key=ATTR_SENSOR_AP_SIGNAL,
         name=ATTR_SENSOR_AP_SIGNAL_NAME,
         icon="mdi:wifi-arrow-left-right",
-        state_class=SensorStateClass.TOTAL,
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=True,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
+        name=ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME,
+        icon="mdi:speedometer",
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_registry_enabled_default=True,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_WAN_UPLOAD_SPEED,
+        name=ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME,
+        icon="mdi:speedometer",
+        state_class=SensorStateClass.MEASUREMENT,
         entity_registry_enabled_default=True,
     ),
     SensorEntityDescription(
@@ -194,14 +223,13 @@ async def async_setup_entry(
             continue
 
         if (
-            description.key == ATTR_SENSOR_TEMPERATURE
+            description.key in DISABLE_ZERO
             and updater.data.get(description.key, 0) == 0
         ):
             continue
 
-        if (
-            description.key == ATTR_SENSOR_AP_SIGNAL
-            and updater.data.get(description.key, 0) == 0
+        if description.key in ONLY_WAN and not updater.data.get(
+            ATTR_BINARY_SENSOR_WAN_STATE, False
         ):
             continue
 
@@ -248,6 +276,9 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
 
         self._attr_name = description.name
         self._attr_unique_id = unique_id
+        self._attr_native_value = self._prepare_state(
+            updater.data.get(description.key, None)
+        )
 
         self._attr_device_info = updater.device_info
 
@@ -282,6 +313,18 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
             return
 
         self._attr_available = is_available
-        self._attr_native_value = state
+        self._attr_native_value = self._prepare_state(state)
 
         self.async_write_ha_state()
+
+    def _prepare_state(self, state: Any) -> Any:
+        """Prepare state
+
+        :param state: Any: Sensor state
+        :return Any
+        """
+
+        if self.entity_description.key in ONLY_WAN and state is not None:
+            return pretty_size(float(state))
+
+        return state

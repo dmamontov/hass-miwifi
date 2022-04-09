@@ -108,6 +108,12 @@ ATTR_SENSOR_MODE_NAME: Final = "Mode"
 ATTR_SENSOR_AP_SIGNAL: Final = "ap_signal"
 ATTR_SENSOR_AP_SIGNAL_NAME: Final = "AP signal"
 
+ATTR_SENSOR_WAN_DOWNLOAD_SPEED: Final = "wan_download_speed"
+ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME: Final = "Wan download speed"
+
+ATTR_SENSOR_WAN_UPLOAD_SPEED: Final = "wan_upload_speed"
+ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME: Final = "Wan upload speed"
+
 ATTR_SENSOR_DEVICES: Final = "devices"
 ATTR_SENSOR_DEVICES_NAME: Final = "Devices"
 

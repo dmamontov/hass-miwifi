@@ -48,6 +48,8 @@ from .const import (
     ATTR_SENSOR_TEMPERATURE,
     ATTR_SENSOR_MODE,
     ATTR_SENSOR_AP_SIGNAL,
+    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
+    ATTR_SENSOR_WAN_UPLOAD_SPEED,
     ATTR_SENSOR_DEVICES,
     ATTR_SENSOR_DEVICES_LAN,
     ATTR_SENSOR_DEVICES_GUEST,
@@ -439,6 +441,17 @@ class LuciUpdater(DataUpdateCoordinator):
 
         if "temperature" in response:
             data[ATTR_SENSOR_TEMPERATURE] = float(response["temperature"])
+
+        if "wan" in response and isinstance(response["wan"], dict):
+            # fmt: off
+            data[ATTR_SENSOR_WAN_DOWNLOAD_SPEED] = float(
+                response["wan"]["downspeed"]
+            ) if "downspeed" in response["wan"] else 0
+
+            data[ATTR_SENSOR_WAN_UPLOAD_SPEED] = float(
+                response["wan"]["upspeed"]
+            ) if "upspeed" in response["wan"] else 0
+            # fmt: on
 
     async def _async_prepare_mode(self, data: dict) -> None:
         """Prepare mode.
