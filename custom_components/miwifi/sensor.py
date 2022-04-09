@@ -42,6 +42,8 @@ from .const import (
     ATTR_SENSOR_TEMPERATURE_NAME,
     ATTR_SENSOR_MODE,
     ATTR_SENSOR_MODE_NAME,
+    ATTR_SENSOR_AP_SIGNAL,
+    ATTR_SENSOR_AP_SIGNAL_NAME,
     ATTR_SENSOR_DEVICES,
     ATTR_SENSOR_DEVICES_NAME,
     ATTR_SENSOR_DEVICES_LAN,
@@ -100,6 +102,14 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         key=ATTR_SENSOR_MODE,
         name=ATTR_SENSOR_MODE_NAME,
         icon="mdi:transit-connection-variant",
+        state_class=SensorStateClass.TOTAL,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=True,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_AP_SIGNAL,
+        name=ATTR_SENSOR_AP_SIGNAL_NAME,
+        icon="mdi:wifi-arrow-left-right",
         state_class=SensorStateClass.TOTAL,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=True,
@@ -180,9 +190,18 @@ async def async_setup_entry(
         if (
             description.key == ATTR_SENSOR_DEVICES_5_0_GAME
             and updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) != 3
-        ) or (
+        ):
+            continue
+
+        if (
             description.key == ATTR_SENSOR_TEMPERATURE
-            and updater.data.get(description.key, 0.0) == 0.0
+            and updater.data.get(description.key, 0) == 0
+        ):
+            continue
+
+        if (
+            description.key == ATTR_SENSOR_AP_SIGNAL
+            and updater.data.get(description.key, 0) == 0
         ):
             continue
 

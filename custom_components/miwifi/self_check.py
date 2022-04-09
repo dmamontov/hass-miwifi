@@ -25,6 +25,7 @@ SELF_CHECK_METHODS: Final = {
     "xqnetwork/wifi_connect_devices": "wifi_connect_devices",
     "misystem/devicelist": "device_list",
     "misystem/newstatus": "new_status",
+    "xqnetwork/wifiap_signal": "wifi_ap_signal",
 }
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,6 +43,9 @@ async def async_self_check(hass: HomeAssistant, client: LuciClient, model: str) 
         "xqsystem/login": "🟢",
         "xqsystem/init_info": "🟢",
         "xqsystem/reboot": "🟢",
+        "xqnetwork/wifi_up": "🟢",
+        "xqnetwork/wifi_down": "🟢",
+        "xqnetwork/set_wifi": "🟢",
     }
 
     for code, method in SELF_CHECK_METHODS.items():

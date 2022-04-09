@@ -105,6 +105,9 @@ ATTR_SENSOR_TEMPERATURE_NAME: Final = "Temperature"
 ATTR_SENSOR_MODE: Final = "mode"
 ATTR_SENSOR_MODE_NAME: Final = "Mode"
 
+ATTR_SENSOR_AP_SIGNAL: Final = "ap_signal"
+ATTR_SENSOR_AP_SIGNAL_NAME: Final = "AP signal"
+
 ATTR_SENSOR_DEVICES: Final = "devices"
 ATTR_SENSOR_DEVICES_NAME: Final = "Devices"
 

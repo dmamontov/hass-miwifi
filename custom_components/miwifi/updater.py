@@ -47,6 +47,7 @@ from .const import (
     ATTR_SENSOR_MEMORY_TOTAL,
     ATTR_SENSOR_TEMPERATURE,
     ATTR_SENSOR_MODE,
+    ATTR_SENSOR_AP_SIGNAL,
     ATTR_SENSOR_DEVICES,
     ATTR_SENSOR_DEVICES_LAN,
     ATTR_SENSOR_DEVICES_GUEST,
@@ -93,6 +94,7 @@ PREPARE_METHODS: Final = [
     "devices",
     "device_list",
     "device_restore",
+    "ap",
     "new_status",
 ]
 
@@ -120,7 +122,7 @@ UNSUPPORTED: Final = {
 _LOGGER = logging.getLogger(__name__)
 
 
-# pylint: disable=too-many-branches,too-many-arguments
+# pylint: disable=too-many-branches,too-many-lines,too-many-arguments
 class LuciUpdater(DataUpdateCoordinator):
     """Luci data updater for interaction with Luci API."""
 
@@ -861,6 +863,23 @@ class LuciUpdater(DataUpdateCoordinator):
             is_found = True
 
         return is_found
+
+    async def _async_prepare_ap(self, data: dict) -> None:
+        """Prepare wifi ap.
+
+        :param data: dict
+        """
+
+        if self.data.get(ATTR_SENSOR_MODE, Mode.DEFAULT) not in [
+            Mode.ACCESS_POINT,
+            Mode.REPEATER,
+        ]:
+            return
+
+        response: dict = await self.luci.wifi_ap_signal()
+
+        if "signal" in response and isinstance(response["signal"], int):
+            data[ATTR_SENSOR_AP_SIGNAL] = response["signal"]
 
     async def _async_prepare_new_status(self, data: dict) -> None:
         """Prepare new status.
