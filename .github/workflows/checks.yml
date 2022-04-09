@@ -7,30 +7,25 @@ on:
     - cron: '22 20 * * 6'
 
 jobs:
-  black:
+  py-lint:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v2"
-      - uses: jpetrucciani/black-check@master
+      - uses: ricardochaves/python-lint@v1.4.0
         with:
-          path: 'custom_components/miwifi'
-
-  mypy:
-    runs-on: "ubuntu-latest"
-    steps:
-      - uses: "actions/checkout@v2"
-      - uses: jpetrucciani/mypy-check@master
-        with:
-          path: 'custom_components/miwifi'
-          mypy_flags: '--show-error-codes --show-error-context --ignore-missing-imports --pretty --show-error-codes'
-
-  pylint:
-    runs-on: "ubuntu-latest"
-    steps:
-      - uses: "actions/checkout@v2"
-      - uses: fylein/python-pylint-github-action@v1
-        with:
-          args: "pip3 install homeassistant>=2022.3.0 --no-binary :all: && pylint --disable=duplicate-code --disable=too-many-instance-attributes custom_components/miwifi"
+          python-root-list: "custom_components/miwifi"
+          use-pylint: true
+          use-pycodestyle: false
+          use-flake8: false
+          use-black: true
+          use-mypy: true
+          use-isort: false
+          extra-pylint-options: "--disable=duplicate-code --disable=too-many-instance-attributes"
+          extra-pycodestyle-options: ""
+          extra-flake8-options: ""
+          extra-black-options: ""
+          extra-mypy-options: "--show-error-codes --show-error-context --ignore-missing-imports --pretty --show-error-codes"
+          extra-isort-options: ""
 
   codeql:
     runs-on: ubuntu-latest
