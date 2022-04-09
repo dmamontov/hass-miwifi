@@ -7,6 +7,14 @@ on:
     - cron: '22 20 * * 6'
 
 jobs:
+  black:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: jpetrucciani/black-check@master
+        with:
+          path: 'custom_components/miwifi'
+
   mypy:
     runs-on: "ubuntu-latest"
     steps:
@@ -16,13 +24,13 @@ jobs:
           path: 'custom_components/miwifi'
           mypy_flags: '--show-error-codes --show-error-context --ignore-missing-imports --pretty --show-error-codes'
 
-  black:
+  pylint:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v2"
-      - uses: jpetrucciani/black-check@master
+      - uses: fylein/python-pylint-github-action@v1
         with:
-          path: 'custom_components/miwifi'
+          args: pip3 install -r requirements.txt && pylint --disable=duplicate-code --disable=too-many-instance-attributes custom_components/miwifi
 
   codeql:
     runs-on: ubuntu-latest
