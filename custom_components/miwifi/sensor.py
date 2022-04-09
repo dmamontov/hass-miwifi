@@ -258,7 +258,7 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
 
         if (
             self._attr_native_value == state
-            and self._attr_available == is_available # type: ignore
+            and self._attr_available == is_available  # type: ignore
         ):
             return
 

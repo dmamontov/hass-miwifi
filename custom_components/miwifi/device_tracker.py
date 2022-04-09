@@ -288,7 +288,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         return f"http://{self.ip_address}:{self._configuration_port}"
 
     @property
-    def device_info(self) -> DeviceInfo: # pylint: disable=overridden-final-method
+    def device_info(self) -> DeviceInfo:  # pylint: disable=overridden-final-method
         """Return device info.
 
         :return DeviceInfo: Device Info

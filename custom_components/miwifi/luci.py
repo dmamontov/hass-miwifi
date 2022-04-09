@@ -33,7 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 class LuciClient:
     """Luci API Client."""
 
-    ip: str = CLIENT_ADDRESS # pylint: disable=invalid-name
+    ip: str = CLIENT_ADDRESS  # pylint: disable=invalid-name
 
     _client: AsyncClient
     _password: str | None = None
@@ -45,7 +45,7 @@ class LuciClient:
     def __init__(
         self,
         client: AsyncClient,
-        ip: str = CLIENT_ADDRESS, # pylint: disable=invalid-name
+        ip: str = CLIENT_ADDRESS,  # pylint: disable=invalid-name
         password: str | None = None,
         timeout: int = DEFAULT_TIMEOUT,
     ) -> None:
@@ -61,7 +61,7 @@ class LuciClient:
             ip = ip[:-1]
 
         self._client = client
-        self.ip = ip # pylint: disable=invalid-name
+        self.ip = ip  # pylint: disable=invalid-name
         self._password = password
         self._timeout = timeout
 
@@ -122,7 +122,9 @@ class LuciClient:
         except (HTTPError, ValueError, TypeError) as _e:
             _LOGGER.debug("Logout error: %r", _e)
 
-    async def get(self, path: str, query_params: dict | None = None, use_stok: bool = True) -> dict:
+    async def get(
+        self, path: str, query_params: dict | None = None, use_stok: bool = True
+    ) -> dict:
         """GET method.
 
         :param path: str: api method

@@ -201,7 +201,7 @@ class LuciUpdater(DataUpdateCoordinator):
         """Stop updater"""
 
         if self.new_device_callback is not None:
-            self.new_device_callback() # pylint: disable=not-callable
+            self.new_device_callback()  # pylint: disable=not-callable
 
         await self._async_save_devices()
         await self.luci.logout()
@@ -518,9 +518,9 @@ class LuciUpdater(DataUpdateCoordinator):
                 length += 1
 
             if "channelInfo" in wifi and "channel" in wifi["channelInfo"]:
-                data[f"{adapter.phrase}_channel"] = str(
+                data[f"{adapter.phrase}_channel"] = str(  # type: ignore
                     wifi["channelInfo"]["channel"]
-                )  # type: ignore
+                )
 
             if "txpwr" in wifi:
                 data[f"{adapter.phrase}_signal_strength"] = wifi["txpwr"]  # type: ignore
@@ -598,7 +598,6 @@ class LuciUpdater(DataUpdateCoordinator):
                         action = DeviceAction.SKIP
 
                     self.add_device(device, action=action)
-
 
     async def _async_prepare_device_list(self, data: dict) -> None:
         """Prepare device list

@@ -37,7 +37,10 @@ def get_config_value(
 
 
 async def async_verify_access(
-    hass: HomeAssistant, ip: str, password: str, timeout: int = DEFAULT_TIMEOUT  # pylint: disable=invalid-name
+    hass: HomeAssistant,
+    ip: str,  # pylint: disable=invalid-name
+    password: str,
+    timeout: int = DEFAULT_TIMEOUT,
 ) -> codes:
     """Verify ip and password.
 
@@ -81,9 +84,7 @@ def generate_entity_id(entity_id_format: str, mac: str, name: str | None = None)
 
     _name: str = f"_{name}" if name is not None else ""
 
-    return entity_id_format.format(
-        slugify(f"miwifi_{mac}{_name}".lower())
-    )
+    return entity_id_format.format(slugify(f"miwifi_{mac}{_name}".lower()))
 
 
 def get_store(hass: HomeAssistant, ip: str) -> Store:  # pylint: disable=invalid-name
