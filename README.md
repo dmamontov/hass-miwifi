@@ -39,7 +39,11 @@ Component for tracking devices and managing routers based on [MiWiFi](http://miw
 
 **Q. Is a reboot required after changing the [PRO] settings?**
 
-**A.** Reboot is required
+**A.** Not required, but desirable.
+
+**Q. How to convert device `signal` to text representation?**
+
+**A.** `signal >= 80` = Excellent, `80 > signal >= 30` = good, `30 > signal` = bad
 
 ## Conflicts
 The following component conflicts are currently known:
