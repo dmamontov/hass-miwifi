@@ -13,7 +13,7 @@ from homeassistant.const import (
     CONF_TIMEOUT,
     EVENT_HOMEASSISTANT_STOP,
 )
-from homeassistant.core import HomeAssistant, CALLBACK_TYPE
+from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE
 from homeassistant.helpers.storage import Store
 
 from .const import (
@@ -91,7 +91,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         hass.config_entries.async_setup_platforms(entry, PLATFORMS)
 
-    async def async_stop() -> None:
+    async def async_stop(event: Event) -> None:
         """Async stop"""
 
         await _updater.async_stop()

@@ -118,6 +118,8 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
 
         self._attr_is_on = updater.data.get(description.key, False)
 
+        self._change_icon(self._attr_is_on)
+
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
 
@@ -145,12 +147,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         self._attr_available = is_available
         self._attr_is_on = is_on
 
-        # fmt: off
-        icon_name: str = f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
-        # fmt: on
-
-        if icon_name in ICONS:
-            self._attr_icon = ICONS[icon_name]
+        self._change_icon(is_on)
 
         self.async_write_ha_state()
 
@@ -203,5 +200,22 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         if action:
             await action()
 
-            self._updater.data[self.entity_description.key] = state == STATE_ON
-            self._attr_is_on = state == STATE_ON
+            is_on: bool = state == STATE_ON
+
+            self._updater.data[self.entity_description.key] = is_on
+            self._attr_is_on = is_on
+            self._change_icon(is_on)
+
+            self.async_write_ha_state()
+
+    def _change_icon(self, is_on: bool) -> None:
+        """Change icon
+
+        :param is_on: bool
+        """
+
+        # fmt: off
+        icon_name: str = f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
+        # fmt: on
+        if icon_name in ICONS:
+            self._attr_icon = ICONS[icon_name]

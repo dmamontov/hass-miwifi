@@ -360,6 +360,8 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
             self._updater.data[self.entity_description.key] = option
             self._change_icon(option)
 
+            self.async_write_ha_state()
+
     def _change_icon(self, option: str) -> None:
         """Change icon
 
