@@ -276,6 +276,7 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
             await action(**kwargs)
 
             self._updater.data[self.entity_description.key] = state == STATE_ON
+            self._attr_is_on = state == STATE_ON
 
     def _additional_prepare(self) -> bool:
         """Prepare wifi switch
