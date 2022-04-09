@@ -55,7 +55,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     _ip: str = get_config_value(entry, CONF_IP_ADDRESS)
 
-    updater: LuciUpdater = LuciUpdater(
+    _updater: LuciUpdater = LuciUpdater(
         hass,
         _ip,
         get_config_value(entry, CONF_PASSWORD),
@@ -70,7 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data[DOMAIN][entry.entry_id] = {
         CONF_IP_ADDRESS: _ip,
-        UPDATER: updater,
+        UPDATER: _updater,
         RELOAD_ENTRY: False,
     }
 
@@ -84,7 +84,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         :param with_sleep: bool
         """
 
-        await updater.update(True)
+        await _updater.update(True)
 
         if with_sleep:
             await asyncio.sleep(DEFAULT_SLEEP)
@@ -94,7 +94,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def async_stop() -> None:
         """Async stop"""
 
-        await updater.async_stop()
+        await _updater.async_stop()
 
     if is_new:
         await async_start()
