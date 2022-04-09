@@ -93,8 +93,8 @@ async def async_setup_entry(
 
         try:
             platform: EntityPlatform = async_get_current_platform()
-        except RuntimeError as e:
-            _LOGGER.debug("An error occurred while adding the device: %r", e)
+        except RuntimeError as _e:
+            _LOGGER.debug("An error occurred while adding the device: %r", _e)
 
             return
 
@@ -288,7 +288,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         return f"http://{self.ip_address}:{self._configuration_port}"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo: # pylint: disable=overridden-final-method
         """Return device info.
 
         :return DeviceInfo: Device Info

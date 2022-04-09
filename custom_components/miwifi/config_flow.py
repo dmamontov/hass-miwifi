@@ -166,7 +166,8 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                     data=user_input,
                     options={OPTION_IS_FROM_FLOW: True},
                 )
-            elif code == codes.CONFLICT:
+
+            if code == codes.CONFLICT:
                 errors["base"] = "router.not.supported"
             elif code == codes.FORBIDDEN:
                 errors["base"] = "password.not_matched"
@@ -176,11 +177,11 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         if self._discovered_device is None:
             return await self.async_step_user(user_input, errors)
 
-        ip: str = self._discovered_device[CONF_IP_ADDRESS]
+        _ip: str = self._discovered_device[CONF_IP_ADDRESS]
 
         placeholders: dict[str, str] = {
-            "name": ip,
-            "ip_address": ip,
+            "name": _ip,
+            "ip_address": _ip,
         }
         self.context["title_placeholders"] = placeholders
 
@@ -194,7 +195,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             },
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_IP_ADDRESS, default=ip): str,
+                    vol.Required(CONF_IP_ADDRESS, default=_ip): str,
                     vol.Required(CONF_PASSWORD): str,
                     vol.Required(
                         CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
@@ -243,7 +244,8 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 return self.async_create_entry(
                     title=user_input[CONF_IP_ADDRESS], data=user_input
                 )
-            elif code == codes.CONFLICT:
+
+            if code == codes.CONFLICT:
                 errors["base"] = "router.not.supported"
             elif code == codes.FORBIDDEN:
                 errors["base"] = "password.not_matched"

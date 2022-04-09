@@ -2,12 +2,12 @@
 
 
 class LuciException(BaseException):
-    pass
+    """Luci error"""
 
 
 class LuciConnectionException(LuciException):
-    pass
+    """Luci connection error"""
 
 
 class LuciTokenException(LuciException):
-    pass
+    """Luci token error"""

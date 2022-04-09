@@ -37,7 +37,7 @@ def get_config_value(
 
 
 async def async_verify_access(
-    hass: HomeAssistant, ip: str, password: str, timeout: int = DEFAULT_TIMEOUT
+    hass: HomeAssistant, ip: str, password: str, timeout: int = DEFAULT_TIMEOUT  # pylint: disable=invalid-name
 ) -> codes:
     """Verify ip and password.
 
@@ -79,14 +79,14 @@ def generate_entity_id(entity_id_format: str, mac: str, name: str | None = None)
     :return str: Entity ID
     """
 
+    _name: str = f"_{name}" if name is not None else ""
+
     return entity_id_format.format(
-        slugify(
-            "miwifi_{}{}".format(mac, f"_{name}" if name is not None else "").lower()
-        )
+        slugify(f"miwifi_{mac}{_name}".lower())
     )
 
 
-def get_store(hass: HomeAssistant, ip: str) -> Store:
+def get_store(hass: HomeAssistant, ip: str) -> Store:  # pylint: disable=invalid-name
     """Create Store
 
     :param hass: HomeAssistant: Home Assistant object
@@ -117,10 +117,9 @@ def pretty_size(speed: float) -> str:
     if speed == 0.0:
         return "0 B/s"
 
-    unit = ("B/s", "KB/s", "MB/s", "GB/s")
+    _unit = ("B/s", "KB/s", "MB/s", "GB/s")
 
-    i = int(math.floor(math.log(speed, 1024)))
-    p = math.pow(1024, i)
-    s = round(speed / p, 2)
+    _i = int(math.floor(math.log(speed, 1024)))
+    _p = math.pow(1024, _i)
 
-    return "%s %s" % (s, unit[i])
+    return f"{round(speed / _p, 2)} {_unit[_i]}"

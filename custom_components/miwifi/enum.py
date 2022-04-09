@@ -12,6 +12,8 @@ from .const import (
 
 
 class Mode(IntEnum):
+    """Mode enum"""
+
     def __new__(cls, value: int, phrase: str = "undefined") -> "Mode":
         """New mode.
 
@@ -42,6 +44,8 @@ class Mode(IntEnum):
 
 
 class Connection(IntEnum):
+    """Connection enum"""
+
     def __new__(cls, value: int, phrase: str = "undefined") -> "Connection":
         """New connection.
 
@@ -73,6 +77,8 @@ class Connection(IntEnum):
 
 
 class IfName(str, Enum):
+    """IfName enum"""
+
     def __new__(cls, value: str, phrase: str = "undefined") -> "IfName":
         """New ifname.
 
@@ -102,6 +108,8 @@ class IfName(str, Enum):
 
 
 class Wifi(IntEnum):
+    """Wifi enum"""
+
     def __new__(cls, value: int, phrase: str = "undefined") -> "Wifi":
         """New Wifi.
 
@@ -131,6 +139,8 @@ class Wifi(IntEnum):
 
 
 class DeviceAction(IntEnum):
+    """DeviceAction enum"""
+
     def __new__(cls, value: int, phrase: str = "undefined") -> "DeviceAction":
         """New device action.
 
@@ -160,6 +170,8 @@ class DeviceAction(IntEnum):
 
 
 class Model(str, Enum):
+    """Model enum"""
+
     def __new__(cls, value: str) -> "Model":
         """New Model.
 

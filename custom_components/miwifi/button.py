@@ -26,6 +26,7 @@ from .const import (
     ATTR_BUTTON_REBOOT,
     ATTR_BUTTON_REBOOT_NAME,
 )
+from .exceptions import LuciException
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
@@ -123,8 +124,8 @@ class MiWifiButton(ButtonEntity, CoordinatorEntity, RestoreEntity):
 
         try:
             await self._updater.luci.reboot()
-        except BaseException:
-            pass
+        except LuciException as _e:
+            _LOGGER.debug("WiFi reboot error: %r", _e)
 
     async def async_press(self) -> None:
         """Async press action."""

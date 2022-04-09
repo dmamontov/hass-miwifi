@@ -129,21 +129,17 @@ class MiWifiCamera(Camera):
 
         try:
             return base64.b64decode(image)
-        except BaseException:
+        except (ValueError, TypeError):
             return None
 
     def turn_off(self) -> None:
         """Turn off camera."""
-        pass
 
     def turn_on(self) -> None:
         """Turn off camera."""
-        pass
 
     def enable_motion_detection(self) -> None:
         """Enable motion detection in the camera."""
-        pass
 
     def disable_motion_detection(self) -> None:
         """Disable motion detection in camera."""
-        pass

@@ -120,6 +120,7 @@ UNSUPPORTED: Final = {
 _LOGGER = logging.getLogger(__name__)
 
 
+# pylint: disable=too-many-branches,too-many-arguments
 class LuciUpdater(DataUpdateCoordinator):
     """Luci data updater for interaction with Luci API."""
 
@@ -170,7 +171,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         self.luci = LuciClient(get_async_client(hass, False), ip, password, timeout)
 
-        self.ip = ip
+        self.ip = ip  # pylint: disable=invalid-name
         self.is_force_load = is_force_load
 
         self._store = store
@@ -183,8 +184,8 @@ class LuciUpdater(DataUpdateCoordinator):
             super().__init__(
                 hass,
                 _LOGGER,
-                name=f"MiWifi updater",
-                update_interval=self.update_interval,
+                name="MiWifi updater",
+                update_interval=self._update_interval,
                 update_method=self.update,
             )
 
@@ -200,13 +201,13 @@ class LuciUpdater(DataUpdateCoordinator):
         """Stop updater"""
 
         if self.new_device_callback is not None:
-            self.new_device_callback()
+            self.new_device_callback() # pylint: disable=not-callable
 
         await self._async_save_devices()
         await self.luci.logout()
 
     @cached_property
-    def update_interval(self) -> timedelta:
+    def _update_interval(self) -> timedelta:
         """Update interval
 
         :return timedelta: update_interval
@@ -222,7 +223,7 @@ class LuciUpdater(DataUpdateCoordinator):
         :return dict: dict with luci data.
         """
 
-        err: LuciConnectionException | LuciTokenException | None = None
+        _err: LuciException | None = None
 
         try:
             if self._is_reauthorization or self._is_only_login or is_force:
@@ -240,13 +241,13 @@ class LuciUpdater(DataUpdateCoordinator):
 
             if not self._is_only_login or is_force:
                 self._is_first_update = False
-        except LuciConnectionException as e:
-            err = e
+        except LuciConnectionException as _e:
+            _err = _e
 
             self._is_reauthorization = False
             self.code = codes.NOT_FOUND
-        except LuciTokenException as e:
-            err = e
+        except LuciTokenException as _e:
+            _err = _e
 
             self._is_reauthorization = True
             self.code = codes.FORBIDDEN
@@ -254,19 +255,20 @@ class LuciUpdater(DataUpdateCoordinator):
         self.data[ATTR_STATE] = codes.is_success(self.code)
 
         if is_force and not self.data[ATTR_STATE]:
+            if retry > DEFAULT_RETRY and _err is not None:
+                raise _err
+
             if retry <= DEFAULT_RETRY:
                 _LOGGER.warning(
                     "Error connecting to router (attempt #%s of %s): %r",
                     retry,
                     DEFAULT_RETRY,
-                    err,
+                    _err,
                 )
 
                 await asyncio.sleep(retry)
 
                 return await self.update(True, retry + 1)
-            elif retry > DEFAULT_RETRY and err is not None:
-                raise err
 
         if not self._is_only_login:
             self._clean_devices()
@@ -383,13 +385,13 @@ class LuciUpdater(DataUpdateCoordinator):
         if "hardware" in response:
             try:
                 data[ATTR_MODEL] = Model(response["hardware"].lower())
-            except ValueError:
+            except ValueError as _e:
                 await async_self_check(self.hass, self.luci, response["hardware"])
 
                 if not self._is_only_login:
-                    raise LuciException(f"Router {self.ip} not supported")
-                else:
-                    self.code = codes.CONFLICT
+                    raise LuciException(f"Router {self.ip} not supported") from _e
+
+                self.code = codes.CONFLICT
 
             data[ATTR_CAMERA_IMAGE] = await self.luci.image(response["hardware"])
 
@@ -399,8 +401,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         if not self._is_only_login:
             raise LuciException(f"Router {self.ip} not supported")
-        else:
-            self.code = codes.CONFLICT
+
+        self.code = codes.CONFLICT
 
     async def _async_prepare_status(self, data: dict) -> None:
         """Prepare status.
@@ -516,7 +518,9 @@ class LuciUpdater(DataUpdateCoordinator):
                 length += 1
 
             if "channelInfo" in wifi and "channel" in wifi["channelInfo"]:
-                data[f"{adapter.phrase}_channel"] = str(wifi["channelInfo"]["channel"])  # type: ignore
+                data[f"{adapter.phrase}_channel"] = str(
+                    wifi["channelInfo"]["channel"]
+                )  # type: ignore
 
             if "txpwr" in wifi:
                 data[f"{adapter.phrase}_signal_strength"] = wifi["txpwr"]  # type: ignore
@@ -546,14 +550,14 @@ class LuciUpdater(DataUpdateCoordinator):
         if not self._is_first_update or ATTR_WIFI_ADAPTER_LENGTH not in data:
             return
 
-        for wifiIndex in range(1, data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) + 1):
-            response: dict = await self.luci.avaliable_channels(wifiIndex)
+        for index in range(1, data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) + 1):
+            response: dict = await self.luci.avaliable_channels(index)
 
             if "list" not in response or len(response["list"]) == 0:
                 continue
 
             try:
-                data[Wifi(wifiIndex).phrase + "_channels"] = [  # type: ignore
+                data[Wifi(index).phrase + "_channels"] = [  # type: ignore
                     str(channel["c"])
                     for channel in response["list"]
                     if "c" in channel and int(channel["c"]) > 0
@@ -561,7 +565,7 @@ class LuciUpdater(DataUpdateCoordinator):
             except ValueError:
                 pass
 
-    async def _async_prepare_devices(self, data: dict) -> None:
+    async def _async_prepare_devices(self) -> None:
         """Prepare devices.
 
         :param data: dict
@@ -594,6 +598,7 @@ class LuciUpdater(DataUpdateCoordinator):
                         action = DeviceAction.SKIP
 
                     self.add_device(device, action=action)
+
 
     async def _async_prepare_device_list(self, data: dict) -> None:
         """Prepare device list
@@ -673,15 +678,15 @@ class LuciUpdater(DataUpdateCoordinator):
 
         await asyncio.sleep(DEFAULT_CALL_DELAY)
 
-        for ip, devices in add_to.items():
-            if ip not in integrations:
+        for _ip, devices in add_to.items():
+            if _ip not in integrations:
                 continue
 
-            integrations[ip][UPDATER].reset_counter(True)
+            integrations[_ip][UPDATER].reset_counter(True)
             for device in devices.values():
-                integrations[ip][UPDATER].add_device(device[0], True, device[1])
+                integrations[_ip][UPDATER].add_device(device[0], True, device[1])
 
-    async def _async_prepare_device_restore(self, data: dict) -> None:
+    async def _async_prepare_device_restore(self) -> None:
         """Restore devices
 
         :param data: dict
@@ -893,7 +898,8 @@ class LuciUpdater(DataUpdateCoordinator):
                 device[ATTR_TRACKER_LAST_ACTIVITY], str
             ):
                 # fmt: off
-                self.devices[mac][ATTR_TRACKER_LAST_ACTIVITY] = datetime.now().replace(microsecond=0).isoformat(),
+                self.devices[mac][ATTR_TRACKER_LAST_ACTIVITY] = \
+                    datetime.now().replace(microsecond=0).isoformat()
                 # fmt: on
 
                 continue
@@ -905,9 +911,9 @@ class LuciUpdater(DataUpdateCoordinator):
             if int(delta.days) <= self._activity_days:
                 continue
 
-            for ip, integration in integrations.items():
+            for _ip, integration in integrations.items():
                 if (
-                    ip != self.ip
+                    _ip != self.ip
                     and not integration[UPDATER].is_force_load
                     and mac in integration[UPDATER].devices
                 ):

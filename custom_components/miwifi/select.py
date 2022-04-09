@@ -45,6 +45,7 @@ from .const import (
     ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME,
 )
 from .enum import Wifi
+from .exceptions import LuciException
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
@@ -339,10 +340,8 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         try:
             await self._updater.luci.set_wifi(new_data)
             self._wifi_data = new_data
-        except BaseException as e:
-            _LOGGER.debug("WiFi update error: %r", e)
-
-            pass
+        except LuciException as _e:
+            _LOGGER.debug("WiFi update error: %r", _e)
 
     async def async_select_option(self, option: str) -> None:
         """Select option

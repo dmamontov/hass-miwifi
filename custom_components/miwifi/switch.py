@@ -38,6 +38,7 @@ from .const import (
     ATTR_SWITCH_WIFI_5_0_GAME_NAME,
 )
 from .enum import Wifi
+from .exceptions import LuciException
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
@@ -180,60 +181,42 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
         self._attr_available = is_available
         self._attr_is_on = is_on
 
-        icon_name: str = "{}_{}".format(
-            self.entity_description.key, STATE_ON if is_on else STATE_OFF
-        )
+        # fmt: off
+        icon_name: str = f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
+        # fmt: on
 
         if icon_name in ICONS:
             self._attr_icon = ICONS[icon_name]
 
         self.async_write_ha_state()
 
-    async def _wifi_2_4_on(self, **kwargs: Any) -> None:
-        """Wifi 2.4G on action
-
-        :param kwargs: Any: Any arguments
-        """
+    async def _wifi_2_4_on(self) -> None:
+        """Wifi 2.4G on action"""
 
         await self._async_wifi_turn_on(Wifi.ADAPTER_2_4)
 
-    async def _wifi_2_4_off(self, **kwargs: Any) -> None:
-        """Wifi 2.4G off action
-
-        :param kwargs: Any: Any arguments
-        """
+    async def _wifi_2_4_off(self) -> None:
+        """Wifi 2.4G off action"""
 
         await self._async_wifi_turn_off(Wifi.ADAPTER_2_4)
 
-    async def _wifi_5_0_on(self, **kwargs: Any) -> None:
-        """Wifi 5G on action
-
-        :param kwargs: Any: Any arguments
-        """
+    async def _wifi_5_0_on(self) -> None:
+        """Wifi 5G on action"""
 
         await self._async_wifi_turn_on(Wifi.ADAPTER_5_0)
 
-    async def _wifi_5_0_off(self, **kwargs: Any) -> None:
-        """Wifi 5G off action
-
-        :param kwargs: Any: Any arguments
-        """
+    async def _wifi_5_0_off(self) -> None:
+        """Wifi 5G off action"""
 
         await self._async_wifi_turn_off(Wifi.ADAPTER_5_0)
 
-    async def _wifi_5_0_game_on(self, **kwargs: Any) -> None:
-        """Wifi 5G Game on action
-
-        :param kwargs: Any: Any arguments
-        """
+    async def _wifi_5_0_game_on(self) -> None:
+        """Wifi 5G Game on action"""
 
         await self._async_wifi_turn_on(Wifi.ADAPTER_5_0_GAME)
 
-    async def _wifi_5_0_game_off(self, **kwargs: Any) -> None:
-        """Wifi 5G game off action
-
-        :param kwargs: Any: Any arguments
-        """
+    async def _wifi_5_0_game_off(self) -> None:
+        """Wifi 5G game off action"""
 
         await self._async_wifi_turn_off(Wifi.ADAPTER_5_0_GAME)
 
@@ -245,10 +228,8 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
 
         try:
             await self._updater.luci.wifi_turn_on(index.value)
-        except BaseException as e:
-            _LOGGER.debug("WiFi turn on error: %r", e)
-
-            pass
+        except LuciException as _e:
+            _LOGGER.debug("WiFi turn on error: %r", _e)
 
     async def _async_wifi_turn_off(self, index: int) -> None:
         """Turn off wifi with index
@@ -258,10 +239,8 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
 
         try:
             await self._updater.luci.wifi_turn_off(index)
-        except BaseException as e:
-            _LOGGER.debug("WiFi turn off error: %r", e)
-
-            pass
+        except LuciException as _e:
+            _LOGGER.debug("WiFi turn off error: %r", _e)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on action
@@ -301,7 +280,7 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
     def _additional_prepare(self) -> bool:
         """Prepare wifi switch
 
-        reuturn bool: is_available
+        return bool: is_available
         """
 
         is_available: bool = self._updater.data.get(ATTR_STATE, False)

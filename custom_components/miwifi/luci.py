@@ -29,10 +29,11 @@ from .exceptions import LuciConnectionException, LuciTokenException
 _LOGGER = logging.getLogger(__name__)
 
 
-class LuciClient(object):
+# pylint: disable=too-many-public-methods
+class LuciClient:
     """Luci API Client."""
 
-    ip: str = CLIENT_ADDRESS
+    ip: str = CLIENT_ADDRESS # pylint: disable=invalid-name
 
     _client: AsyncClient
     _password: str | None = None
@@ -44,7 +45,7 @@ class LuciClient(object):
     def __init__(
         self,
         client: AsyncClient,
-        ip: str = CLIENT_ADDRESS,
+        ip: str = CLIENT_ADDRESS, # pylint: disable=invalid-name
         password: str | None = None,
         timeout: int = DEFAULT_TIMEOUT,
     ) -> None:
@@ -60,7 +61,7 @@ class LuciClient(object):
             ip = ip[:-1]
 
         self._client = client
-        self.ip = ip
+        self.ip = ip # pylint: disable=invalid-name
         self._password = password
         self._timeout = timeout
 
@@ -72,38 +73,38 @@ class LuciClient(object):
         :return dict: dict with login data.
         """
 
-        nonce: str = self.generate_nonce()
-        url: str = "{}/api/xqsystem/login".format(self._url)
+        _nonce: str = self.generate_nonce()
+        _url: str = f"{self._url}/api/xqsystem/login"
 
         try:
             async with self._client as client:
                 response: Response = await client.post(
-                    url,
+                    _url,
                     data={
                         "username": CLIENT_USERNAME,
                         "logtype": str(CLIENT_LOGIN_TYPE),
                         "password": self.generate_password_hash(
-                            nonce, str(self._password)
+                            _nonce, str(self._password)
                         ),
-                        "nonce": nonce,
+                        "nonce": _nonce,
                     },
                     timeout=self._timeout,
                 )
 
-            _LOGGER.debug("Successful request %s: %s", url, response.content)
+            _LOGGER.debug("Successful request %s: %s", _url, response.content)
 
-            data: dict = json.loads(response.content)
-        except HTTPError as e:
-            _LOGGER.debug("Connection error %r", e)
+            _data: dict = json.loads(response.content)
+        except (HTTPError, ValueError, TypeError) as _e:
+            _LOGGER.debug("Connection error %r", _e)
 
-            raise LuciConnectionException("Connection error") from e
+            raise LuciConnectionException("Connection error") from _e
 
-        if response.status_code != 200 or "token" not in data:
+        if response.status_code != 200 or "token" not in _data:
             raise LuciTokenException("Failed to get token")
 
-        self._token = data["token"]
+        self._token = _data["token"]
 
-        return data
+        return _data
 
     async def logout(self) -> None:
         """Logout method"""
@@ -111,44 +112,47 @@ class LuciClient(object):
         if self._token is None:
             return
 
-        url: str = "{}/;stok={}/web/logout".format(self._url, self._token)
+        _url: str = f"{self._url}/;stok={self._token}/web/logout"
 
         try:
             async with self._client as client:
-                response: Response = await client.get(url, timeout=self._timeout)
+                response: Response = await client.get(_url, timeout=self._timeout)
 
-                _LOGGER.debug("Successful request %s: %s", url, response.content)
-        except HTTPError as e:
-            _LOGGER.debug("Logout error: %r", e)
+                _LOGGER.debug("Successful request %s: %s", _url, response.content)
+        except (HTTPError, ValueError, TypeError) as _e:
+            _LOGGER.debug("Logout error: %r", _e)
 
-    async def get(self, path: str, use_stok: bool = True) -> dict:
+    async def get(self, path: str, query_params: dict | None = None, use_stok: bool = True) -> dict:
         """GET method.
 
         :param path: str: api method
+        :param query_params: dict | None: Data
         :param use_stok: bool: is use stack
         :return dict: dict with api data.
         """
 
-        url: str = "{}/{}api/{}".format(
-            self._url, ";stok={}/".format(self._token) if use_stok else "", path
-        )
+        if query_params is not None and len(query_params) > 0:
+            path += f"?{urllib.parse.urlencode(query_params, doseq=True)}"
+
+        _stok: str = f";stok={self._token}/" if use_stok else ""
+        _url: str = f"{self._url}/{_stok}api/{path}"
 
         try:
             async with self._client as client:
-                response: Response = await client.get(url, timeout=self._timeout)
+                response: Response = await client.get(_url, timeout=self._timeout)
 
-            _LOGGER.debug("Successful request %s: %s", url, response.content)
+            _LOGGER.debug("Successful request %s: %s", _url, response.content)
 
-            data: dict = json.loads(response.content)
-        except HTTPError as e:
-            _LOGGER.debug("Connection error %r", e)
+            _data: dict = json.loads(response.content)
+        except (HTTPError, ValueError, TypeError) as _e:
+            _LOGGER.debug("Connection error %r", _e)
 
-            raise LuciConnectionException("Connection error") from e
+            raise LuciConnectionException("Connection error") from _e
 
-        if "code" not in data or data["code"] > 0:
+        if "code" not in _data or _data["code"] > 0:
             raise LuciTokenException("Invalid error code received")
 
-        return data
+        return _data
 
     async def topo_graph(self) -> dict:
         """misystem/topo_graph method.
@@ -156,7 +160,7 @@ class LuciClient(object):
         :return dict: dict with api data.
         """
 
-        return await self.get("misystem/topo_graph", False)
+        return await self.get("misystem/topo_graph", use_stok=False)
 
     async def init_info(self) -> dict:
         """xqsystem/init_info method.
@@ -213,18 +217,16 @@ class LuciClient(object):
         :return dict: dict with api data.
         """
 
-        return await self.get(
-            f"xqnetwork/set_wifi?{urllib.parse.urlencode(data, doseq=True)}"
-        )
+        return await self.get("xqnetwork/set_wifi", data)
 
-    async def avaliable_channels(self, wifiIndex: int = 1) -> dict:
+    async def avaliable_channels(self, index: int = 1) -> dict:
         """xqnetwork/avaliable_channels method.
 
-        :param wifiIndex: int: Index wifi adapter
+        :param index: int: Index wifi adapter
         :return dict: dict with api data.
         """
 
-        return await self.get(f"xqnetwork/avaliable_channels?wifiIndex={wifiIndex}")
+        return await self.get("xqnetwork/avaliable_channels", {"wifiIndex": index})
 
     async def wan_info(self) -> dict:
         """xqnetwork/wan_info method.
@@ -249,9 +251,11 @@ class LuciClient(object):
         :return dict: dict with api data.
         """
 
-        return await self.get(
-            "misystem/led{}".format(f"?on={state}" if state is not None else "")
-        )
+        data: dict = {}
+        if state is not None:
+            data["on"] = state
+
+        return await self.get("misystem/led", data)
 
     async def wifi_turn_on(self, index: int) -> dict:
         """xqnetwork/wifi_up method.
@@ -260,7 +264,7 @@ class LuciClient(object):
         :return dict: dict with api data.
         """
 
-        return await self.get(f"xqnetwork/wifi_up?index={index}")
+        return await self.get("xqnetwork/wifi_up", {"index": index})
 
     async def wifi_turn_off(self, index: int) -> dict:
         """xqnetwork/wifi_down method.
@@ -269,7 +273,7 @@ class LuciClient(object):
         :return dict: dict with api data.
         """
 
-        return await self.get(f"xqnetwork/wifi_down?index={index}")
+        return await self.get("xqnetwork/wifi_down", {"index": index})
 
     async def device_list(self) -> dict:
         """misystem/devicelist method.
@@ -302,11 +306,14 @@ class LuciClient(object):
             async with self._client as client:
                 response: Response = await client.get(url, timeout=self._timeout)
 
-            _LOGGER.debug("Successful request image %s: %s", url)
+            _LOGGER.debug("Successful request image %s", url)
 
-            return base64.b64encode(response.content)
-        except BaseException:
+            if len(response.content) > 0:
+                return base64.b64encode(response.content)
+        except HTTPError:
             return None
+
+        return None
 
     @staticmethod
     def sha1(key: str) -> str:
@@ -335,12 +342,9 @@ class LuciClient(object):
         :return str: nonce.
         """
 
-        return "{}_{}_{}_{}".format(
-            CLIENT_NONCE_TYPE,
-            self.get_mac_address(),
-            int(time.time()),
-            int(random.random() * 1000),
-        )
+        rand: str = f"{int(time.time())}_{int(random.random() * 1000)}"
+
+        return f"{CLIENT_NONCE_TYPE}_{self.get_mac_address()}_{rand}"
 
     def generate_password_hash(self, nonce: str, password: str) -> str:
         """Generate password hash.

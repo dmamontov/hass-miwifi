@@ -13,8 +13,7 @@ from homeassistant.const import (
     CONF_TIMEOUT,
     EVENT_HOMEASSISTANT_STOP,
 )
-from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE
-from homeassistant.helpers import device_registry as dr
+from homeassistant.core import HomeAssistant, CALLBACK_TYPE
 from homeassistant.helpers.storage import Store
 
 from .const import (
@@ -54,23 +53,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if is_new:
         hass.config_entries.async_update_entry(entry, data=entry.data, options={})
 
-    ip: str = get_config_value(entry, CONF_IP_ADDRESS)
+    _ip: str = get_config_value(entry, CONF_IP_ADDRESS)
 
     updater: LuciUpdater = LuciUpdater(
         hass,
-        ip,
+        _ip,
         get_config_value(entry, CONF_PASSWORD),
         get_config_value(entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         get_config_value(entry, CONF_TIMEOUT, DEFAULT_TIMEOUT),
         get_config_value(entry, CONF_IS_FORCE_LOAD, False),
         get_config_value(entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS),
-        get_store(hass, ip),
+        get_store(hass, _ip),
     )
 
     hass.data.setdefault(DOMAIN, {})
 
     hass.data[DOMAIN][entry.entry_id] = {
-        CONF_IP_ADDRESS: ip,
+        CONF_IP_ADDRESS: _ip,
         UPDATER: updater,
         RELOAD_ENTRY: False,
     }
@@ -92,11 +91,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         hass.config_entries.async_setup_platforms(entry, PLATFORMS)
 
-    async def async_stop(event: Event) -> None:
-        """Async stop
-
-        :param event: Event: Home Assistant stop event
-        """
+    async def async_stop() -> None:
+        """Async stop"""
 
         await updater.async_stop()
 

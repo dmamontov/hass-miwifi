@@ -12,6 +12,7 @@ from homeassistant.loader import async_get_integration
 
 from .luci import LuciClient
 from .const import DOMAIN
+from .exceptions import LuciException
 
 SELF_CHECK_METHODS: Final = {
     "misystem/status": "status",
@@ -54,7 +55,7 @@ async def async_self_check(hass: HomeAssistant, client: LuciClient, model: str) 
         try:
             await action()
             data[code] = "🟢"
-        except BaseException:
+        except LuciException:
             data[code] = "🔴"
 
     title: str = f"Router {client.ip} not supported.\n\nModel: {model}"
@@ -73,7 +74,12 @@ async def async_self_check(hass: HomeAssistant, client: LuciClient, model: str) 
         + urllib.parse.quote_plus(message)
     # fmt: on
 
-    message = f"{title}\n\n{message}"
-    message += f'\n\n <a href="{link}" target="_blank">Create an issue with the data from this post to add support</a>'
+    message = f"{title}\n\n{message}\n\n "
+
+    # fmt: off
+    # pylint: disable=line-too-long
+    message += \
+        f'<a href="{link}" target="_blank">Create an issue with the data from this post to add support</a>'
+    # fmt: on
 
     pn.async_create(hass, message, "MiWifi")

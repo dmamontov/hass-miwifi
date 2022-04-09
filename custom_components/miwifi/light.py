@@ -30,6 +30,7 @@ from .const import (
     ATTR_LIGHT_LED,
     ATTR_LIGHT_LED_NAME,
 )
+from .exceptions import LuciException
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
@@ -144,35 +145,29 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         self._attr_available = is_available
         self._attr_is_on = is_on
 
-        icon_name: str = "{}_{}".format(
-            self.entity_description.key, STATE_ON if is_on else STATE_OFF
-        )
+        # fmt: off
+        icon_name: str = f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
+        # fmt: on
 
         if icon_name in ICONS:
             self._attr_icon = ICONS[icon_name]
 
         self.async_write_ha_state()
 
-    async def _led_on(self, **kwargs: Any) -> None:
-        """Led on action
-
-        :param kwargs: Any: Any arguments
-        """
+    async def _led_on(self) -> None:
+        """Led on action"""
 
         try:
             await self._updater.luci.led(1)
-        except BaseException:
+        except LuciException:
             pass
 
-    async def _led_off(self, **kwargs: Any) -> None:
-        """Led off action
-
-        :param kwargs: Any: Any arguments
-        """
+    async def _led_off(self) -> None:
+        """Led off action"""
 
         try:
             await self._updater.luci.led(0)
-        except BaseException:
+        except LuciException:
             pass
 
     async def async_turn_on(self, **kwargs: Any) -> None:
