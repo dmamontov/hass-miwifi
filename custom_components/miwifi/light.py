@@ -201,7 +201,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         action = getattr(self, method)
 
         if action:
-            await action(**kwargs)
+            await action()
 
             self._updater.data[self.entity_description.key] = state == STATE_ON
             self._attr_is_on = state == STATE_ON

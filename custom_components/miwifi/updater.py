@@ -565,7 +565,7 @@ class LuciUpdater(DataUpdateCoordinator):
             except ValueError:
                 pass
 
-    async def _async_prepare_devices(self) -> None:
+    async def _async_prepare_devices(self, data: dict) -> None:
         """Prepare devices.
 
         :param data: dict
@@ -685,7 +685,7 @@ class LuciUpdater(DataUpdateCoordinator):
             for device in devices.values():
                 integrations[_ip][UPDATER].add_device(device[0], True, device[1])
 
-    async def _async_prepare_device_restore(self) -> None:
+    async def _async_prepare_device_restore(self, data: dict) -> None:
         """Restore devices
 
         :param data: dict
