@@ -30,7 +30,7 @@ jobs:
       - uses: "actions/checkout@v2"
       - uses: fylein/python-pylint-github-action@v1
         with:
-          args: apt-get update && apt-get install gcc && pip3 install homeassistant && pylint --disable=duplicate-code --disable=too-many-instance-attributes custom_components/miwifi
+          args: apt-get update && apt-get install -y --no-install-recommends gcc && pip3 install homeassistant && pylint --disable=duplicate-code --disable=too-many-instance-attributes custom_components/miwifi
 
   codeql:
     runs-on: ubuntu-latest
