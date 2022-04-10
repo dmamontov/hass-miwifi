@@ -1,7 +1,5 @@
 # MiWiFi for Home Assistant
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![donate qiwi](https://img.shields.io/badge/Donate-Qiwi-orange)](https://qiwi.com/p/79185611444)
-[![donate tinkoff](https://img.shields.io/badge/Donate-Tinkoff-yellow.svg)](https://www.tinkoff.ru/cf/3FteV5DtBOV)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
 Component for tracking devices and managing routers based on [MiWiFi](http://miwifi.com/) from [Home Assistant](https://www.home-assistant.io/).
 
@@ -61,9 +59,9 @@ The following component conflicts are currently known:
     * **PS**: Perhaps you can customize, if someone configures write, I will add instructions
 
 ## Install
-Installed through the custom repository [HACS](https://hacs.xyz/) - `dmamontov/hass-miwifi`
+The easiest way to install the `MiWiFi` integration is with [HACS](https://hacs.xyz/). First install [HACS](https://hacs.xyz/) if you don’t have it yet. After installation you can find this integration in the [HACS](https://hacs.xyz/) store under integrations.
 
-Or by copying the `miwifi` folder from [the latest release](https://github.com/dmamontov/hass-miwifi/releases/latest) to the custom_components folder (create if necessary) of the configs directory.
+Alternatively, you can install it manually. Just copy and paste the content of the hass-miwifi/custom_components folder in your config/custom_components directory. As example, you will get the sensor.py file in the following path: /config/custom_components/miwifi/sensor.py. The disadvantage of a manual installation is that you won’t be notified about updates.
 
 ## Config
 **Via GUI**
