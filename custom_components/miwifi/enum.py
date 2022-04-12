@@ -215,6 +215,7 @@ class Model(str, Enum):
     RM2100 = "rm2100"
     R3600 = "r3600"
     RM1800 = "rm1800"
+    RA50 = "ra50"
     RA67 = "ra67"
     RA69 = "ra69"
     RA71 = "ra71"
