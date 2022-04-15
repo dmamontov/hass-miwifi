@@ -11,6 +11,8 @@ import time
 import uuid
 import urllib.parse
 
+from datetime import datetime
+from typing import Any
 from httpx import AsyncClient, Response, HTTPError
 
 from homeassistant.util import slugify
@@ -23,6 +25,9 @@ from .const import (
     CLIENT_LOGIN_TYPE,
     CLIENT_NONCE_TYPE,
     CLIENT_PUBLIC_KEY,
+    DIAGNOSTIC_DATE_TIME,
+    DIAGNOSTIC_MESSAGE,
+    DIAGNOSTIC_CONTENT,
 )
 from .exceptions import LuciConnectionException, LuciTokenException
 
@@ -67,14 +72,17 @@ class LuciClient:
 
         self._url = CLIENT_URL.format(ip=ip)
 
+        self.diagnostics: dict[str, Any] = {}
+
     async def login(self) -> dict:
         """Login method
 
         :return dict: dict with login data.
         """
 
+        _method: str = "xqsystem/login"
         _nonce: str = self.generate_nonce()
-        _url: str = f"{self._url}/api/xqsystem/login"
+        _url: str = f"{self._url}/api/{_method}"
 
         try:
             async with self._client as client:
@@ -91,15 +99,17 @@ class LuciClient:
                     timeout=self._timeout,
                 )
 
-            _LOGGER.debug("Successful request %s: %s", _url, response.content)
+            self._debug("Successful request", _url, response.content, _method)
 
             _data: dict = json.loads(response.content)
         except (HTTPError, ValueError, TypeError) as _e:
-            _LOGGER.debug("Connection error %r", _e)
+            self._debug("Connection error", _url, _e, _method)
 
             raise LuciConnectionException("Connection error") from _e
 
         if response.status_code != 200 or "token" not in _data:
+            self._debug("Failed to get token", _url, _data, _method)
+
             raise LuciTokenException("Failed to get token")
 
         self._token = _data["token"]
@@ -112,15 +122,16 @@ class LuciClient:
         if self._token is None:
             return
 
-        _url: str = f"{self._url}/;stok={self._token}/web/logout"
+        _method: str = "logout"
+        _url: str = f"{self._url}/;stok={self._token}/web/{_method}"
 
         try:
             async with self._client as client:
                 response: Response = await client.get(_url, timeout=self._timeout)
 
-                _LOGGER.debug("Successful request %s: %s", _url, response.content)
+                self._debug("Successful request", _url, response.content, _method)
         except (HTTPError, ValueError, TypeError) as _e:
-            _LOGGER.debug("Logout error: %r", _e)
+            self._debug("Logout error", _url, _e, _method)
 
     async def get(
         self, path: str, query_params: dict | None = None, use_stok: bool = True
@@ -143,15 +154,17 @@ class LuciClient:
             async with self._client as client:
                 response: Response = await client.get(_url, timeout=self._timeout)
 
-            _LOGGER.debug("Successful request %s: %s", _url, response.content)
+            self._debug("Successful request", _url, response.content, path)
 
             _data: dict = json.loads(response.content)
         except (HTTPError, ValueError, TypeError) as _e:
-            _LOGGER.debug("Connection error %r", _e)
+            self._debug("Connection error", _url, _e, path)
 
             raise LuciConnectionException("Connection error") from _e
 
         if "code" not in _data or _data["code"] > 0:
+            self._debug("Invalid error code received", _url, _data, path)
+
             raise LuciTokenException("Invalid error code received")
 
         return _data
@@ -308,20 +321,19 @@ class LuciClient:
         """
 
         hardware = slugify(hardware.lower())
-        # fmt: off
-        url: str = f"http://{self.ip}/xiaoqiang/web/img/icons/router_{hardware}_100_on.png"
-        # fmt: on
+        _path: str = f"icons/router_{hardware}_100_on.png"
+        _url: str = f"http://{self.ip}/xiaoqiang/web/img/{_path}"
 
         try:
             async with self._client as client:
-                response: Response = await client.get(url, timeout=self._timeout)
+                response: Response = await client.get(_url, timeout=self._timeout)
 
-            _LOGGER.debug("Successful request image %s", url)
+            self._debug("Successful request image", _url, response.status_code, _path)
 
             if len(response.content) > 0:
                 return base64.b64encode(response.content)
-        except HTTPError:
-            return None
+        except HTTPError as _e:
+            self._debug("Error request image", _url, _e, _path)
 
         return None
 
@@ -365,3 +377,27 @@ class LuciClient:
         """
 
         return self.sha1(nonce + self.sha1(password + CLIENT_PUBLIC_KEY))
+
+    def _debug(self, message: str, url: str, content: Any, path: str) -> None:
+        """Debug log
+
+        :param message: str: Message
+        :param url: str: URL
+        :param content: Any: Content
+        :param path: str: Path
+        """
+
+        _LOGGER.debug("%s (%s): %s", message, url, str(content))
+
+        _content: dict | str = {}
+
+        try:
+            _content = json.loads(content)
+        except (ValueError, TypeError):
+            _content = str(content)
+
+        self.diagnostics[path] = {
+            DIAGNOSTIC_DATE_TIME: datetime.now().replace(microsecond=0).isoformat(),
+            DIAGNOSTIC_MESSAGE: message,
+            DIAGNOSTIC_CONTENT: _content,
+        }

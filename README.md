@@ -14,6 +14,7 @@ Component for tracking devices and managing routers based on [MiWiFi](http://miw
 - [Supported routers](#supported-routers)
   - [API check list](#api-check-list)
   - [Summary](#summary)
+- [Diagnostics](#diagnostics)
 
 ## FAQ
 **Q. Do I need to get telnet or ssh?**
@@ -163,3 +164,26 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 | ![](images/R1C.png)      | **Mi Router Mini**                     | R1CM   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢</sub> |
 | ![](images/R2D.png)      | **Mi Router R2D**                      | R2D    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢</sub> |
 | ![](images/R1D.png)      | **Mi Router R1D**                      | R1D    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢</sub> |
+
+## Diagnostics
+You will need to obtain diagnostic data to search for a problem or before creating an issue.
+
+### Via GUI:
+
+How to obtain diagnostic data can be found on the website HASS: [Diagnostic Documentation](https://www.home-assistant.io/integrations/diagnostics/)
+
+### Via Debug:
+
+❗ Check the data that you publish in the issue, they may contain secret data.
+
+Set component to debug mode and reload HASS:
+
+```yaml
+logger:
+  default: error
+  logs:
+    ...
+    custom_components.miwifi: debug
+```
+
+Then wait a bit and you can watch the logs, they will need information

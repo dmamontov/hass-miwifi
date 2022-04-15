@@ -25,6 +25,11 @@ PLATFORMS: Final = [
 DISCOVERY: Final = "discovery"
 DISCOVERY_INTERVAL: Final = timedelta(minutes=60)
 
+"""Diagnostic const"""
+DIAGNOSTIC_DATE_TIME: Final = "date_time"
+DIAGNOSTIC_MESSAGE: Final = "message"
+DIAGNOSTIC_CONTENT: Final = "content"
+
 """Helper const"""
 UPDATER: Final = "updater"
 UPDATE_LISTENER: Final = "update_listener"
