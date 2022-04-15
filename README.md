@@ -172,7 +172,7 @@ You will need to obtain diagnostic data to search for a problem or before creati
 
 How to obtain diagnostic data can be found on the website HASS: [Diagnostic Documentation](https://www.home-assistant.io/integrations/diagnostics/)
 
-### Via Debug:
+### Via Logger:
 
 ❗ Check the data that you publish in the issue, they may contain secret data.
 
