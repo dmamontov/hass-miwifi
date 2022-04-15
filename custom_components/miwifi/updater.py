@@ -602,6 +602,13 @@ class LuciUpdater(DataUpdateCoordinator):
                     if "signal" in device else 0
                 # fmt: on
 
+                if device["mac"] in self.devices:
+                    # fmt: off
+                    self.devices[device["mac"]][ATTR_TRACKER_LAST_ACTIVITY] = datetime.now() \
+                        .replace(microsecond=0) \
+                        .isoformat()
+                    # fmt: on
+
                 if self.is_repeater and self.is_force_load:
                     device |= {
                         ATTR_TRACKER_ENTRY_ID: self.entry_id,
