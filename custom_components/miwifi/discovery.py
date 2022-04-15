@@ -119,7 +119,12 @@ def parse_leafs(devices: list, leafs: list) -> list:
     """
 
     for leaf in leafs:
-        if "ip" not in leaf or len(leaf["ip"]) == 0:
+        if (
+            "ip" not in leaf
+            or len(leaf["ip"]) == 0
+            or "hardware" not in leaf
+            or len(leaf["hardware"]) == 0
+        ):
             continue
 
         devices.append(leaf["ip"].strip())
