@@ -1,0 +1,19 @@
+name: Checks dev HASS
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  py-lint:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dmamontov/hass-py-lint@main
+        with:
+          hass-version: "dev"
+          path: "custom_components/miwifi"
+          extra-pylint-options: "--disable=unused-argument"
+          use-hass-branch: true
