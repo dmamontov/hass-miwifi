@@ -287,7 +287,7 @@ class LuciClient:
         :return dict: dict with api data.
         """
 
-        return await self.get("xqnetwork/wifi_up", {"index": index})
+        return await self.get("xqnetwork/wifi_up", {"wifiIndex": index})
 
     async def wifi_turn_off(self, index: int) -> dict:
         """xqnetwork/wifi_down method.
@@ -296,7 +296,7 @@ class LuciClient:
         :return dict: dict with api data.
         """
 
-        return await self.get("xqnetwork/wifi_down", {"index": index})
+        return await self.get("xqnetwork/wifi_down", {"wifiIndex": index})
 
     async def device_list(self) -> dict:
         """misystem/devicelist method.
