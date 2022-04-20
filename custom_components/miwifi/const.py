@@ -167,52 +167,21 @@ ATTR_SELECT_WIFI_2_4_CHANNEL: Final = "wifi_2_4_channel"
 ATTR_SELECT_WIFI_2_4_CHANNELS: Final = "wifi_2_4_channels"
 ATTR_SELECT_WIFI_2_4_CHANNEL_NAME: Final = f"{ATTR_WIFI_NAME} 2.4G channel"
 ATTR_SELECT_WIFI_2_4_CHANNEL_OPTIONS: Final = [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12",
-    "13"
+    "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"
 ]
 
 ATTR_SELECT_WIFI_5_0_CHANNEL: Final = "wifi_5_0_channel"
 ATTR_SELECT_WIFI_5_0_CHANNELS: Final = "wifi_5_0_channels"
 ATTR_SELECT_WIFI_5_0_CHANNEL_NAME: Final = f"{ATTR_WIFI_NAME} 5G channel"
 ATTR_SELECT_WIFI_5_0_CHANNEL_OPTIONS: Final = [
-    "36",
-    "40",
-    "44",
-    "48",
-    "52",
-    "56",
-    "60",
-    "64",
-    "149",
-    "153",
-    "157",
-    "161",
-    "165"
+    "36", "40", "44", "48", "52", "56", "60", "64", "149", "153", "157", "161", "165"
 ]
 
 ATTR_SELECT_WIFI_5_0_GAME_CHANNEL: Final = "wifi_5_0_game_channel"
 ATTR_SELECT_WIFI_5_0_GAME_CHANNELS: Final = "wifi_5_0_game_channels"
 ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME: Final = f"{ATTR_WIFI_NAME} 5G game channel"
 ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_OPTIONS: Final = [
-    "36",
-    "40",
-    "44",
-    "48",
-    "52",
-    "56",
-    "60",
-    "64"
+    "36", "40", "44", "48", "52", "56", "60", "64"
 ]
 
 ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS: Final = ["min", "mid", "max"]
