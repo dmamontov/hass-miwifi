@@ -1006,7 +1006,11 @@ class LuciUpdater(DataUpdateCoordinator):
     async def _async_save_devices(self) -> None:
         """Async save devices to Store"""
 
-        if self._store is None or (self.is_repeater and not self.is_force_load):
+        if (
+            self._store is None
+            or (self.is_repeater and not self.is_force_load)
+            or len(self.devices) == 0
+        ):
             return
 
         await self._store.async_save(self.devices)
