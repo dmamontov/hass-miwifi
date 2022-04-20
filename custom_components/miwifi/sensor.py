@@ -276,6 +276,8 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
 
         self._attr_name = description.name
         self._attr_unique_id = unique_id
+        self._attr_available = updater.data.get(ATTR_STATE, False)
+
         self._attr_native_value = self._prepare_state(
             updater.data.get(description.key, None)
         )
@@ -295,6 +297,15 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
         self._attr_native_value = state.state
 
         self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Is available
+
+        :return bool: Is available
+        """
+
+        return self._attr_available and self.coordinator.last_update_success
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
@@ -325,6 +336,10 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
         """
 
         if self.entity_description.key in ONLY_WAN and state is not None:
-            return pretty_size(float(state))
+            split_size: list = pretty_size(float(state)).split()
+
+            self._attr_native_unit_of_measurement = split_size[1]
+
+            return split_size[0]
 
         return state

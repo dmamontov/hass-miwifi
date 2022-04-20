@@ -43,8 +43,6 @@ async def async_self_check(hass: HomeAssistant, client: LuciClient, model: str) 
         "xqsystem/login": "🟢",
         "xqsystem/init_info": "🟢",
         "xqsystem/reboot": "🟢",
-        "xqnetwork/wifi_up": "🟢",
-        "xqnetwork/wifi_down": "🟢",
         "xqnetwork/set_wifi": "🟢",
     }
 

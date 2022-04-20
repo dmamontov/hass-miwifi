@@ -90,7 +90,7 @@ ATTR_WIFI_DATA_FIELDS: Final = {
 }
 ATTR_WIFI_2_4_DATA: Final = "wifi_2_4_data"
 ATTR_WIFI_5_0_DATA: Final = "wifi_5_0_data"
-ATTR_WIFI_5_0_GAME: Final = "wifi_5_0_game_data"
+ATTR_WIFI_5_0_GAME_DATA: Final = "wifi_5_0_game_data"
 
 ATTR_WIFI_ADAPTER_LENGTH: Final = "wifi_adapter_length"
 

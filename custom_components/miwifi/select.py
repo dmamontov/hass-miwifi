@@ -25,7 +25,7 @@ from .const import (
     ATTR_STATE,
     ATTR_WIFI_2_4_DATA,
     ATTR_WIFI_5_0_DATA,
-    ATTR_WIFI_5_0_GAME,
+    ATTR_WIFI_5_0_GAME_DATA,
     ATTR_WIFI_ADAPTER_LENGTH,
     ATTR_SELECT_WIFI_2_4_CHANNEL,
     ATTR_SELECT_WIFI_2_4_CHANNELS,
@@ -58,10 +58,10 @@ CHANNELS_MAP: Final = {
 DATA_MAP: Final = {
     ATTR_SELECT_WIFI_2_4_CHANNEL: ATTR_WIFI_2_4_DATA,
     ATTR_SELECT_WIFI_5_0_CHANNEL: ATTR_WIFI_5_0_DATA,
-    ATTR_SELECT_WIFI_5_0_GAME_CHANNEL: ATTR_WIFI_5_0_GAME,
+    ATTR_SELECT_WIFI_5_0_GAME_CHANNEL: ATTR_WIFI_5_0_GAME_DATA,
     ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH: ATTR_WIFI_2_4_DATA,
     ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH: ATTR_WIFI_5_0_DATA,
-    ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH: ATTR_WIFI_5_0_GAME,
+    ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH: ATTR_WIFI_5_0_GAME_DATA,
 }
 
 OPTIONS_MAP: Final = {
@@ -214,9 +214,15 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         else:
             self._attr_options = updater.data.get(CHANNELS_MAP[description.key], [])
 
-        self._wifi_data = updater.data.get(DATA_MAP[description.key], {})
+        if description.key in DATA_MAP:
+            self._wifi_data = updater.data.get(DATA_MAP[description.key], {})
+        else:
+            self._wifi_data = {}
 
-        self._attr_available = len(self._attr_options) > 0
+        # fmt: off
+        self._attr_available = updater.data.get(ATTR_STATE, False) \
+            and len(self._attr_options) > 0
+        # fmt: on
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
@@ -229,17 +235,30 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
             return
 
         self._attr_current_option = state.state
+        self._change_icon(self._attr_current_option)
 
         self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Is available
+
+        :return bool: Is available
+        """
+
+        return self._attr_available and self.coordinator.last_update_success
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
         current_option: str = self._updater.data.get(self.entity_description.key, False)
 
-        wifi_data: dict = self._updater.data.get(
-            DATA_MAP[self.entity_description.key], {}
-        )
+        if self.entity_description.key in DATA_MAP:
+            wifi_data: dict = self._updater.data.get(
+                DATA_MAP[self.entity_description.key], {}
+            )
+        else:
+            wifi_data = {}
 
         # fmt: off
         is_available: bool = self._updater.data.get(ATTR_STATE, False) \

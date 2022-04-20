@@ -14,7 +14,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -72,7 +71,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiButton(ButtonEntity, CoordinatorEntity, RestoreEntity):
+class MiWifiButton(ButtonEntity, CoordinatorEntity):
     """MiWifi button entry."""
 
     _attr_attribution: str = ATTRIBUTION
@@ -91,7 +90,6 @@ class MiWifiButton(ButtonEntity, CoordinatorEntity, RestoreEntity):
         """
 
         CoordinatorEntity.__init__(self, coordinator=updater)
-        RestoreEntity.__init__(self)
 
         self.entity_description = description
         self._updater: LuciUpdater = updater
@@ -104,8 +102,18 @@ class MiWifiButton(ButtonEntity, CoordinatorEntity, RestoreEntity):
 
         self._attr_name = description.name
         self._attr_unique_id = unique_id
+        self._attr_available = updater.data.get(ATTR_STATE, False)
 
         self._attr_device_info = updater.device_info
+
+    @property
+    def available(self) -> bool:
+        """Is available
+
+        :return bool: Is available
+        """
+
+        return self._attr_available and self.coordinator.last_update_success
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""

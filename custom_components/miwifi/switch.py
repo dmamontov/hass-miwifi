@@ -32,15 +32,24 @@ from .const import (
     ATTR_WIFI_ADAPTER_LENGTH,
     ATTR_SWITCH_WIFI_2_4,
     ATTR_SWITCH_WIFI_2_4_NAME,
+    ATTR_WIFI_2_4_DATA,
     ATTR_SWITCH_WIFI_5_0,
     ATTR_SWITCH_WIFI_5_0_NAME,
+    ATTR_WIFI_5_0_DATA,
     ATTR_SWITCH_WIFI_5_0_GAME,
     ATTR_SWITCH_WIFI_5_0_GAME_NAME,
+    ATTR_WIFI_5_0_GAME_DATA,
 )
 from .enum import Wifi
 from .exceptions import LuciException
 from .helper import generate_entity_id
 from .updater import LuciUpdater
+
+DATA_MAP: Final = {
+    ATTR_SWITCH_WIFI_2_4: ATTR_WIFI_2_4_DATA,
+    ATTR_SWITCH_WIFI_5_0: ATTR_WIFI_5_0_DATA,
+    ATTR_SWITCH_WIFI_5_0_GAME: ATTR_WIFI_5_0_GAME_DATA,
+}
 
 ICONS: Final = {
     f"{ATTR_SWITCH_WIFI_2_4}_{STATE_ON}": "mdi:wifi",
@@ -151,10 +160,14 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
         self._attr_device_info = updater.device_info
 
         self._attr_is_on = updater.data.get(description.key, False)
-
         self._change_icon(self._attr_is_on)
 
         self._attr_available = self._additional_prepare()
+
+        if description.key in DATA_MAP:
+            self._wifi_data = updater.data.get(DATA_MAP[description.key], {})
+        else:
+            self._wifi_data = {}
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
@@ -175,69 +188,104 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
 
         is_on: bool = self._updater.data.get(self.entity_description.key, False)
 
-        is_available: bool = self._additional_prepare()
+        if self.entity_description.key in DATA_MAP:
+            wifi_data: dict = self._updater.data.get(
+                DATA_MAP[self.entity_description.key], {}
+            )
+        else:
+            wifi_data = {}
 
-        if self._attr_is_on == is_on and self._attr_available == is_available:
+        # fmt: off
+        is_available: bool = self._additional_prepare() \
+            and len(wifi_data) > 0
+        # fmt: on
+
+        is_update_data: bool = False
+        for key, value in wifi_data.items():
+            if key not in self._wifi_data or value != self._wifi_data[key]:
+                is_update_data = True
+
+                break
+
+        if (
+            self._attr_is_on == is_on
+            and self._attr_available == is_available
+            and not is_update_data
+        ):
             return
 
         self._attr_available = is_available
         self._attr_is_on = is_on
+        self._wifi_data = wifi_data
 
         self._change_icon(is_on)
 
         self.async_write_ha_state()
 
+    @property
+    def available(self) -> bool:
+        """Is available
+
+        :return bool: Is available
+        """
+
+        return self._attr_available and self.coordinator.last_update_success
+
     async def _wifi_2_4_on(self) -> None:
         """Wifi 2.4G on action"""
 
-        await self._async_wifi_turn_on(Wifi.ADAPTER_2_4)
+        data: dict = {"wifiIndex": Wifi.ADAPTER_2_4.value, "on": 1}
+
+        await self._async_update_wifi_adapter(data)
 
     async def _wifi_2_4_off(self) -> None:
         """Wifi 2.4G off action"""
 
-        await self._async_wifi_turn_off(Wifi.ADAPTER_2_4)
+        data: dict = {"wifiIndex": Wifi.ADAPTER_2_4.value, "on": 0}
+
+        await self._async_update_wifi_adapter(data)
 
     async def _wifi_5_0_on(self) -> None:
         """Wifi 5G on action"""
 
-        await self._async_wifi_turn_on(Wifi.ADAPTER_5_0)
+        data: dict = {"wifiIndex": Wifi.ADAPTER_5_0.value, "on": 1}
+
+        await self._async_update_wifi_adapter(data)
 
     async def _wifi_5_0_off(self) -> None:
         """Wifi 5G off action"""
 
-        await self._async_wifi_turn_off(Wifi.ADAPTER_5_0)
+        data: dict = {"wifiIndex": Wifi.ADAPTER_5_0.value, "on": 0}
+
+        await self._async_update_wifi_adapter(data)
 
     async def _wifi_5_0_game_on(self) -> None:
         """Wifi 5G Game on action"""
 
-        await self._async_wifi_turn_on(Wifi.ADAPTER_5_0_GAME)
+        data: dict = {"wifiIndex": Wifi.ADAPTER_5_0_GAME.value, "on": 1}
+
+        await self._async_update_wifi_adapter(data)
 
     async def _wifi_5_0_game_off(self) -> None:
         """Wifi 5G game off action"""
 
-        await self._async_wifi_turn_off(Wifi.ADAPTER_5_0_GAME)
+        data: dict = {"wifiIndex": Wifi.ADAPTER_5_0_GAME.value, "on": 0}
 
-    async def _async_wifi_turn_on(self, index: Wifi) -> None:
-        """Turn on wifi with index
+        await self._async_update_wifi_adapter(data)
 
-        :param index: Wifi: Wifi device index
+    async def _async_update_wifi_adapter(self, data: dict) -> None:
+        """Update wifi adapter
+
+        :param data: dict: Adapter data
         """
 
-        try:
-            await self._updater.luci.wifi_turn_on(index.value)
-        except LuciException as _e:
-            _LOGGER.debug("WiFi turn on error: %r", _e)
-
-    async def _async_wifi_turn_off(self, index: int) -> None:
-        """Turn off wifi with index
-
-        :param index: int: Wifi device index
-        """
+        new_data: dict = self._wifi_data | data
 
         try:
-            await self._updater.luci.wifi_turn_off(index)
+            await self._updater.luci.set_wifi(new_data)
+            self._wifi_data = new_data
         except LuciException as _e:
-            _LOGGER.debug("WiFi turn off error: %r", _e)
+            _LOGGER.debug("WiFi update error: %r", _e)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on action

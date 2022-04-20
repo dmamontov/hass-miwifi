@@ -112,6 +112,15 @@ class MiWifiCamera(Camera):
 
         self._attr_device_info = updater.device_info
 
+    @property
+    def available(self) -> bool:
+        """Is available
+
+        :return bool: Is available
+        """
+
+        return self._attr_available
+
     def camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:

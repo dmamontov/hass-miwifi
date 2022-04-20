@@ -153,8 +153,8 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         self._attr_name = device.get(ATTR_TRACKER_NAME, self.mac_address)
 
         self.entity_id = entity_id
-
         self._attr_unique_id = unique_id
+        self._attr_available = updater.data.get(ATTR_STATE, False)
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
@@ -165,6 +165,15 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
             DEFAULT_CALL_DELAY,
             lambda: self.hass.async_create_task(self.check_ports()),
         )
+
+    @property
+    def available(self) -> bool:
+        """Is available
+
+        :return bool: Is available
+        """
+
+        return self._attr_available and self.coordinator.last_update_success
 
     @cached_property
     def mac_address(self) -> str | None:

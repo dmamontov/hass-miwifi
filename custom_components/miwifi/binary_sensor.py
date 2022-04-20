@@ -133,6 +133,14 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
 
         self._attr_name = description.name
         self._attr_unique_id = unique_id
+        # fmt: off
+        self._attr_available = updater.data.get(ATTR_STATE, False) \
+            if description.key != ATTR_STATE \
+            else True
+        # fmt: on
+
+        self._attr_is_on = updater.data.get(description.key, False)
+        self._change_icon(self._attr_is_on)
 
         self._attr_device_info = updater.device_info
 
@@ -147,8 +155,18 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
             return
 
         self._attr_is_on = state.state == STATE_ON
+        self._change_icon(self._attr_is_on)
 
         self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Is available
+
+        :return bool: Is available
+        """
+
+        return self._attr_available and self.coordinator.last_update_success
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
@@ -167,11 +185,18 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
         self._attr_available = is_available
         self._attr_is_on = is_on
 
+        self._change_icon(is_on)
+
+        self.async_write_ha_state()
+
+    def _change_icon(self, is_on: bool) -> None:
+        """Change icon
+
+        :param is_on: bool
+        """
+
         # fmt: off
         icon_name: str = f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
         # fmt: on
-
         if icon_name in ICONS:
             self._attr_icon = ICONS[icon_name]
-
-        self.async_write_ha_state()

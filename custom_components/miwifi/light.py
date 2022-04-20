@@ -113,11 +113,11 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
 
         self._attr_name = description.name
         self._attr_unique_id = unique_id
+        self._attr_available = updater.data.get(ATTR_STATE, False)
 
         self._attr_device_info = updater.device_info
 
         self._attr_is_on = updater.data.get(description.key, False)
-
         self._change_icon(self._attr_is_on)
 
     async def async_added_to_hass(self) -> None:
@@ -131,8 +131,18 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
             return
 
         self._attr_is_on = state.state == STATE_ON
+        self._change_icon(self._attr_is_on)
 
         self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Is available
+
+        :return bool: Is available
+        """
+
+        return self._attr_available and self.coordinator.last_update_success
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""

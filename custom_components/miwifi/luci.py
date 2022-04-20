@@ -280,24 +280,6 @@ class LuciClient:
 
         return await self.get("misystem/led", data)
 
-    async def wifi_turn_on(self, index: int) -> dict:
-        """xqnetwork/wifi_up method.
-
-        :param index: int|None: Wifi device index
-        :return dict: dict with api data.
-        """
-
-        return await self.get("xqnetwork/wifi_up", {"wifiIndex": index})
-
-    async def wifi_turn_off(self, index: int) -> dict:
-        """xqnetwork/wifi_down method.
-
-        :param index: int: Wifi device index
-        :return dict: dict with api data.
-        """
-
-        return await self.get("xqnetwork/wifi_down", {"wifiIndex": index})
-
     async def device_list(self) -> dict:
         """misystem/devicelist method.
 
