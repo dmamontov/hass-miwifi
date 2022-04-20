@@ -102,8 +102,10 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
-        _LOGGER.error("Failed to initialize switch: Missing mac address. Restart HASS.")
+    if not updater.last_update_success:
+        _LOGGER.error("Failed to initialize switch.")
+
+        return
 
     entities: list[MiWifiSwitch] = []
     for description in MIWIFI_SWITCHES:

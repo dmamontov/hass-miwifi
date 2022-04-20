@@ -12,6 +12,7 @@ from typing import Final, Any
 from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant, CALLBACK_TYPE
 import homeassistant.components.persistent_notification as pn
+from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers import event
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -196,11 +197,6 @@ class LuciUpdater(DataUpdateCoordinator):
         self.data: dict[str, Any] = {}
         self.devices: dict[str, dict[str, Any]] = {}
 
-        hass.loop.call_later(
-            DEFAULT_CALL_DELAY,
-            lambda: hass.async_create_task(self._async_load_manufacturers()),
-        )
-
     async def async_stop(self) -> None:
         """Stop updater"""
 
@@ -219,19 +215,21 @@ class LuciUpdater(DataUpdateCoordinator):
 
         return timedelta(seconds=self._scan_interval)
 
-    async def update(self, is_force: bool = False, retry: int = 1) -> dict:
+    async def update(self, retry: int = 1) -> dict:
         """Update miwifi information.
 
-        :param is_force: bool: Force relogin
         :param retry: int: Retry count
         :return dict: dict with luci data.
         """
 
+        await self._async_load_manufacturers()
+
+        self._is_first_update = len(self.data) == 0
         _err: LuciException | None = None
 
         try:
-            if self._is_reauthorization or self._is_only_login or is_force:
-                if is_force:
+            if self._is_reauthorization or self._is_only_login or self._is_first_update:
+                if self._is_first_update:
                     await self.luci.logout()
                     await asyncio.sleep(DEFAULT_CALL_DELAY)
 
@@ -240,11 +238,8 @@ class LuciUpdater(DataUpdateCoordinator):
             self.code = codes.OK
 
             for method in PREPARE_METHODS:
-                if not self._is_only_login or is_force or method == "init":
+                if not self._is_only_login or self._is_first_update or method == "init":
                     await self._async_prepare(method, self.data)
-
-            if not self._is_only_login or is_force:
-                self._is_first_update = False
         except LuciConnectionException as _e:
             _err = _e
 
@@ -258,9 +253,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
         self.data[ATTR_STATE] = codes.is_success(self.code)
 
-        if is_force and not self.data[ATTR_STATE]:
+        if self._is_first_update and not self.data[ATTR_STATE]:
             if retry > DEFAULT_RETRY and _err is not None:
-                raise _err
+                raise PlatformNotReady from _err
 
             if retry <= DEFAULT_RETRY:
                 _LOGGER.warning(
@@ -272,7 +267,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
                 await asyncio.sleep(retry)
 
-                return await self.update(True, retry + 1)
+                return await self.update(retry + 1)
 
         if not self._is_only_login:
             self._clean_devices()
@@ -1017,6 +1012,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
     async def _async_load_manufacturers(self) -> None:
         """Async load _manufacturers"""
+
+        if len(self._manufacturers) > 0:
+            return
 
         self._manufacturers = await self.hass.async_add_executor_job(
             json.load_json,

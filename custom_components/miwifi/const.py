@@ -19,6 +19,7 @@ PLATFORMS: Final = [
     Platform.SELECT,
     Platform.DEVICE_TRACKER,
     Platform.CAMERA,
+    Platform.UPDATE,
 ]
 
 """Discovery const"""
@@ -213,4 +214,13 @@ ATTR_TRACKER_ONLINE: Final = "online"
 ATTR_TRACKER_DOWN_SPEED: Final = "down_speed"
 ATTR_TRACKER_UP_SPEED: Final = "up_speed"
 ATTR_TRACKER_LAST_ACTIVITY: Final = "last_activity"
+
+"""Update attributes"""
+ATTR_UPDATE_FIRMWARE: Final = "firmware"
+ATTR_UPDATE_FIRMWARE_NAME: Final = "Firmware"
+ATTR_UPDATE_FIRMWARE_TITLE: Final = "Firmware"
+ATTR_UPDATE_FIRMWARE_CURRENT_VERSION: Final = "current_version"
+ATTR_UPDATE_FIRMWARE_LATEST_VERSION: Final = "latest_version"
+ATTR_UPDATE_FIRMWARE_RELEASE_SUMMARY: Final = "release_summary"
+ATTR_UPDATE_FIRMWARE_RELEASE_URL: Final = "release_url"
 # fmt: on

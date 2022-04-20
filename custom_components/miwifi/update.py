@@ -1,24 +1,21 @@
-"""Light component."""
+"""Update component."""
 
 from __future__ import annotations
 
 import logging
 from typing import Final, Any
 
-from homeassistant.components.light import (
+from homeassistant.components.update import (
     ENTITY_ID_FORMAT,
-    LightEntityDescription,
-    LightEntity,
+    UpdateEntityDescription,
+    UpdateEntity,
+    UpdateEntityFeature,
+    UpdateDeviceClass
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    STATE_ON,
-    STATE_OFF,
-)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -27,23 +24,22 @@ from .const import (
     ATTRIBUTION,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
-    ATTR_LIGHT_LED,
-    ATTR_LIGHT_LED_NAME,
+    ATTR_UPDATE_FIRMWARE,
+    ATTR_UPDATE_FIRMWARE_NAME,
 )
 from .exceptions import LuciException
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
-ICONS: Final = {
-    f"{ATTR_LIGHT_LED}_{STATE_ON}": "mdi:led-on",
-    f"{ATTR_LIGHT_LED}_{STATE_OFF}": "mdi:led-off",
+MAP_FEATURE: Final = {
+    ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.RELEASE_NOTES
 }
 
-MIWIFI_LIGHTS: tuple[LightEntityDescription, ...] = (
-    LightEntityDescription(
-        key=ATTR_LIGHT_LED,
-        name=ATTR_LIGHT_LED_NAME,
-        icon=ICONS[f"{ATTR_LIGHT_LED}_{STATE_ON}"],
+MIWIFI_UPDATES: tuple[UpdateEntityDescription, ...] = (
+    UpdateEntityDescription(
+        key=ATTR_UPDATE_FIRMWARE,
+        name=ATTR_UPDATE_FIRMWARE_NAME,
+        device_class=UpdateDeviceClass.FIRMWARE,
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=True,
     ),
@@ -57,7 +53,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up MiWifi light entry.
+    """Set up MiWifi update entry.
 
     :param hass: HomeAssistant: Home Assistant object
     :param config_entry: ConfigEntry: ConfigEntry object
@@ -68,33 +64,33 @@ async def async_setup_entry(
     updater: LuciUpdater = data[UPDATER]
 
     if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize light.")
+        _LOGGER.error("Failed to initialize update.")
 
         return
 
-    entities: list[MiWifiLight] = [
-        MiWifiLight(
+    entities: list[MiWifiUpdate] = [
+        MiWifiUpdate(
             f"{config_entry.entry_id}-{description.key}",
             description,
             updater,
         )
-        for description in MIWIFI_LIGHTS
+        for description in MIWIFI_UPDATES
     ]
     async_add_entities(entities)
 
 
-class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
-    """MiWifi light entry."""
+class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
+    """MiWifi update entry."""
 
     _attr_attribution: str = ATTRIBUTION
 
     def __init__(
         self,
         unique_id: str,
-        description: LightEntityDescription,
+        description: UpdateEntityDescription,
         updater: LuciUpdater,
     ) -> None:
-        """Initialize light.
+        """Initialize update.
 
         :param unique_id: str: Unique ID
         :param description: LightEntityDescription: LightEntityDescription object
@@ -102,7 +98,6 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         """
 
         CoordinatorEntity.__init__(self, coordinator=updater)
-        RestoreEntity.__init__(self)
 
         self.entity_description = description
         self._updater = updater
@@ -119,23 +114,12 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
 
         self._attr_device_info = updater.device_info
 
-        self._attr_is_on = updater.data.get(description.key, False)
-        self._change_icon(self._attr_is_on)
+        self._attr_installed_version = updater.data.get(description.key, None)
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
 
-        await RestoreEntity.async_added_to_hass(self)
         await CoordinatorEntity.async_added_to_hass(self)
-
-        state = await self.async_get_last_state()
-        if not state:
-            return
-
-        self._attr_is_on = state.state == STATE_ON
-        self._change_icon(self._attr_is_on)
-
-        self.async_write_ha_state()
 
     @property
     def available(self) -> bool:

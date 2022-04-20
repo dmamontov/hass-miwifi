@@ -84,17 +84,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         :param with_sleep: bool
         """
 
-        await _updater.update(True)
+        await _updater.async_config_entry_first_refresh()
 
         if with_sleep:
             await asyncio.sleep(DEFAULT_SLEEP)
 
         hass.config_entries.async_setup_platforms(entry, PLATFORMS)
-
-    async def async_stop(event: Event) -> None:
-        """Async stop"""
-
-        await _updater.async_stop()
 
     if is_new:
         await async_start()
@@ -104,6 +99,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             DEFAULT_CALL_DELAY,
             lambda: hass.async_create_task(async_start(True)),
         )
+
+    async def async_stop(event: Event) -> None:
+        """Async stop"""
+
+        await _updater.async_stop()
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_stop)
 
