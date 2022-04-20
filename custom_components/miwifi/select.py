@@ -30,11 +30,14 @@ from .const import (
     ATTR_SELECT_WIFI_2_4_CHANNEL,
     ATTR_SELECT_WIFI_2_4_CHANNELS,
     ATTR_SELECT_WIFI_2_4_CHANNEL_NAME,
+    ATTR_SELECT_WIFI_2_4_CHANNEL_OPTIONS,
     ATTR_SELECT_WIFI_5_0_CHANNEL,
     ATTR_SELECT_WIFI_5_0_CHANNEL_NAME,
+    ATTR_SELECT_WIFI_5_0_CHANNEL_OPTIONS,
     ATTR_SELECT_WIFI_5_0_CHANNELS,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME,
+    ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_OPTIONS,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNELS,
     ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
     ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
@@ -65,6 +68,9 @@ DATA_MAP: Final = {
 }
 
 OPTIONS_MAP: Final = {
+    ATTR_SELECT_WIFI_2_4_CHANNEL: ATTR_SELECT_WIFI_2_4_CHANNEL_OPTIONS,
+    ATTR_SELECT_WIFI_5_0_CHANNEL: ATTR_SELECT_WIFI_5_0_CHANNEL_OPTIONS,
+    ATTR_SELECT_WIFI_5_0_GAME_CHANNEL: ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_OPTIONS,
     ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH: ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
     ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH: ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
     ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH: ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
@@ -209,10 +215,22 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         self._attr_current_option = updater.data.get(description.key, None)
         self._change_icon(self._attr_current_option)
 
-        if description.key in OPTIONS_MAP:
-            self._attr_options = OPTIONS_MAP[description.key]
-        else:
+        self._attr_options = []
+        if description.key in CHANNELS_MAP:
             self._attr_options = updater.data.get(CHANNELS_MAP[description.key], [])
+
+        if description.key in OPTIONS_MAP and len(self._attr_options) == 0:
+            if (
+                updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) > 2
+                and description.key == ATTR_SELECT_WIFI_5_0_CHANNEL
+            ):
+                self._attr_options = [
+                    option
+                    for option in OPTIONS_MAP[description.key]
+                    if option not in OPTIONS_MAP[ATTR_SELECT_WIFI_5_0_GAME_CHANNEL]
+                ]
+            else:
+                self._attr_options = OPTIONS_MAP[description.key]
 
         if description.key in DATA_MAP:
             self._wifi_data = updater.data.get(DATA_MAP[description.key], {})
