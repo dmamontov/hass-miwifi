@@ -557,8 +557,8 @@ class LuciUpdater(DataUpdateCoordinator):
         length: int = 0
 
         for wifi in response["info"]:
-            # Support only 5G , 2.4G and 5G Game
-            if "ifname" not in wifi or wifi["ifname"] not in ["wl0", "wl1", "wl2"]:
+            # Support only 5G , 2.4G,  5G Game and Guest
+            if "ifname" not in wifi or wifi["ifname"] not in ["wl0", "wl1", "wl2", "wl14"]:
                 continue
 
             try:
@@ -568,7 +568,10 @@ class LuciUpdater(DataUpdateCoordinator):
 
             if "status" in wifi:
                 data[adapter.phrase] = int(wifi["status"]) > 0  # type: ignore
-                length += 1
+
+                # Guest network is not an adapter
+                if adapter != IfName.WL14:
+                    length += 1
 
             if "channelInfo" in wifi and "channel" in wifi["channelInfo"]:
                 data[f"{adapter.phrase}_channel"] = str(  # type: ignore

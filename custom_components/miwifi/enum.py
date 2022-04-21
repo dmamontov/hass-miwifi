@@ -8,6 +8,7 @@ from .const import (
     ATTR_SWITCH_WIFI_2_4,
     ATTR_SWITCH_WIFI_5_0,
     ATTR_SWITCH_WIFI_5_0_GAME,
+    ATTR_SWITCH_WIFI_GUEST,
 )
 
 
@@ -105,6 +106,7 @@ class IfName(str, Enum):
     WL0 = "wl0", ATTR_SWITCH_WIFI_5_0
     WL1 = "wl1", ATTR_SWITCH_WIFI_2_4
     WL2 = "wl2", ATTR_SWITCH_WIFI_5_0_GAME
+    WL14 = "wl14", ATTR_SWITCH_WIFI_GUEST
 
 
 class Wifi(IntEnum):

@@ -226,12 +226,12 @@ class LuciClient:
         return await self.get("xqnetwork/wifiap_signal")
 
     async def wifi_detail_all(self) -> dict:
-        """xqnetwork/wifi_detail_all method.
+        """xqnetwork/wifi_diag_detail_all method.
 
         :return dict: dict with api data.
         """
 
-        return await self.get("xqnetwork/wifi_detail_all")
+        return await self.get("xqnetwork/wifi_diag_detail_all")
 
     async def set_wifi(self, data: dict) -> dict:
         """xqnetwork/set_wifi method.
@@ -241,6 +241,15 @@ class LuciClient:
         """
 
         return await self.get("xqnetwork/set_wifi", data)
+
+    async def set_guest_wifi(self, data: dict) -> dict:
+        """xqnetwork/set_wifi_without_restart method.
+
+        :param data: dict: Adapter data
+        :return dict: dict with api data.
+        """
+
+        return await self.get("xqnetwork/set_wifi_without_restart", data)
 
     async def avaliable_channels(self, index: int = 1) -> dict:
         """xqnetwork/avaliable_channels method.

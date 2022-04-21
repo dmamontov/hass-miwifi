@@ -92,6 +92,7 @@ ATTR_WIFI_DATA_FIELDS: Final = {
 ATTR_WIFI_2_4_DATA: Final = "wifi_2_4_data"
 ATTR_WIFI_5_0_DATA: Final = "wifi_5_0_data"
 ATTR_WIFI_5_0_GAME_DATA: Final = "wifi_5_0_game_data"
+ATTR_WIFI_GUEST_DATA: Final = "wifi_guest_data"
 
 ATTR_WIFI_ADAPTER_LENGTH: Final = "wifi_adapter_length"
 
@@ -162,6 +163,9 @@ ATTR_SWITCH_WIFI_5_0_NAME: Final = f"{ATTR_WIFI_NAME} 5G"
 
 ATTR_SWITCH_WIFI_5_0_GAME: Final = "wifi_5_0_game"
 ATTR_SWITCH_WIFI_5_0_GAME_NAME: Final = f"{ATTR_WIFI_NAME} 5G game"
+
+ATTR_SWITCH_WIFI_GUEST: Final = "wifi_guest"
+ATTR_SWITCH_WIFI_GUEST_NAME: Final = f"{ATTR_WIFI_NAME} guest"
 
 """Select attributes"""
 ATTR_SELECT_WIFI_2_4_CHANNEL: Final = "wifi_2_4_channel"
