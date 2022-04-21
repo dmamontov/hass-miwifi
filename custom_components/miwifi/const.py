@@ -217,12 +217,11 @@ ATTR_TRACKER_LAST_ACTIVITY: Final = "last_activity"
 
 """Update attributes"""
 ATTR_UPDATE_FIRMWARE: Final = "firmware"
-ATTR_UPDATE_FIRMWARE_NAME: Final = "Firmware"
+ATTR_UPDATE_FIRMWARE_NAME: Final = "Firmware update"
 
 ATTR_UPDATE_TITLE: Final = "title"
 ATTR_UPDATE_CURRENT_VERSION: Final = "current_version"
 ATTR_UPDATE_LATEST_VERSION: Final = "latest_version"
-ATTR_UPDATE_RELEASE_SUMMARY: Final = "release_summary"
 ATTR_UPDATE_RELEASE_URL: Final = "release_url"
 ATTR_UPDATE_DOWNLOAD_URL: Final = "download_url"
 ATTR_UPDATE_FILE_SIZE: Final = "file_size"

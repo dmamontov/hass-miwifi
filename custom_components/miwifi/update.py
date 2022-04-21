@@ -31,12 +31,12 @@ from .const import (
     ATTR_UPDATE_TITLE,
     ATTR_UPDATE_CURRENT_VERSION,
     ATTR_UPDATE_LATEST_VERSION,
-    ATTR_UPDATE_RELEASE_SUMMARY,
     ATTR_UPDATE_RELEASE_URL,
     ATTR_UPDATE_DOWNLOAD_URL,
     ATTR_UPDATE_FILE_SIZE,
     ATTR_UPDATE_FILE_HASH,
 )
+from .exceptions import LuciException
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
@@ -44,7 +44,6 @@ ATTR_CHANGES: Final = [
     ATTR_UPDATE_TITLE,
     ATTR_UPDATE_CURRENT_VERSION,
     ATTR_UPDATE_LATEST_VERSION,
-    ATTR_UPDATE_RELEASE_SUMMARY,
     ATTR_UPDATE_RELEASE_URL,
     ATTR_UPDATE_DOWNLOAD_URL,
     ATTR_UPDATE_FILE_SIZE,
@@ -52,7 +51,7 @@ ATTR_CHANGES: Final = [
 ]
 
 MAP_FEATURE: Final = {
-    #    ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.RELEASE_NOTES
+    ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.INSTALL
 }
 
 MIWIFI_UPDATES: tuple[UpdateEntityDescription, ...] = (
@@ -154,9 +153,6 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         self._attr_latest_version = self._update_data.get(
             ATTR_UPDATE_LATEST_VERSION, None
         )
-        self._attr_release_summary = self._update_data.get(
-            ATTR_UPDATE_RELEASE_SUMMARY, None
-        )
         self._attr_release_url = self._update_data.get(ATTR_UPDATE_RELEASE_URL, None)
 
     async def async_added_to_hass(self) -> None:
@@ -164,11 +160,13 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
 
         await CoordinatorEntity.async_added_to_hass(self)
 
-        _camera_state = self.hass.states.get(generate_entity_id(
-            CAMERA_ENTITY_ID_FORMAT,
-            self._updater.data.get(ATTR_DEVICE_MAC_ADDRESS, self._updater.ip),
-            ATTR_CAMERA_IMAGE_NAME,
-        ))
+        _camera_state = self.hass.states.get(
+            generate_entity_id(
+                CAMERA_ENTITY_ID_FORMAT,
+                self._updater.data.get(ATTR_DEVICE_MAC_ADDRESS, self._updater.ip),
+                ATTR_CAMERA_IMAGE_NAME,
+            )
+        )
 
         if not _camera_state:
             return
@@ -225,9 +223,31 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         self._attr_latest_version = self._update_data.get(
             ATTR_UPDATE_LATEST_VERSION, None
         )
-        self._attr_release_summary = self._update_data.get(
-            ATTR_UPDATE_RELEASE_SUMMARY, None
-        )
         self._attr_release_url = self._update_data.get(ATTR_UPDATE_RELEASE_URL, None)
 
         self.async_write_ha_state()
+
+    async def _firmware_install(self) -> None:
+        """Install firmware"""
+
+        try:
+            await self._updater.luci.set_wifi({
+                "url": self._update_data.get(ATTR_UPDATE_DOWNLOAD_URL),
+                "filesize": self._update_data.get(ATTR_UPDATE_FILE_SIZE),
+                "hash": self._update_data.get(ATTR_UPDATE_FILE_HASH),
+            })
+        except LuciException as _e:
+            _LOGGER.debug("Install firmware error: %r", _e)
+
+    async def async_install(self, version: str | None, backup: bool, **kwargs: Any) -> None:
+        """Install an update.
+
+        :param version: str | None
+        :param backup: bool
+        :param kwargs: Any: Any arguments
+        """
+
+        action = getattr(self, f"_{self.entity_description.key}_install")
+
+        if action:
+            await action()

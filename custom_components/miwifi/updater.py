@@ -77,7 +77,6 @@ from .const import (
     ATTR_UPDATE_TITLE,
     ATTR_UPDATE_CURRENT_VERSION,
     ATTR_UPDATE_LATEST_VERSION,
-    ATTR_UPDATE_RELEASE_SUMMARY,
     ATTR_UPDATE_RELEASE_URL,
     ATTR_UPDATE_DOWNLOAD_URL,
     ATTR_UPDATE_FILE_SIZE,
@@ -485,7 +484,6 @@ class LuciUpdater(DataUpdateCoordinator):
             data[ATTR_UPDATE_FIRMWARE] = _rom_info | {
                 ATTR_UPDATE_LATEST_VERSION: response["version"],
                 ATTR_UPDATE_DOWNLOAD_URL: response["downloadUrl"],
-                ATTR_UPDATE_RELEASE_SUMMARY: response["changeLog"],
                 ATTR_UPDATE_RELEASE_URL: response["changelogUrl"],
                 ATTR_UPDATE_FILE_SIZE: response["fileSize"],
                 ATTR_UPDATE_FILE_HASH: response["fullHash"],
