@@ -50,9 +50,7 @@ ATTR_CHANGES: Final = [
     ATTR_UPDATE_FILE_HASH,
 ]
 
-MAP_FEATURE: Final = {
-    ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.INSTALL
-}
+MAP_FEATURE: Final = {ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.INSTALL}
 
 MIWIFI_UPDATES: tuple[UpdateEntityDescription, ...] = (
     UpdateEntityDescription(
@@ -135,6 +133,9 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
             description.name,
         )
 
+        if description.key in MAP_FEATURE:
+            self._attr_supported_features = MAP_FEATURE[description.key]
+
         self._attr_name = description.name
         self._attr_unique_id = unique_id
         self._attr_device_info = updater.device_info
@@ -186,10 +187,15 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
     def entity_picture(self) -> str | None:
         """Return the entity picture to use in the frontend."""
 
-        if self._attr_entity_picture is None:
-            return super(self).entity_picture
+        if self._attr_entity_picture is not None:
+            return self._attr_entity_picture
 
-        return self._attr_entity_picture
+        if self.platform is None:
+            return None
+
+        return (
+            f"https://brands.home-assistant.io/_/{self.platform.platform_name}/icon.png"
+        )
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
@@ -231,15 +237,19 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         """Install firmware"""
 
         try:
-            await self._updater.luci.set_wifi({
-                "url": self._update_data.get(ATTR_UPDATE_DOWNLOAD_URL),
-                "filesize": self._update_data.get(ATTR_UPDATE_FILE_SIZE),
-                "hash": self._update_data.get(ATTR_UPDATE_FILE_HASH),
-            })
+            await self._updater.luci.set_wifi(
+                {
+                    "url": self._update_data.get(ATTR_UPDATE_DOWNLOAD_URL),
+                    "filesize": self._update_data.get(ATTR_UPDATE_FILE_SIZE),
+                    "hash": self._update_data.get(ATTR_UPDATE_FILE_HASH),
+                }
+            )
         except LuciException as _e:
             _LOGGER.debug("Install firmware error: %r", _e)
 
-    async def async_install(self, version: str | None, backup: bool, **kwargs: Any) -> None:
+    async def async_install(
+        self, version: str | None, backup: bool, **kwargs: Any
+    ) -> None:
         """Install an update.
 
         :param version: str | None
