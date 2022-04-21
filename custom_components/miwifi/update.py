@@ -5,12 +5,13 @@ from __future__ import annotations
 import logging
 from typing import Final, Any
 
+from homeassistant.components.camera import ENTITY_ID_FORMAT as CAMERA_ENTITY_ID_FORMAT
 from homeassistant.components.update import (
     ENTITY_ID_FORMAT,
     UpdateEntityDescription,
     UpdateEntity,
     UpdateEntityFeature,
-    UpdateDeviceClass
+    UpdateDeviceClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -24,6 +25,7 @@ from .const import (
     ATTRIBUTION,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
+    ATTR_CAMERA_IMAGE_NAME,
     ATTR_UPDATE_FIRMWARE,
     ATTR_UPDATE_FIRMWARE_NAME,
     ATTR_UPDATE_TITLE,
@@ -50,7 +52,7 @@ ATTR_CHANGES: Final = [
 ]
 
 MAP_FEATURE: Final = {
-    ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.RELEASE_NOTES
+    #    ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.RELEASE_NOTES
 }
 
 MIWIFI_UPDATES: tuple[UpdateEntityDescription, ...] = (
@@ -145,9 +147,7 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
             and len(self._update_data) > 0
         # fmt: on
 
-        self._attr_title = self._update_data.get(
-            ATTR_UPDATE_TITLE, None
-        )
+        self._attr_title = self._update_data.get(ATTR_UPDATE_TITLE, None)
         self._attr_installed_version = self._update_data.get(
             ATTR_UPDATE_CURRENT_VERSION, None
         )
@@ -157,14 +157,23 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         self._attr_release_summary = self._update_data.get(
             ATTR_UPDATE_RELEASE_SUMMARY, None
         )
-        self._attr_release_url = self._update_data.get(
-            ATTR_UPDATE_RELEASE_URL, None
-        )
+        self._attr_release_url = self._update_data.get(ATTR_UPDATE_RELEASE_URL, None)
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
 
         await CoordinatorEntity.async_added_to_hass(self)
+
+        _camera_state = self.hass.states.get(generate_entity_id(
+            CAMERA_ENTITY_ID_FORMAT,
+            self._updater.data.get(ATTR_DEVICE_MAC_ADDRESS, self._updater.ip),
+            ATTR_CAMERA_IMAGE_NAME,
+        ))
+
+        if not _camera_state:
+            return
+
+        self._attr_entity_picture = _camera_state.attributes.get("entity_picture", None)
 
     @property
     def available(self) -> bool:
@@ -175,10 +184,21 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
 
         return self._attr_available and self.coordinator.last_update_success
 
+    @property
+    def entity_picture(self) -> str | None:
+        """Return the entity picture to use in the frontend."""
+
+        if self._attr_entity_picture is None:
+            return super(self).entity_picture
+
+        return self._attr_entity_picture
+
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
-        _update_data: dict[str, Any] = self._updater.data.get(self.entity_description.key, {})
+        _update_data: dict[str, Any] = self._updater.data.get(
+            self.entity_description.key, {}
+        )
 
         # fmt: off
         is_available = self._updater.data.get(ATTR_STATE, False) \
@@ -198,9 +218,7 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         self._attr_available = is_available
         self._update_data = _update_data
 
-        self._attr_title = self._update_data.get(
-            ATTR_UPDATE_TITLE, None
-        )
+        self._attr_title = self._update_data.get(ATTR_UPDATE_TITLE, None)
         self._attr_installed_version = self._update_data.get(
             ATTR_UPDATE_CURRENT_VERSION, None
         )
@@ -210,8 +228,6 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         self._attr_release_summary = self._update_data.get(
             ATTR_UPDATE_RELEASE_SUMMARY, None
         )
-        self._attr_release_url = self._update_data.get(
-            ATTR_UPDATE_RELEASE_URL, None
-        )
+        self._attr_release_url = self._update_data.get(ATTR_UPDATE_RELEASE_URL, None)
 
         self.async_write_ha_state()

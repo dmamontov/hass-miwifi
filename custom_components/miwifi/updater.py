@@ -471,7 +471,9 @@ class LuciUpdater(DataUpdateCoordinator):
         _rom_info: dict = {
             ATTR_UPDATE_CURRENT_VERSION: data[ATTR_UPDATE_CURRENT_VERSION],
             ATTR_UPDATE_LATEST_VERSION: data[ATTR_UPDATE_CURRENT_VERSION],
-            ATTR_UPDATE_TITLE: f"{self.data.get(ATTR_DEVICE_NAME, DEFAULT_NAME)} update firmware"
+            ATTR_UPDATE_TITLE: f"{data.get(ATTR_DEVICE_MANUFACTURER, DEFAULT_MANUFACTURER)}"
+            + f" {data.get(ATTR_MODEL, Model.NOT_KNOWN).name}"
+            + f" ({data.get(ATTR_DEVICE_NAME, DEFAULT_NAME)})",
         }
 
         if "needUpdate" not in response or response["needUpdate"] != 1:
