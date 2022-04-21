@@ -296,6 +296,14 @@ class LuciClient:
 
         return await self.get("xqnetwork/wifi_connect_devices")
 
+    async def rom_update(self) -> dict:
+        """xqsystem/check_rom_update method.
+
+        :return dict: dict with api data.
+        """
+
+        return await self.get("xqsystem/check_rom_update")
+
     async def image(self, hardware: str) -> bytes | None:
         """router image  method.
 

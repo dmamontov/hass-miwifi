@@ -73,6 +73,15 @@ from .const import (
     ATTR_TRACKER_LAST_ACTIVITY,
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
+    ATTR_UPDATE_FIRMWARE,
+    ATTR_UPDATE_TITLE,
+    ATTR_UPDATE_CURRENT_VERSION,
+    ATTR_UPDATE_LATEST_VERSION,
+    ATTR_UPDATE_RELEASE_SUMMARY,
+    ATTR_UPDATE_RELEASE_URL,
+    ATTR_UPDATE_DOWNLOAD_URL,
+    ATTR_UPDATE_FILE_SIZE,
+    ATTR_UPDATE_FILE_HASH,
 )
 from .enum import (
     Model,
@@ -89,6 +98,7 @@ from .self_check import async_self_check
 PREPARE_METHODS: Final = [
     "init",
     "status",
+    "rom_update",
     "mode",
     "wan",
     "led",
@@ -411,12 +421,11 @@ class LuciUpdater(DataUpdateCoordinator):
 
         response: dict = await self.luci.status()
 
-        if (
-            "hardware" in response
-            and isinstance(response["hardware"], dict)
-            and "mac" in response["hardware"]
-        ):
-            data[ATTR_DEVICE_MAC_ADDRESS] = response["hardware"]["mac"]
+        if "hardware" in response and isinstance(response["hardware"], dict):
+            if "mac" in response["hardware"]:
+                data[ATTR_DEVICE_MAC_ADDRESS] = response["hardware"]["mac"]
+            if "version" in response["hardware"]:
+                data[ATTR_UPDATE_CURRENT_VERSION] = response["hardware"]["version"]
 
         if "upTime" in response:
             data[ATTR_SENSOR_UPTIME] = str(
@@ -447,6 +456,40 @@ class LuciUpdater(DataUpdateCoordinator):
                 response["wan"]["upspeed"]
             ) if "upspeed" in response["wan"] else 0
             # fmt: on
+
+    async def _async_prepare_rom_update(self, data: dict) -> None:
+        """Prepare rom update.
+
+        :param data: dict
+        """
+
+        if ATTR_UPDATE_CURRENT_VERSION not in data:
+            return
+
+        response: dict = await self.luci.rom_update()
+
+        _rom_info: dict = {
+            ATTR_UPDATE_CURRENT_VERSION: data[ATTR_UPDATE_CURRENT_VERSION],
+            ATTR_UPDATE_LATEST_VERSION: data[ATTR_UPDATE_CURRENT_VERSION],
+            ATTR_UPDATE_TITLE: f"{self.data.get(ATTR_DEVICE_NAME, DEFAULT_NAME)} update firmware"
+        }
+
+        if "needUpdate" not in response or response["needUpdate"] != 1:
+            data[ATTR_UPDATE_FIRMWARE] = _rom_info
+
+            return
+
+        try:
+            data[ATTR_UPDATE_FIRMWARE] = _rom_info | {
+                ATTR_UPDATE_LATEST_VERSION: response["version"],
+                ATTR_UPDATE_DOWNLOAD_URL: response["downloadUrl"],
+                ATTR_UPDATE_RELEASE_SUMMARY: response["changeLog"],
+                ATTR_UPDATE_RELEASE_URL: response["changelogUrl"],
+                ATTR_UPDATE_FILE_SIZE: response["fileSize"],
+                ATTR_UPDATE_FILE_HASH: response["fullHash"],
+            }
+        except KeyError:
+            pass
 
     async def _async_prepare_mode(self, data: dict) -> None:
         """Prepare mode.

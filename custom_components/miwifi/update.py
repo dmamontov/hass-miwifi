@@ -26,10 +26,28 @@ from .const import (
     ATTR_STATE,
     ATTR_UPDATE_FIRMWARE,
     ATTR_UPDATE_FIRMWARE_NAME,
+    ATTR_UPDATE_TITLE,
+    ATTR_UPDATE_CURRENT_VERSION,
+    ATTR_UPDATE_LATEST_VERSION,
+    ATTR_UPDATE_RELEASE_SUMMARY,
+    ATTR_UPDATE_RELEASE_URL,
+    ATTR_UPDATE_DOWNLOAD_URL,
+    ATTR_UPDATE_FILE_SIZE,
+    ATTR_UPDATE_FILE_HASH,
 )
-from .exceptions import LuciException
 from .helper import generate_entity_id
 from .updater import LuciUpdater
+
+ATTR_CHANGES: Final = [
+    ATTR_UPDATE_TITLE,
+    ATTR_UPDATE_CURRENT_VERSION,
+    ATTR_UPDATE_LATEST_VERSION,
+    ATTR_UPDATE_RELEASE_SUMMARY,
+    ATTR_UPDATE_RELEASE_URL,
+    ATTR_UPDATE_DOWNLOAD_URL,
+    ATTR_UPDATE_FILE_SIZE,
+    ATTR_UPDATE_FILE_HASH,
+]
 
 MAP_FEATURE: Final = {
     ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.RELEASE_NOTES
@@ -68,21 +86,29 @@ async def async_setup_entry(
 
         return
 
-    entities: list[MiWifiUpdate] = [
-        MiWifiUpdate(
-            f"{config_entry.entry_id}-{description.key}",
-            description,
-            updater,
+    entities: list[MiWifiUpdate] = []
+    for description in MIWIFI_UPDATES:
+        if description.key == ATTR_UPDATE_FIRMWARE and len(description.key) == 0:
+            continue
+
+        entities.append(
+            MiWifiUpdate(
+                f"{config_entry.entry_id}-{description.key}",
+                description,
+                updater,
+            )
         )
-        for description in MIWIFI_UPDATES
-    ]
-    async_add_entities(entities)
+
+    if len(entities) > 0:
+        async_add_entities(entities)
 
 
 class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
     """MiWifi update entry."""
 
     _attr_attribution: str = ATTRIBUTION
+
+    _update_data: dict[str, Any]
 
     def __init__(
         self,
@@ -93,7 +119,7 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         """Initialize update.
 
         :param unique_id: str: Unique ID
-        :param description: LightEntityDescription: LightEntityDescription object
+        :param description: UpdateEntityDescription: UpdateEntityDescription object
         :param updater: LuciUpdater: Luci updater object
         """
 
@@ -110,11 +136,30 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
 
         self._attr_name = description.name
         self._attr_unique_id = unique_id
-        self._attr_available = updater.data.get(ATTR_STATE, False)
-
         self._attr_device_info = updater.device_info
 
-        self._attr_installed_version = updater.data.get(description.key, None)
+        self._update_data = updater.data.get(description.key, {})
+
+        # fmt: off
+        self._attr_available = updater.data.get(ATTR_STATE, False) \
+            and len(self._update_data) > 0
+        # fmt: on
+
+        self._attr_title = self._update_data.get(
+            ATTR_UPDATE_TITLE, None
+        )
+        self._attr_installed_version = self._update_data.get(
+            ATTR_UPDATE_CURRENT_VERSION, None
+        )
+        self._attr_latest_version = self._update_data.get(
+            ATTR_UPDATE_LATEST_VERSION, None
+        )
+        self._attr_release_summary = self._update_data.get(
+            ATTR_UPDATE_RELEASE_SUMMARY, None
+        )
+        self._attr_release_url = self._update_data.get(
+            ATTR_UPDATE_RELEASE_URL, None
+        )
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
@@ -133,85 +178,40 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
-        is_available: bool = self._updater.data.get(ATTR_STATE, False)
+        _update_data: dict[str, Any] = self._updater.data.get(self.entity_description.key, {})
 
-        is_on: bool = self._updater.data.get(self.entity_description.key, False)
+        # fmt: off
+        is_available = self._updater.data.get(ATTR_STATE, False) \
+            and len(_update_data) > 0
+        # fmt: on
 
-        if self._attr_is_on == is_on and self._attr_available == is_available:  # type: ignore
+        is_update = False
+        for attr in ATTR_CHANGES:
+            if self._update_data.get(attr, None) != _update_data.get(attr, None):
+                is_update = True
+
+                break
+
+        if self._attr_available == is_available and not is_update:  # type: ignore
             return
 
         self._attr_available = is_available
-        self._attr_is_on = is_on
+        self._update_data = _update_data
 
-        self._change_icon(is_on)
+        self._attr_title = self._update_data.get(
+            ATTR_UPDATE_TITLE, None
+        )
+        self._attr_installed_version = self._update_data.get(
+            ATTR_UPDATE_CURRENT_VERSION, None
+        )
+        self._attr_latest_version = self._update_data.get(
+            ATTR_UPDATE_LATEST_VERSION, None
+        )
+        self._attr_release_summary = self._update_data.get(
+            ATTR_UPDATE_RELEASE_SUMMARY, None
+        )
+        self._attr_release_url = self._update_data.get(
+            ATTR_UPDATE_RELEASE_URL, None
+        )
 
         self.async_write_ha_state()
-
-    async def _led_on(self) -> None:
-        """Led on action"""
-
-        try:
-            await self._updater.luci.led(1)
-        except LuciException:
-            pass
-
-    async def _led_off(self) -> None:
-        """Led off action"""
-
-        try:
-            await self._updater.luci.led(0)
-        except LuciException:
-            pass
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn on action
-
-        :param kwargs: Any: Any arguments
-        """
-
-        await self._async_call(
-            f"_{self.entity_description.key}_{STATE_ON}", STATE_ON, **kwargs
-        )
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off action
-
-        :param kwargs: Any: Any arguments
-        """
-
-        await self._async_call(
-            f"_{self.entity_description.key}_{STATE_OFF}", STATE_OFF, **kwargs
-        )
-
-    async def _async_call(self, method: str, state: str, **kwargs: Any) -> None:
-        """Async turn action
-
-        :param method: str: Call method
-        :param state: str: Call state
-        :param kwargs: Any: Any arguments
-        """
-
-        action = getattr(self, method)
-
-        if action:
-            await action()
-
-            is_on: bool = state == STATE_ON
-
-            self._updater.data[self.entity_description.key] = is_on
-            self._attr_is_on = is_on
-            self._change_icon(is_on)
-
-            self.async_write_ha_state()
-
-    def _change_icon(self, is_on: bool) -> None:
-        """Change icon
-
-        :param is_on: bool
-        """
-
-        # fmt: off
-        icon_name: str = f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
-        # fmt: on
-        if icon_name in ICONS:
-            self._attr_icon = ICONS[icon_name]
