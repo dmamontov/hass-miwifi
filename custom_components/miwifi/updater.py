@@ -233,7 +233,6 @@ class LuciUpdater(DataUpdateCoordinator):
 
         await self._async_load_manufacturers()
 
-        self._is_first_update = len(self.data) == 0
         _err: LuciException | None = None
 
         try:
@@ -249,6 +248,11 @@ class LuciUpdater(DataUpdateCoordinator):
             for method in PREPARE_METHODS:
                 if not self._is_only_login or self._is_first_update or method == "init":
                     await self._async_prepare(method, self.data)
+
+            self._is_reauthorization = False
+
+            if self._is_first_update:
+                self._is_first_update = False
         except LuciConnectionException as _e:
             _err = _e
 
@@ -556,9 +560,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
         length: int = 0
 
+        # Support only 5G , 2.4G,  5G Game and Guest
         for wifi in response["info"]:
-            # Support only 5G , 2.4G,  5G Game and Guest
-            if "ifname" not in wifi or wifi["ifname"] not in ["wl0", "wl1", "wl2", "wl14"]:
+            if "ifname" not in wifi:
                 continue
 
             try:
