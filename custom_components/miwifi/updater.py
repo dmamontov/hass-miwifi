@@ -148,6 +148,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
     _store: Store | None = None
 
+    _entry_id: str | None = None
     _scan_interval: int
     _activity_days: int
     _is_only_login: bool = False
@@ -168,6 +169,7 @@ class LuciUpdater(DataUpdateCoordinator):
         activity_days: int = DEFAULT_ACTIVITY_DAYS,
         store: Store | None = None,
         is_only_login: bool = False,
+        entry_id: str | None = None,
     ) -> None:
         """Initialize updater.
 
@@ -181,6 +183,7 @@ class LuciUpdater(DataUpdateCoordinator):
         :param activity_days: int: Allowed number of days to wait after the last activity
         :param store: Store | None: Device store
         :param is_only_login: bool: Only config flow
+        :param entry_id: str | None: Entry ID
         """
 
         self.luci = LuciClient(get_async_client(hass, False), ip, password, timeout)
@@ -189,6 +192,8 @@ class LuciUpdater(DataUpdateCoordinator):
         self.is_force_load = is_force_load
 
         self._store = store
+
+        self._entry_id = entry_id
 
         self._scan_interval = scan_interval
         self._activity_days = activity_days
@@ -245,7 +250,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 await self.luci.login()
 
             for method in PREPARE_METHODS:
-                if not self._is_only_login or self._is_first_update or method == "init":
+                if not self._is_only_login or method == "init":
                     await self._async_prepare(method, self.data)
         except LuciConnectionException as _e:
             _err = _e
@@ -303,21 +308,6 @@ class LuciUpdater(DataUpdateCoordinator):
         """
 
         return self.data.get(ATTR_SENSOR_MODE, Mode.DEFAULT).value > 0
-
-    @cached_property
-    def entry_id(self) -> str | None:
-        """Get entry_id
-
-        :return str | None: entry id
-        """
-
-        integrations: dict = self.get_integrations()
-
-        return (
-            integrations[self.ip][ATTR_TRACKER_ENTRY_ID]
-            if self.ip in integrations
-            else None
-        )
 
     @property
     def device_info(self):
@@ -664,8 +654,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
                 if self.is_repeater and self.is_force_load:
                     device |= {
-                        ATTR_TRACKER_ENTRY_ID: self.entry_id,
-                        ATTR_TRACKER_UPDATER_ENTRY_ID: self.entry_id,
+                        ATTR_TRACKER_ENTRY_ID: self._entry_id,
+                        ATTR_TRACKER_UPDATER_ENTRY_ID: self._entry_id,
                     }
 
                     action: DeviceAction = DeviceAction.ADD
@@ -732,7 +722,7 @@ class LuciUpdater(DataUpdateCoordinator):
                         action,
                     )
             else:
-                device[ATTR_TRACKER_ENTRY_ID] = self.entry_id
+                device[ATTR_TRACKER_ENTRY_ID] = self._entry_id
 
                 if device[ATTR_TRACKER_MAC] in self._moved_devices:
                     if self._mass_update_device(device, integrations):
@@ -741,9 +731,7 @@ class LuciUpdater(DataUpdateCoordinator):
                     self._moved_devices.remove(device[ATTR_TRACKER_MAC])
 
             if device[ATTR_TRACKER_MAC] not in self._moved_devices:
-                device[ATTR_TRACKER_UPDATER_ENTRY_ID] = integrations[self.ip][
-                    ATTR_TRACKER_ENTRY_ID
-                ]
+                device[ATTR_TRACKER_UPDATER_ENTRY_ID] = self._entry_id
 
                 self.add_device(device, action=action, integrations=integrations)
 
@@ -782,7 +770,7 @@ class LuciUpdater(DataUpdateCoordinator):
             if mac in self.devices:
                 continue
 
-            if device[ATTR_TRACKER_ENTRY_ID] != self.entry_id:
+            if device[ATTR_TRACKER_ENTRY_ID] != self._entry_id:
                 for integration in integrations.values():
                     if (
                         not integration[UPDATER].is_force_load
