@@ -19,6 +19,7 @@ PLATFORMS: Final = [
     Platform.SELECT,
     Platform.DEVICE_TRACKER,
     Platform.CAMERA,
+    Platform.UPDATE,
 ]
 
 """Discovery const"""
@@ -91,6 +92,7 @@ ATTR_WIFI_DATA_FIELDS: Final = {
 ATTR_WIFI_2_4_DATA: Final = "wifi_2_4_data"
 ATTR_WIFI_5_0_DATA: Final = "wifi_5_0_data"
 ATTR_WIFI_5_0_GAME_DATA: Final = "wifi_5_0_game_data"
+ATTR_WIFI_GUEST_DATA: Final = "wifi_guest_data"
 
 ATTR_WIFI_ADAPTER_LENGTH: Final = "wifi_adapter_length"
 
@@ -162,6 +164,9 @@ ATTR_SWITCH_WIFI_5_0_NAME: Final = f"{ATTR_WIFI_NAME} 5G"
 ATTR_SWITCH_WIFI_5_0_GAME: Final = "wifi_5_0_game"
 ATTR_SWITCH_WIFI_5_0_GAME_NAME: Final = f"{ATTR_WIFI_NAME} 5G game"
 
+ATTR_SWITCH_WIFI_GUEST: Final = "wifi_guest"
+ATTR_SWITCH_WIFI_GUEST_NAME: Final = f"{ATTR_WIFI_NAME} guest"
+
 """Select attributes"""
 ATTR_SELECT_WIFI_2_4_CHANNEL: Final = "wifi_2_4_channel"
 ATTR_SELECT_WIFI_2_4_CHANNELS: Final = "wifi_2_4_channels"
@@ -213,4 +218,17 @@ ATTR_TRACKER_ONLINE: Final = "online"
 ATTR_TRACKER_DOWN_SPEED: Final = "down_speed"
 ATTR_TRACKER_UP_SPEED: Final = "up_speed"
 ATTR_TRACKER_LAST_ACTIVITY: Final = "last_activity"
+ATTR_TRACKER_OPTIONAL_MAC: Final = "optional_mac"
+
+"""Update attributes"""
+ATTR_UPDATE_FIRMWARE: Final = "firmware"
+ATTR_UPDATE_FIRMWARE_NAME: Final = "Firmware update"
+
+ATTR_UPDATE_TITLE: Final = "title"
+ATTR_UPDATE_CURRENT_VERSION: Final = "current_version"
+ATTR_UPDATE_LATEST_VERSION: Final = "latest_version"
+ATTR_UPDATE_RELEASE_URL: Final = "release_url"
+ATTR_UPDATE_DOWNLOAD_URL: Final = "download_url"
+ATTR_UPDATE_FILE_SIZE: Final = "file_size"
+ATTR_UPDATE_FILE_HASH: Final = "file_hash"
 # fmt: on

@@ -14,6 +14,7 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP,
 )
 from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE
+from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.storage import Store
 
 from .const import (
@@ -84,17 +85,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         :param with_sleep: bool
         """
 
-        await _updater.update(True)
+        await _updater.async_config_entry_first_refresh()
+        if not _updater.last_update_success:
+            if _updater.last_exception is not None:
+                raise PlatformNotReady from _updater.last_exception
+
+            raise PlatformNotReady
 
         if with_sleep:
             await asyncio.sleep(DEFAULT_SLEEP)
 
         hass.config_entries.async_setup_platforms(entry, PLATFORMS)
-
-    async def async_stop(event: Event) -> None:
-        """Async stop"""
-
-        await _updater.async_stop()
 
     if is_new:
         await async_start()
@@ -104,6 +105,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             DEFAULT_CALL_DELAY,
             lambda: hass.async_create_task(async_start(True)),
         )
+
+    async def async_stop(event: Event) -> None:
+        """Async stop"""
+
+        await _updater.async_stop()
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_stop)
 

@@ -29,7 +29,7 @@ from .const import (
     DIAGNOSTIC_MESSAGE,
     DIAGNOSTIC_CONTENT,
 )
-from .exceptions import LuciConnectionException, LuciTokenException
+from .exceptions import LuciException, LuciConnectionException, LuciTokenException
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -134,13 +134,18 @@ class LuciClient:
             self._debug("Logout error", _url, _e, _method)
 
     async def get(
-        self, path: str, query_params: dict | None = None, use_stok: bool = True
+        self,
+        path: str,
+        query_params: dict | None = None,
+        use_stok: bool = True,
+        errors: dict[int, str] | None = None,
     ) -> dict:
         """GET method.
 
         :param path: str: api method
         :param query_params: dict | None: Data
         :param use_stok: bool: is use stack
+        :param errors: dict[int, str] | None: errors list
         :return dict: dict with api data.
         """
 
@@ -164,6 +169,9 @@ class LuciClient:
 
         if "code" not in _data or _data["code"] > 0:
             self._debug("Invalid error code received", _url, _data, path)
+
+            if "code" in _data and errors is not None and _data["code"] in errors:
+                raise LuciException(errors[_data["code"]])
 
             raise LuciTokenException("Invalid error code received")
 
@@ -226,12 +234,12 @@ class LuciClient:
         return await self.get("xqnetwork/wifiap_signal")
 
     async def wifi_detail_all(self) -> dict:
-        """xqnetwork/wifi_detail_all method.
+        """xqnetwork/wifi_diag_detail_all method.
 
         :return dict: dict with api data.
         """
 
-        return await self.get("xqnetwork/wifi_detail_all")
+        return await self.get("xqnetwork/wifi_diag_detail_all")
 
     async def set_wifi(self, data: dict) -> dict:
         """xqnetwork/set_wifi method.
@@ -241,6 +249,15 @@ class LuciClient:
         """
 
         return await self.get("xqnetwork/set_wifi", data)
+
+    async def set_guest_wifi(self, data: dict) -> dict:
+        """xqnetwork/set_wifi_without_restart method.
+
+        :param data: dict: Adapter data
+        :return dict: dict with api data.
+        """
+
+        return await self.get("xqnetwork/set_wifi_without_restart", data)
 
     async def avaliable_channels(self, index: int = 1) -> dict:
         """xqnetwork/avaliable_channels method.
@@ -295,6 +312,41 @@ class LuciClient:
         """
 
         return await self.get("xqnetwork/wifi_connect_devices")
+
+    async def rom_update(self) -> dict:
+        """xqsystem/check_rom_update method.
+
+        :return dict: dict with api data.
+        """
+
+        return await self.get("xqsystem/check_rom_update")
+
+    async def rom_upgrade(self, data: dict) -> dict:
+        """xqsystem/upgrade_rom method.
+
+        :param data: dict: Rom data
+        :return dict: dict with api data.
+        """
+
+        return await self.get(
+            "xqsystem/upgrade_rom",
+            data,
+            errors={
+                6: "Download failed",
+                7: "No disk space",
+                8: "Download failed",
+                9: "Upgrade package verification failed",
+                10: "Failed to flash",
+            },
+        )
+
+    async def flash_permission(self) -> dict:
+        """xqsystem/flash_permission method.
+
+        :return dict: dict with api data.
+        """
+
+        return await self.get("xqsystem/flash_permission")
 
     async def image(self, hardware: str) -> bytes | None:
         """router image  method.

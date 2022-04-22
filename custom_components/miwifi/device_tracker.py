@@ -42,6 +42,7 @@ from .const import (
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
     ATTR_TRACKER_LAST_ACTIVITY,
+    ATTR_TRACKER_OPTIONAL_MAC,
 )
 from .enum import Connection
 from .helper import generate_entity_id, parse_last_activity, pretty_size
@@ -55,6 +56,7 @@ ATTR_CHANGES: Final = [
     ATTR_TRACKER_SIGNAL,
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
+    ATTR_TRACKER_OPTIONAL_MAC,
 ]
 
 CONFIGURATION_PORTS: Final = [80, 443]
@@ -76,6 +78,11 @@ async def async_setup_entry(
 
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
+
+    if not updater.last_update_success:
+        _LOGGER.error("Failed to initialize device tracker.")
+
+        return
 
     @callback
     def add_device(device: dict) -> None:
@@ -302,6 +309,17 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         :return DeviceInfo: Device Info
         """
+
+        _optional_mac = self._device.get(ATTR_TRACKER_OPTIONAL_MAC, None)
+        if _optional_mac is not None:
+            return DeviceInfo(
+                connections={
+                    (dr.CONNECTION_NETWORK_MAC, self.mac_address),
+                    (dr.CONNECTION_NETWORK_MAC, _optional_mac),
+                },
+                identifiers={(DOMAIN, self.mac_address)},
+                name=self._attr_name,
+            )
 
         return DeviceInfo(
             connections={(dr.CONNECTION_NETWORK_MAC, self.mac_address)},

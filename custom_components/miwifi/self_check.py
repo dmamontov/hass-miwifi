@@ -16,11 +16,12 @@ from .exceptions import LuciException
 
 SELF_CHECK_METHODS: Final = {
     "misystem/status": "status",
+    "xqsystem/check_rom_update": "rom_update",
     "xqnetwork/mode": "mode",
     "misystem/topo_graph": "topo_graph",
     "xqnetwork/wan_info": "wan_info",
     "misystem/led": "led",
-    "xqnetwork/wifi_detail_all": "wifi_detail_all",
+    "xqnetwork/wifi_diag_detail_all": "wifi_detail_all",
     "xqnetwork/avaliable_channels": "avaliable_channels",
     "xqnetwork/wifi_connect_devices": "wifi_connect_devices",
     "misystem/devicelist": "device_list",
@@ -42,8 +43,11 @@ async def async_self_check(hass: HomeAssistant, client: LuciClient, model: str) 
     data = {
         "xqsystem/login": "🟢",
         "xqsystem/init_info": "🟢",
-        "xqsystem/reboot": "🟢",
-        "xqnetwork/set_wifi": "🟢",
+        "xqsystem/reboot": "⚪",
+        "xqnetwork/set_wifi": "⚪",
+        "xqnetwork/set_wifi_without_restart": "⚪",
+        "xqsystem/upgrade_rom": "⚪",
+        "xqsystem/flash_permission": "⚪",
     }
 
     for code, method in SELF_CHECK_METHODS.items():

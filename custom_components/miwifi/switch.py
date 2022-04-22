@@ -39,6 +39,9 @@ from .const import (
     ATTR_SWITCH_WIFI_5_0_GAME,
     ATTR_SWITCH_WIFI_5_0_GAME_NAME,
     ATTR_WIFI_5_0_GAME_DATA,
+    ATTR_SWITCH_WIFI_GUEST,
+    ATTR_SWITCH_WIFI_GUEST_NAME,
+    ATTR_WIFI_GUEST_DATA,
 )
 from .enum import Wifi
 from .exceptions import LuciException
@@ -49,6 +52,7 @@ DATA_MAP: Final = {
     ATTR_SWITCH_WIFI_2_4: ATTR_WIFI_2_4_DATA,
     ATTR_SWITCH_WIFI_5_0: ATTR_WIFI_5_0_DATA,
     ATTR_SWITCH_WIFI_5_0_GAME: ATTR_WIFI_5_0_GAME_DATA,
+    ATTR_SWITCH_WIFI_GUEST: ATTR_WIFI_GUEST_DATA,
 }
 
 ICONS: Final = {
@@ -58,6 +62,8 @@ ICONS: Final = {
     f"{ATTR_SWITCH_WIFI_5_0}_{STATE_OFF}": "mdi:wifi-off",
     f"{ATTR_SWITCH_WIFI_5_0_GAME}_{STATE_ON}": "mdi:wifi",
     f"{ATTR_SWITCH_WIFI_5_0_GAME}_{STATE_OFF}": "mdi:wifi-off",
+    f"{ATTR_SWITCH_WIFI_GUEST}_{STATE_ON}": "mdi:wifi-lock-open",
+    f"{ATTR_SWITCH_WIFI_GUEST}_{STATE_OFF}": "mdi:wifi-off",
 }
 
 MIWIFI_SWITCHES: tuple[SwitchEntityDescription, ...] = (
@@ -82,6 +88,13 @@ MIWIFI_SWITCHES: tuple[SwitchEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=True,
     ),
+    SwitchEntityDescription(
+        key=ATTR_SWITCH_WIFI_GUEST,
+        name=ATTR_SWITCH_WIFI_GUEST_NAME,
+        icon=ICONS[f"{ATTR_SWITCH_WIFI_GUEST}_{STATE_ON}"],
+        entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=False,
+    ),
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -102,8 +115,10 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.data.get(ATTR_DEVICE_MAC_ADDRESS, False):
-        _LOGGER.error("Failed to initialize switch: Missing mac address. Restart HASS.")
+    if not updater.last_update_success:
+        _LOGGER.error("Failed to initialize switch.")
+
+        return
 
     entities: list[MiWifiSwitch] = []
     for description in MIWIFI_SWITCHES:
@@ -273,6 +288,20 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
 
         await self._async_update_wifi_adapter(data)
 
+    async def _wifi_guest_on(self) -> None:
+        """Wifi 2.4G on action"""
+
+        data: dict = {"wifiIndex": 3, "on": 1}
+
+        await self._async_update_guest_wifi(data)
+
+    async def _wifi_guest_off(self) -> None:
+        """Wifi 2.4G off action"""
+
+        data: dict = {"wifiIndex": 3, "on": 0}
+
+        await self._async_update_guest_wifi(data)
+
     async def _async_update_wifi_adapter(self, data: dict) -> None:
         """Update wifi adapter
 
@@ -283,6 +312,20 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
 
         try:
             await self._updater.luci.set_wifi(new_data)
+            self._wifi_data = new_data
+        except LuciException as _e:
+            _LOGGER.debug("WiFi update error: %r", _e)
+
+    async def _async_update_guest_wifi(self, data: dict) -> None:
+        """Update guest wifi
+
+        :param data: dict: Guest data
+        """
+
+        new_data: dict = self._wifi_data | data
+
+        try:
+            await self._updater.luci.set_guest_wifi(new_data)
             self._wifi_data = new_data
         except LuciException as _e:
             _LOGGER.debug("WiFi update error: %r", _e)

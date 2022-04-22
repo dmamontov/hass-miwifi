@@ -72,6 +72,15 @@ from .const import (
     ATTR_TRACKER_LAST_ACTIVITY,
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
+    ATTR_TRACKER_OPTIONAL_MAC,
+    ATTR_UPDATE_FIRMWARE,
+    ATTR_UPDATE_TITLE,
+    ATTR_UPDATE_CURRENT_VERSION,
+    ATTR_UPDATE_LATEST_VERSION,
+    ATTR_UPDATE_RELEASE_URL,
+    ATTR_UPDATE_DOWNLOAD_URL,
+    ATTR_UPDATE_FILE_SIZE,
+    ATTR_UPDATE_FILE_HASH,
 )
 from .enum import (
     Model,
@@ -88,6 +97,7 @@ from .self_check import async_self_check
 PREPARE_METHODS: Final = [
     "init",
     "status",
+    "rom_update",
     "mode",
     "wan",
     "led",
@@ -196,11 +206,6 @@ class LuciUpdater(DataUpdateCoordinator):
         self.data: dict[str, Any] = {}
         self.devices: dict[str, dict[str, Any]] = {}
 
-        hass.loop.call_later(
-            DEFAULT_CALL_DELAY,
-            lambda: hass.async_create_task(self._async_load_manufacturers()),
-        )
-
     async def async_stop(self) -> None:
         """Stop updater"""
 
@@ -219,32 +224,29 @@ class LuciUpdater(DataUpdateCoordinator):
 
         return timedelta(seconds=self._scan_interval)
 
-    async def update(self, is_force: bool = False, retry: int = 1) -> dict:
+    async def update(self, retry: int = 1) -> dict:
         """Update miwifi information.
 
-        :param is_force: bool: Force relogin
         :param retry: int: Retry count
         :return dict: dict with luci data.
         """
 
+        await self._async_load_manufacturers()
+
+        _is_before_reauthorization: bool = self._is_reauthorization
         _err: LuciException | None = None
 
         try:
-            if self._is_reauthorization or self._is_only_login or is_force:
-                if is_force:
+            if self._is_reauthorization or self._is_only_login or self._is_first_update:
+                if self._is_first_update:
                     await self.luci.logout()
                     await asyncio.sleep(DEFAULT_CALL_DELAY)
 
                 await self.luci.login()
 
-            self.code = codes.OK
-
             for method in PREPARE_METHODS:
-                if not self._is_only_login or is_force or method == "init":
+                if not self._is_only_login or self._is_first_update or method == "init":
                     await self._async_prepare(method, self.data)
-
-            if not self._is_only_login or is_force:
-                self._is_first_update = False
         except LuciConnectionException as _e:
             _err = _e
 
@@ -255,10 +257,24 @@ class LuciUpdater(DataUpdateCoordinator):
 
             self._is_reauthorization = True
             self.code = codes.FORBIDDEN
+        else:
+            self.code = codes.OK
+
+            self._is_reauthorization = False
+
+            if self._is_first_update:
+                self._is_first_update = False
 
         self.data[ATTR_STATE] = codes.is_success(self.code)
 
-        if is_force and not self.data[ATTR_STATE]:
+        if (
+            not self._is_first_update
+            and not _is_before_reauthorization
+            and self._is_reauthorization
+        ):
+            self.data[ATTR_STATE] = True
+
+        if self._is_first_update and not self.data[ATTR_STATE]:
             if retry > DEFAULT_RETRY and _err is not None:
                 raise _err
 
@@ -272,7 +288,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
                 await asyncio.sleep(retry)
 
-                return await self.update(True, retry + 1)
+                return await self.update(retry + 1)
 
         if not self._is_only_login:
             self._clean_devices()
@@ -416,12 +432,11 @@ class LuciUpdater(DataUpdateCoordinator):
 
         response: dict = await self.luci.status()
 
-        if (
-            "hardware" in response
-            and isinstance(response["hardware"], dict)
-            and "mac" in response["hardware"]
-        ):
-            data[ATTR_DEVICE_MAC_ADDRESS] = response["hardware"]["mac"]
+        if "hardware" in response and isinstance(response["hardware"], dict):
+            if "mac" in response["hardware"]:
+                data[ATTR_DEVICE_MAC_ADDRESS] = response["hardware"]["mac"]
+            if "version" in response["hardware"]:
+                data[ATTR_UPDATE_CURRENT_VERSION] = response["hardware"]["version"]
 
         if "upTime" in response:
             data[ATTR_SENSOR_UPTIME] = str(
@@ -452,6 +467,41 @@ class LuciUpdater(DataUpdateCoordinator):
                 response["wan"]["upspeed"]
             ) if "upspeed" in response["wan"] else 0
             # fmt: on
+
+    async def _async_prepare_rom_update(self, data: dict) -> None:
+        """Prepare rom update.
+
+        :param data: dict
+        """
+
+        if ATTR_UPDATE_CURRENT_VERSION not in data:
+            return
+
+        response: dict = await self.luci.rom_update()
+
+        _rom_info: dict = {
+            ATTR_UPDATE_CURRENT_VERSION: data[ATTR_UPDATE_CURRENT_VERSION],
+            ATTR_UPDATE_LATEST_VERSION: data[ATTR_UPDATE_CURRENT_VERSION],
+            ATTR_UPDATE_TITLE: f"{data.get(ATTR_DEVICE_MANUFACTURER, DEFAULT_MANUFACTURER)}"
+            + f" {data.get(ATTR_MODEL, Model.NOT_KNOWN).name}"
+            + f" ({data.get(ATTR_DEVICE_NAME, DEFAULT_NAME)})",
+        }
+
+        if "needUpdate" not in response or response["needUpdate"] != 1:
+            data[ATTR_UPDATE_FIRMWARE] = _rom_info
+
+            return
+
+        try:
+            data[ATTR_UPDATE_FIRMWARE] = _rom_info | {
+                ATTR_UPDATE_LATEST_VERSION: response["version"],
+                ATTR_UPDATE_DOWNLOAD_URL: response["downloadUrl"],
+                ATTR_UPDATE_RELEASE_URL: response["changelogUrl"],
+                ATTR_UPDATE_FILE_SIZE: response["fileSize"],
+                ATTR_UPDATE_FILE_HASH: response["fullHash"],
+            }
+        except KeyError:
+            pass
 
     async def _async_prepare_mode(self, data: dict) -> None:
         """Prepare mode.
@@ -518,9 +568,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
         length: int = 0
 
+        # Support only 5G , 2.4G,  5G Game and Guest
         for wifi in response["info"]:
-            # Support only 5G , 2.4G and 5G Game
-            if "ifname" not in wifi or wifi["ifname"] not in ["wl0", "wl1", "wl2"]:
+            if "ifname" not in wifi:
                 continue
 
             try:
@@ -530,7 +580,10 @@ class LuciUpdater(DataUpdateCoordinator):
 
             if "status" in wifi:
                 data[adapter.phrase] = int(wifi["status"]) > 0  # type: ignore
-                length += 1
+
+                # Guest network is not an adapter
+                if adapter != IfName.WL14:
+                    length += 1
 
             if "channelInfo" in wifi and "channel" in wifi["channelInfo"]:
                 data[f"{adapter.phrase}_channel"] = str(  # type: ignore
@@ -692,7 +745,7 @@ class LuciUpdater(DataUpdateCoordinator):
                     ATTR_TRACKER_ENTRY_ID
                 ]
 
-                self.add_device(device, action=action)
+                self.add_device(device, action=action, integrations=integrations)
 
         if len(add_to) == 0:
             return
@@ -705,7 +758,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
             integrations[_ip][UPDATER].reset_counter(True)
             for device in devices.values():
-                integrations[_ip][UPDATER].add_device(device[0], True, device[1])
+                integrations[_ip][UPDATER].add_device(
+                    device[0], True, device[1], integrations
+                )
 
     async def _async_prepare_device_restore(self, data: dict) -> None:
         """Restore devices
@@ -761,12 +816,14 @@ class LuciUpdater(DataUpdateCoordinator):
         device: dict,
         is_from_parent: bool = False,
         action: DeviceAction = DeviceAction.ADD,
+        integrations: dict[str, Any] | None = None,
     ) -> None:
         """Prepare device.
 
         :param device: dict
         :param is_from_parent: bool: The call came from a third party integration
         :param action: DeviceAction: Device action
+        :param integrations: dict[str, Any]: Integrations list
         """
 
         if ATTR_TRACKER_MAC not in device or (is_from_parent and self.is_force_load):
@@ -822,6 +879,13 @@ class LuciUpdater(DataUpdateCoordinator):
             ATTR_TRACKER_LAST_ACTIVITY: datetime.now()
             .replace(microsecond=0)
             .isoformat(),
+            ATTR_TRACKER_OPTIONAL_MAC: integrations[ip_attr["ip"]][UPDATER].data.get(
+                ATTR_DEVICE_MAC_ADDRESS, None
+            )
+            if integrations is not None
+            and ip_attr is not None
+            and ip_attr["ip"] in integrations
+            else None,
         }
 
         if not is_from_parent and action == DeviceAction.MOVE:
@@ -1017,6 +1081,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
     async def _async_load_manufacturers(self) -> None:
         """Async load _manufacturers"""
+
+        if len(self._manufacturers) > 0:
+            return
 
         self._manufacturers = await self.hass.async_add_executor_job(
             json.load_json,
