@@ -65,6 +65,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         get_config_value(entry, CONF_IS_FORCE_LOAD, False),
         get_config_value(entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS),
         get_store(hass, _ip),
+        entry_id=entry.entry_id,
     )
 
     hass.data.setdefault(DOMAIN, {})
