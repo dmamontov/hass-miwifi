@@ -93,7 +93,7 @@ MIWIFI_SWITCHES: tuple[SwitchEntityDescription, ...] = (
         name=ATTR_SWITCH_WIFI_GUEST_NAME,
         icon=ICONS[f"{ATTR_SWITCH_WIFI_GUEST}_{STATE_ON}"],
         entity_category=EntityCategory.CONFIG,
-        entity_registry_enabled_default=True,
+        entity_registry_enabled_default=False,
     ),
 )
 

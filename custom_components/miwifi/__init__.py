@@ -14,6 +14,7 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP,
 )
 from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE
+from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.storage import Store
 
 from .const import (
@@ -85,6 +86,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         """
 
         await _updater.async_config_entry_first_refresh()
+        if not _updater.last_update_success:
+            if _updater.last_exception is not None:
+                raise PlatformNotReady from _updater.last_exception
+
+            raise PlatformNotReady
 
         if with_sleep:
             await asyncio.sleep(DEFAULT_SLEEP)

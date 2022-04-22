@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Final, Any
 
 from homeassistant.components.camera import ENTITY_ID_FORMAT as CAMERA_ENTITY_ID_FORMAT
 from homeassistant.components.update import (
     ENTITY_ID_FORMAT,
+    ATTR_IN_PROGRESS,
     UpdateEntityDescription,
     UpdateEntity,
     UpdateEntityFeature,
@@ -15,6 +17,7 @@ from homeassistant.components.update import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -40,6 +43,9 @@ from .exceptions import LuciException
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
+FIRMWARE_UPDATE_WAIT: Final = 180
+FIRMWARE_UPDATE_RETRY: Final = 721
+
 ATTR_CHANGES: Final = [
     ATTR_UPDATE_TITLE,
     ATTR_UPDATE_CURRENT_VERSION,
@@ -50,7 +56,16 @@ ATTR_CHANGES: Final = [
     ATTR_UPDATE_FILE_HASH,
 ]
 
-MAP_FEATURE: Final = {ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.INSTALL}
+MAP_FEATURE: Final = {
+    ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.INSTALL
+    | UpdateEntityFeature.RELEASE_NOTES
+}
+
+MAP_NOTES: Final = {
+    ATTR_UPDATE_FIRMWARE: "\n\n<ha-alert alert-type='warning'>"
+    + "The firmware update takes an average of 3 to 15 minutes."
+    + "</ha-alert>\n\n"
+}
 
 MIWIFI_UPDATES: tuple[UpdateEntityDescription, ...] = (
     UpdateEntityDescription(
@@ -200,6 +215,9 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
+        if self.state_attributes.get(ATTR_IN_PROGRESS, False):
+            return
+
         _update_data: dict[str, Any] = self._updater.data.get(
             self.entity_description.key, {}
         )
@@ -237,15 +255,29 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         """Install firmware"""
 
         try:
-            await self._updater.luci.set_wifi(
+            await self._updater.luci.rom_upgrade(
                 {
                     "url": self._update_data.get(ATTR_UPDATE_DOWNLOAD_URL),
                     "filesize": self._update_data.get(ATTR_UPDATE_FILE_SIZE),
                     "hash": self._update_data.get(ATTR_UPDATE_FILE_HASH),
+                    "needpermission": 1,
                 }
             )
         except LuciException as _e:
-            _LOGGER.debug("Install firmware error: %r", _e)
+            raise HomeAssistantError(str(_e)) from _e
+
+        try:
+            await self._updater.luci.flash_permission()
+        except LuciException as _e:
+            _LOGGER.debug("Clear permission error: %r", _e)
+
+        await asyncio.sleep(FIRMWARE_UPDATE_WAIT)
+
+        for _retry in range(1, FIRMWARE_UPDATE_RETRY):
+            if self._updater.data.get(ATTR_STATE, False):
+                break
+
+            await asyncio.sleep(1)
 
     async def async_install(
         self, version: str | None, backup: bool, **kwargs: Any
@@ -261,3 +293,18 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
 
         if action:
             await action()
+
+            self._attr_installed_version = self._attr_latest_version
+
+            self.async_write_ha_state()
+
+    async def async_release_notes(self) -> str | None:
+        """Release notes
+
+        :return str | None: Notes
+        """
+
+        if self.entity_description.key not in MAP_NOTES:
+            return None
+
+        return MAP_NOTES[self.entity_description.key]

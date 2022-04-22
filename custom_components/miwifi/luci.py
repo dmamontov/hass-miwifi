@@ -29,7 +29,7 @@ from .const import (
     DIAGNOSTIC_MESSAGE,
     DIAGNOSTIC_CONTENT,
 )
-from .exceptions import LuciConnectionException, LuciTokenException
+from .exceptions import LuciException, LuciConnectionException, LuciTokenException
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -134,13 +134,18 @@ class LuciClient:
             self._debug("Logout error", _url, _e, _method)
 
     async def get(
-        self, path: str, query_params: dict | None = None, use_stok: bool = True
+        self,
+        path: str,
+        query_params: dict | None = None,
+        use_stok: bool = True,
+        errors: dict[int, str] | None = None,
     ) -> dict:
         """GET method.
 
         :param path: str: api method
         :param query_params: dict | None: Data
         :param use_stok: bool: is use stack
+        :param errors: dict[int, str] | None: errors list
         :return dict: dict with api data.
         """
 
@@ -164,6 +169,9 @@ class LuciClient:
 
         if "code" not in _data or _data["code"] > 0:
             self._debug("Invalid error code received", _url, _data, path)
+
+            if "code" in _data and errors is not None and _data["code"] in errors:
+                raise LuciException(errors[_data["code"]])
 
             raise LuciTokenException("Invalid error code received")
 
@@ -320,7 +328,25 @@ class LuciClient:
         :return dict: dict with api data.
         """
 
-        return await self.get("xqsystem/upgrade_rom", data)
+        return await self.get(
+            "xqsystem/upgrade_rom",
+            data,
+            errors={
+                6: "Download failed",
+                7: "No disk space",
+                8: "Download failed",
+                9: "Upgrade package verification failed",
+                10: "Failed to flash",
+            },
+        )
+
+    async def flash_permission(self) -> dict:
+        """xqsystem/flash_permission method.
+
+        :return dict: dict with api data.
+        """
+
+        return await self.get("xqsystem/flash_permission")
 
     async def image(self, hardware: str) -> bytes | None:
         """router image  method.

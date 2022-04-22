@@ -12,7 +12,6 @@ from typing import Final, Any
 from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant, CALLBACK_TYPE
 import homeassistant.components.persistent_notification as pn
-from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers import event
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -73,6 +72,7 @@ from .const import (
     ATTR_TRACKER_LAST_ACTIVITY,
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
+    ATTR_TRACKER_OPTIONAL_MAC,
     ATTR_UPDATE_FIRMWARE,
     ATTR_UPDATE_TITLE,
     ATTR_UPDATE_CURRENT_VERSION,
@@ -233,6 +233,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         await self._async_load_manufacturers()
 
+        _is_before_reauthorization: bool = self._is_reauthorization
         _err: LuciException | None = None
 
         try:
@@ -243,16 +244,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
                 await self.luci.login()
 
-            self.code = codes.OK
-
             for method in PREPARE_METHODS:
                 if not self._is_only_login or self._is_first_update or method == "init":
                     await self._async_prepare(method, self.data)
-
-            self._is_reauthorization = False
-
-            if self._is_first_update:
-                self._is_first_update = False
         except LuciConnectionException as _e:
             _err = _e
 
@@ -263,12 +257,26 @@ class LuciUpdater(DataUpdateCoordinator):
 
             self._is_reauthorization = True
             self.code = codes.FORBIDDEN
+        else:
+            self.code = codes.OK
+
+            self._is_reauthorization = False
+
+            if self._is_first_update:
+                self._is_first_update = False
 
         self.data[ATTR_STATE] = codes.is_success(self.code)
 
+        if (
+            not self._is_first_update
+            and not _is_before_reauthorization
+            and self._is_reauthorization
+        ):
+            self.data[ATTR_STATE] = True
+
         if self._is_first_update and not self.data[ATTR_STATE]:
             if retry > DEFAULT_RETRY and _err is not None:
-                raise PlatformNotReady from _err
+                raise _err
 
             if retry <= DEFAULT_RETRY:
                 _LOGGER.warning(
@@ -737,7 +745,7 @@ class LuciUpdater(DataUpdateCoordinator):
                     ATTR_TRACKER_ENTRY_ID
                 ]
 
-                self.add_device(device, action=action)
+                self.add_device(device, action=action, integrations=integrations)
 
         if len(add_to) == 0:
             return
@@ -750,7 +758,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
             integrations[_ip][UPDATER].reset_counter(True)
             for device in devices.values():
-                integrations[_ip][UPDATER].add_device(device[0], True, device[1])
+                integrations[_ip][UPDATER].add_device(
+                    device[0], True, device[1], integrations
+                )
 
     async def _async_prepare_device_restore(self, data: dict) -> None:
         """Restore devices
@@ -806,12 +816,14 @@ class LuciUpdater(DataUpdateCoordinator):
         device: dict,
         is_from_parent: bool = False,
         action: DeviceAction = DeviceAction.ADD,
+        integrations: dict[str, Any] | None = None,
     ) -> None:
         """Prepare device.
 
         :param device: dict
         :param is_from_parent: bool: The call came from a third party integration
         :param action: DeviceAction: Device action
+        :param integrations: dict[str, Any]: Integrations list
         """
 
         if ATTR_TRACKER_MAC not in device or (is_from_parent and self.is_force_load):
@@ -867,6 +879,13 @@ class LuciUpdater(DataUpdateCoordinator):
             ATTR_TRACKER_LAST_ACTIVITY: datetime.now()
             .replace(microsecond=0)
             .isoformat(),
+            ATTR_TRACKER_OPTIONAL_MAC: integrations[ip_attr["ip"]][UPDATER].data.get(
+                ATTR_DEVICE_MAC_ADDRESS, None
+            )
+            if integrations is not None
+            and ip_attr is not None
+            and ip_attr["ip"] in integrations
+            else None,
         }
 
         if not is_from_parent and action == DeviceAction.MOVE:

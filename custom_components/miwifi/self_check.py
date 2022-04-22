@@ -43,10 +43,11 @@ async def async_self_check(hass: HomeAssistant, client: LuciClient, model: str) 
     data = {
         "xqsystem/login": "🟢",
         "xqsystem/init_info": "🟢",
-        "xqsystem/reboot": "🟢",
-        "xqnetwork/set_wifi": "🟢",
-        "xqnetwork/set_wifi_without_restart": "🟢",
-        "xqsystem/upgrade_rom": "🟢",
+        "xqsystem/reboot": "⚪",
+        "xqnetwork/set_wifi": "⚪",
+        "xqnetwork/set_wifi_without_restart": "⚪",
+        "xqsystem/upgrade_rom": "⚪",
+        "xqsystem/flash_permission": "⚪",
     }
 
     for code, method in SELF_CHECK_METHODS.items():
