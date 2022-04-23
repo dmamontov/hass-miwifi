@@ -238,12 +238,14 @@ class LuciUpdater(DataUpdateCoordinator):
 
         await self._async_load_manufacturers()
 
+        self.code = codes.OK
+
         _is_before_reauthorization: bool = self._is_reauthorization
         _err: LuciException | None = None
 
         try:
             if self._is_reauthorization or self._is_only_login or self._is_first_update:
-                if self._is_first_update:
+                if self._is_first_update and retry == 1:
                     await self.luci.logout()
                     await asyncio.sleep(DEFAULT_CALL_DELAY)
 
@@ -263,8 +265,6 @@ class LuciUpdater(DataUpdateCoordinator):
             self._is_reauthorization = True
             self.code = codes.FORBIDDEN
         else:
-            self.code = codes.OK
-
             self._is_reauthorization = False
 
             if self._is_first_update:
@@ -279,7 +279,11 @@ class LuciUpdater(DataUpdateCoordinator):
         ):
             self.data[ATTR_STATE] = True
 
-        if self._is_first_update and not self.data[ATTR_STATE]:
+        if (
+            not self._is_only_login
+            and self._is_first_update
+            and not self.data[ATTR_STATE]
+        ):
             if retry > DEFAULT_RETRY and _err is not None:
                 raise _err
 
@@ -403,6 +407,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
                 self.code = codes.CONFLICT
 
+                return
+
             data[ATTR_CAMERA_IMAGE] = await self.luci.image(response["hardware"])
 
             return
@@ -467,8 +473,6 @@ class LuciUpdater(DataUpdateCoordinator):
         if ATTR_UPDATE_CURRENT_VERSION not in data:
             return
 
-        response: dict = await self.luci.rom_update()
-
         _rom_info: dict = {
             ATTR_UPDATE_CURRENT_VERSION: data[ATTR_UPDATE_CURRENT_VERSION],
             ATTR_UPDATE_LATEST_VERSION: data[ATTR_UPDATE_CURRENT_VERSION],
@@ -477,7 +481,16 @@ class LuciUpdater(DataUpdateCoordinator):
             + f" ({data.get(ATTR_DEVICE_NAME, DEFAULT_NAME)})",
         }
 
-        if "needUpdate" not in response or response["needUpdate"] != 1:
+        try:
+            response: dict = await self.luci.rom_update()
+        except LuciException:
+            response = {}
+
+        if (
+            not isinstance(response, dict)
+            or "needUpdate" not in response
+            or response["needUpdate"] != 1
+        ):
             data[ATTR_UPDATE_FIRMWARE] = _rom_info
 
             return
@@ -549,7 +562,7 @@ class LuciUpdater(DataUpdateCoordinator):
         response: dict = await self.luci.wifi_detail_all()
 
         if "bsd" in response:
-            data[ATTR_BINARY_SENSOR_DUAL_BAND] = response["bsd"] == 1
+            data[ATTR_BINARY_SENSOR_DUAL_BAND] = int(response["bsd"]) == 1
         else:
             data[ATTR_BINARY_SENSOR_DUAL_BAND] = False
 
@@ -587,7 +600,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
             for data_field, field in ATTR_WIFI_DATA_FIELDS.items():
                 if "channelInfo" in data_field and "channelInfo" in wifi:
-                    data_field = data_field.replace("channelInfo", "")
+                    data_field = data_field.replace("channelInfo.", "")
 
                     if data_field in wifi["channelInfo"]:
                         wifi_data[field] = wifi["channelInfo"][data_field]

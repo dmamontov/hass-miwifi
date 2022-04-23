@@ -1,0 +1,17 @@
+{
+  "romversion": "1.0.0",
+  "countrycode": "CN",
+  "code": 0,
+  "id": "**REDACTED**",
+  "routername": "XIAOMI R1D",
+  "inited": 1,
+  "connect": 0,
+  "routerId": "**REDACTED**",
+  "model": "xiaomi.router.r1d",
+  "hardware": "R1D",
+  "bound": 0,
+  "language": "cn",
+  "modules": {
+    "replacement_assistant": "1"
+  }
+}

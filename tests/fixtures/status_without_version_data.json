@@ -1,0 +1,51 @@
+{
+  "dev": [
+    {
+      "mac": "00:00:00:00:00:00",
+      "maxdownloadspeed": "30541116",
+      "isap": 0,
+      "upload": "1128085312",
+      "upspeed": "11",
+      "downspeed": "0",
+      "online": "389",
+      "devname": "Phone",
+      "maxuploadspeed": "13220423",
+      "download": "2382101445"
+    }
+  ],
+  "code": 0,
+  "mem": {
+    "usage": 0.53,
+    "total": "256MB",
+    "hz": "1333MHz",
+    "type": "DDR3"
+  },
+  "temperature": 0,
+  "count": {
+    "all_without_mash": 41,
+    "online": 23,
+    "all": 42,
+    "online_without_mash": 23
+  },
+  "hardware": {
+    "mac": "00:00:00:00:00:00",
+    "platform": "RA67",
+    "channel": "release",
+    "sn": "29543/F0SW88385"
+  },
+  "upTime": "29186.96",
+  "cpu": {
+    "core": 4,
+    "hz": "716MHz",
+    "load": 0
+  },
+  "wan": {
+    "downspeed": "225064",
+    "maxdownloadspeed": "30541558",
+    "devname": "nil",
+    "upload": "1314095390",
+    "upspeed": "19276",
+    "maxuploadspeed": "13221942",
+    "download": "3855068297"
+  }
+}

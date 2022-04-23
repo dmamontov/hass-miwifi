@@ -162,7 +162,7 @@ class LuciClient:
             self._debug("Successful request", _url, response.content, path)
 
             _data: dict = json.loads(response.content)
-        except (HTTPError, ValueError, TypeError) as _e:
+        except (HTTPError, ValueError, TypeError, json.JSONDecodeError) as _e:
             self._debug("Connection error", _url, _e, path)
 
             raise LuciConnectionException("Connection error") from _e
