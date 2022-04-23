@@ -1,0 +1,17 @@
+{
+  "romversion": "1.0.0",
+  "countrycode": "CN",
+  "code": 0,
+  "id": "**REDACTED**",
+  "routername": "XIAOMI NEW",
+  "inited": 1,
+  "connect": 0,
+  "routerId": "**REDACTED**",
+  "model": "xiaomi.router.ra999",
+  "hardware": "RA999",
+  "bound": 0,
+  "language": "cn",
+  "modules": {
+    "replacement_assistant": "1"
+  }
+}
