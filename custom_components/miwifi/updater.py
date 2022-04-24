@@ -143,6 +143,7 @@ class LuciUpdater(DataUpdateCoordinator):
     ip: str
     new_device_callback: CALLBACK_TYPE | None = None
     is_force_load: bool = False
+    is_support_guest_wifi: bool = True
 
     _manufacturers: dict[str, str] = {}
 
@@ -566,13 +567,33 @@ class LuciUpdater(DataUpdateCoordinator):
         else:
             data[ATTR_BINARY_SENSOR_DUAL_BAND] = False
 
-        if "info" not in response:
+        if "info" not in response and len(response["info"]) == 0:
             return
+
+        _adapters: list = response["info"]
+
+        if self.is_support_guest_wifi:
+            try:
+                response_diag = await self.luci.wifi_diag_detail_all()
+
+                if "info" in response_diag and len(response_diag["info"]) > len(
+                    _adapters
+                ):
+                    _adapters += [
+                        _adapter
+                        for _adapter in response_diag["info"]
+                        if "ifname" in _adapter
+                        and _adapter["ifname"] == IfName.WL14.value
+                    ]
+                else:
+                    self.is_support_guest_wifi = False
+            except LuciException:
+                self.is_support_guest_wifi = False
 
         length: int = 0
 
         # Support only 5G , 2.4G,  5G Game and Guest
-        for wifi in response["info"]:
+        for wifi in _adapters:
             if "ifname" not in wifi:
                 continue
 

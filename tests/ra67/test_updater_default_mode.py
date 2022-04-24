@@ -124,6 +124,13 @@ async def test_updater(hass: HomeAssistant) -> None:
         "on": "1",
         "txbf": "3",
     }
+    assert not updater.data["wifi_guest"]
+    assert updater.data["wifi_guest_data"] == {
+        "ssid": "**REDACTED**",
+        "pwd": "**REDACTED**",
+        "encryption": "none",
+        "on": 0,
+    }
     assert updater.data["wifi_adapter_length"] == 2
     assert updater.data["wifi_2_4_channels"] == [
         "1",
@@ -208,4 +215,4 @@ async def test_updater(hass: HomeAssistant) -> None:
     }
 
     assert len(mock_async_dispatcher_send.mock_calls) == 3
-    assert len(mock_luci_client.mock_calls) == 16
+    assert len(mock_luci_client.mock_calls) == 17
