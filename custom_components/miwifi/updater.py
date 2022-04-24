@@ -1076,6 +1076,21 @@ class LuciUpdater(DataUpdateCoordinator):
         self.data[ATTR_SENSOR_DEVICES_5_0] = 0
         self.data[ATTR_SENSOR_DEVICES_5_0_GAME] = 0
 
+    async def async_remove_device(self, mac: str) -> None:
+        """Async remove device
+
+        :param mac: str
+        """
+
+        integrations: dict[str, dict] = self.get_integrations()
+
+        for integration in integrations.values():
+            if UPDATER not in integration:
+                continue
+
+            if mac in integration[UPDATER].devices:
+                del integration[UPDATER].devices[mac]
+
     async def _async_load_devices(self) -> dict | None:
         """Async load devices from Store"""
 
