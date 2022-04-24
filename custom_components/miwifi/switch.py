@@ -125,6 +125,9 @@ async def async_setup_entry(
         if (
             description.key == ATTR_SWITCH_WIFI_5_0_GAME
             and updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) != 3
+        ) or (
+            description.key == ATTR_SWITCH_WIFI_GUEST
+            and not updater.is_support_guest_wifi
         ):
             continue
 
