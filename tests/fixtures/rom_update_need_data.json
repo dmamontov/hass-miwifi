@@ -1,0 +1,14 @@
+{
+  "needUpdate": 1,
+  "code": 0,
+  "status": {
+    "status": 0,
+    "percent": 0
+  },
+  "changeLog": "",
+  "version": "3.0.35",
+  "downloadUrl": "https://miwifi.com/download",
+  "changelogUrl": "https://miwifi.com/changelog",
+  "fileSize": 10,
+  "fullHash": "12345"
+}

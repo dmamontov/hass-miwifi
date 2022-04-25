@@ -23,8 +23,56 @@ from custom_components.miwifi.const import (
     DEFAULT_ACTIVITY_DAYS,
     DEFAULT_NAME,
     DEFAULT_MANUFACTURER,
+    ATTR_STATE,
+    ATTR_MODEL,
+    ATTR_DEVICE_MODEL,
+    ATTR_DEVICE_MANUFACTURER,
+    ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_DEVICE_NAME,
+    ATTR_DEVICE_SW_VERSION,
+    ATTR_BINARY_SENSOR_WAN_STATE,
+    ATTR_BINARY_SENSOR_DUAL_BAND,
+    ATTR_SENSOR_UPTIME,
+    ATTR_SENSOR_MEMORY_USAGE,
+    ATTR_SENSOR_MEMORY_TOTAL,
+    ATTR_SENSOR_TEMPERATURE,
+    ATTR_SENSOR_MODE,
+    ATTR_SENSOR_AP_SIGNAL,
+    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
+    ATTR_SENSOR_WAN_UPLOAD_SPEED,
+    ATTR_SENSOR_DEVICES,
+    ATTR_SENSOR_DEVICES_LAN,
+    ATTR_SENSOR_DEVICES_GUEST,
+    ATTR_SENSOR_DEVICES_2_4,
+    ATTR_SENSOR_DEVICES_5_0,
+    ATTR_SENSOR_DEVICES_5_0_GAME,
+    ATTR_CAMERA_IMAGE,
+    ATTR_LIGHT_LED,
+    ATTR_WIFI_DATA_FIELDS,
+    ATTR_WIFI_ADAPTER_LENGTH,
+    ATTR_TRACKER_ENTRY_ID,
+    ATTR_TRACKER_UPDATER_ENTRY_ID,
+    ATTR_TRACKER_MAC,
+    ATTR_TRACKER_ROUTER_MAC_ADDRESS,
+    ATTR_TRACKER_SIGNAL,
+    ATTR_TRACKER_NAME,
+    ATTR_TRACKER_CONNECTION,
+    ATTR_TRACKER_IP,
+    ATTR_TRACKER_ONLINE,
+    ATTR_TRACKER_LAST_ACTIVITY,
+    ATTR_TRACKER_DOWN_SPEED,
+    ATTR_TRACKER_UP_SPEED,
+    ATTR_TRACKER_OPTIONAL_MAC,
+    ATTR_UPDATE_FIRMWARE,
+    ATTR_UPDATE_TITLE,
     ATTR_UPDATE_CURRENT_VERSION,
+    ATTR_UPDATE_LATEST_VERSION,
+    ATTR_UPDATE_RELEASE_URL,
+    ATTR_UPDATE_DOWNLOAD_URL,
+    ATTR_UPDATE_FILE_SIZE,
+    ATTR_UPDATE_FILE_HASH,
 )
+from custom_components.miwifi.enum import Mode
 from custom_components.miwifi.exceptions import (
     LuciException,
     LuciTokenException,
@@ -312,3 +360,176 @@ async def test_updater_without_version_info(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
     assert ATTR_UPDATE_CURRENT_VERSION not in updater.data
+
+
+async def test_updater_raise_rom_update(hass: HomeAssistant) -> None:
+    """Test updater raise rom update.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.rom_update = AsyncMock(side_effect=LuciException)
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+        await hass.async_block_till_done()
+
+    assert updater.data[ATTR_UPDATE_FIRMWARE] == {
+        ATTR_UPDATE_CURRENT_VERSION: "3.0.34",
+        ATTR_UPDATE_LATEST_VERSION: "3.0.34",
+        ATTR_UPDATE_TITLE: "Xiaomi RA67 (XIAOMI RA67)",
+    }
+
+
+async def test_updater_need_rom_update(hass: HomeAssistant) -> None:
+    """Test updater need rom update.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.rom_update = AsyncMock(
+            return_value=json.loads(load_fixture("rom_update_need_data.json"))
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+        await hass.async_block_till_done()
+
+    assert updater.data[ATTR_UPDATE_FIRMWARE] == {
+        ATTR_UPDATE_CURRENT_VERSION: "3.0.34",
+        ATTR_UPDATE_LATEST_VERSION: "3.0.35",
+        ATTR_UPDATE_TITLE: "Xiaomi RA67 (XIAOMI RA67)",
+        ATTR_UPDATE_DOWNLOAD_URL: "https://miwifi.com/download",
+        ATTR_UPDATE_RELEASE_URL: "https://miwifi.com/changelog",
+        ATTR_UPDATE_FILE_SIZE: 10,
+        ATTR_UPDATE_FILE_HASH: "12345",
+    }
+
+
+async def test_updater_key_error_rom_update(hass: HomeAssistant) -> None:
+    """Test updater key error rom update.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.rom_update = AsyncMock(
+            return_value=json.loads(load_fixture("rom_update_key_error_data.json"))
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert ATTR_UPDATE_FIRMWARE not in updater.data
+
+
+async def test_updater_skip_mode_mesh(hass: HomeAssistant) -> None:
+    """Test updater key error rom update.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+        updater.data[ATTR_SENSOR_MODE] = Mode.MESH
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert updater.data[ATTR_SENSOR_MODE] == Mode.MESH
+
+
+async def test_updater_value_error_mode(hass: HomeAssistant) -> None:
+    """Test updater value error mode.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.mode = AsyncMock(
+            return_value=json.loads(load_fixture("mode_value_error_data.json"))
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert updater.data[ATTR_SENSOR_MODE] == Mode.DEFAULT
+
+
+async def test_updater_incorrect_wan_info(hass: HomeAssistant) -> None:
+    """Test updater incorrect wan info.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.wan_info = AsyncMock(
+            return_value=json.loads(load_fixture("wan_info_incorrect_data.json"))
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert not updater.data[ATTR_BINARY_SENSOR_WAN_STATE]
+
+
+async def test_updater_incorrect_led(hass: HomeAssistant) -> None:
+    """Test updater incorrect led.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.led = AsyncMock(
+            return_value=json.loads(load_fixture("led_incorrect_data.json"))
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert not updater.data[ATTR_LIGHT_LED]

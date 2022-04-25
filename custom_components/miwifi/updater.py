@@ -521,8 +521,12 @@ class LuciUpdater(DataUpdateCoordinator):
         if "mode" in response:
             try:
                 data[ATTR_SENSOR_MODE] = Mode(int(response["mode"]))
+
+                return
             except ValueError:
                 pass
+
+        data[ATTR_SENSOR_MODE] = Mode.DEFAULT
 
     async def _async_prepare_wan(self, data: dict) -> None:
         """Prepare mode.
@@ -538,8 +542,10 @@ class LuciUpdater(DataUpdateCoordinator):
             and "uptime" in response["info"]
         ):
             data[ATTR_BINARY_SENSOR_WAN_STATE] = response["info"]["uptime"] > 0
-        else:
-            data[ATTR_BINARY_SENSOR_WAN_STATE] = False
+
+            return
+
+        data[ATTR_BINARY_SENSOR_WAN_STATE] = False
 
     async def _async_prepare_led(self, data: dict) -> None:
         """Prepare led.
@@ -551,8 +557,10 @@ class LuciUpdater(DataUpdateCoordinator):
 
         if "status" in response:
             data[ATTR_LIGHT_LED] = response["status"] == 1
-        else:
-            data[ATTR_LIGHT_LED] = False
+
+            return
+
+        data[ATTR_LIGHT_LED] = False
 
     async def _async_prepare_wifi(self, data: dict) -> None:
         """Prepare wifi.
