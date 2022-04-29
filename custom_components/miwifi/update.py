@@ -176,18 +176,7 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
 
         await CoordinatorEntity.async_added_to_hass(self)
 
-        _camera_state = self.hass.states.get(
-            generate_entity_id(
-                CAMERA_ENTITY_ID_FORMAT,
-                self._updater.data.get(ATTR_DEVICE_MAC_ADDRESS, self._updater.ip),
-                ATTR_CAMERA_IMAGE_NAME,
-            )
-        )
-
-        if not _camera_state:
-            return
-
-        self._attr_entity_picture = _camera_state.attributes.get("entity_picture", None)
+        self._attr_entity_picture = self._update_picture()
 
     @property
     def available(self) -> bool:
@@ -223,9 +212,11 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         )
 
         # fmt: off
-        is_available = self._updater.data.get(ATTR_STATE, False) \
+        is_available: bool = self._updater.data.get(ATTR_STATE, False) \
             and len(_update_data) > 0
         # fmt: on
+
+        entity_picture: str | None = self._update_picture()
 
         is_update = False
         for attr in ATTR_CHANGES:
@@ -234,10 +225,15 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
 
                 break
 
-        if self._attr_available == is_available and not is_update:  # type: ignore
+        if (
+            self._attr_available == is_available
+            and not is_update
+            and entity_picture == self._attr_entity_picture
+        ):  # type: ignore
             return
 
         self._attr_available = is_available
+        self._attr_entity_picture = entity_picture
         self._update_data = _update_data
 
         self._attr_title = self._update_data.get(ATTR_UPDATE_TITLE, None)
@@ -308,3 +304,19 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
             return None
 
         return MAP_NOTES[self.entity_description.key]
+
+    def _update_picture(self) -> str | None:
+        """Update entity picture"""
+
+        _camera_state = self.hass.states.get(
+            generate_entity_id(
+                CAMERA_ENTITY_ID_FORMAT,
+                self._updater.data.get(ATTR_DEVICE_MAC_ADDRESS, self._updater.ip),
+                ATTR_CAMERA_IMAGE_NAME,
+            )
+        )
+
+        if not _camera_state:
+            return None
+
+        return _camera_state.attributes.get("entity_picture", None)
