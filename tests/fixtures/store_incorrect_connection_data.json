@@ -1,0 +1,62 @@
+{
+  "00:00:00:00:00:01": {
+    "entry_id": "eb0018e644fa16b2320cbc90a4f6584c",
+    "updater_entry_id": "eb0018e644fa16b2320cbc90a4f6584c",
+    "mac": "00:00:00:00:00:01",
+    "router_mac": "00:00:00:00:00:00",
+    "signal": 100,
+    "name": "Device 1",
+    "ip": "192.168.31.2",
+    "connection": 1,
+    "down_speed": 0.0,
+    "up_speed": 0.0,
+    "online": "8:05:01",
+    "last_activity": "2022-04-25T22:33:39",
+    "optional_mac": null
+  },
+  "00:00:00:00:00:02": {
+    "entry_id": "eb0018e644fa16b2320cbc90a4f6584c",
+    "updater_entry_id": "eb0018e644fa16b2320cbc90a4f6584c",
+    "mac": "00:00:00:00:00:02",
+    "router_mac": "00:00:00:00:00:00",
+    "signal": 100,
+    "name": "Device 2",
+    "ip": "192.168.31.3",
+    "connection": 2,
+    "down_speed": 0.0,
+    "up_speed": 0.0,
+    "online": "8:05:01",
+    "last_activity": "2022-04-25T22:33:39",
+    "optional_mac": null
+  },
+  "00:00:00:00:00:03": {
+    "entry_id": "eb0018e644fa16b2320cbc90a4f6584c",
+    "updater_entry_id": "eb0018e644fa16b2320cbc90a4f6584c",
+    "mac": "00:00:00:00:00:03",
+    "router_mac": "00:00:00:00:00:00",
+    "signal": null,
+    "name": "Device 3",
+    "ip": "192.168.31.4",
+    "connection": 0,
+    "down_speed": 0.0,
+    "up_speed": 0.0,
+    "online": "8:05:01",
+    "last_activity": "2022-04-25T22:33:39",
+    "optional_mac": null
+  },
+  "00:00:00:00:00:05": {
+    "entry_id": "eb0018e644fa16b2320cbc90a4f6584c",
+    "updater_entry_id": "eb0018e644fa16b2320cbc90a4f6584c",
+    "mac": "00:00:00:00:00:05",
+    "router_mac": "00:00:00:00:00:00",
+    "signal": null,
+    "name": "Device 5",
+    "ip": "192.168.31.55",
+    "connection": 99,
+    "down_speed": 0.0,
+    "up_speed": 0.0,
+    "online": "8:05:01",
+    "last_activity": "2022-04-25T22:33:39",
+    "optional_mac": null
+  }
+}

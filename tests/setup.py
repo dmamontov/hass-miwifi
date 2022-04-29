@@ -46,15 +46,23 @@ OPTIONS_FLOW_DATA: Final = {
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass: HomeAssistant) -> list:
+async def async_setup(
+    hass: HomeAssistant,
+    ip: str = MOCK_IP_ADDRESS,
+    without_store: bool = False,
+    activity_days: int = 0,
+) -> list:
     """Setup.
 
     :param hass: HomeAssistant
+    :param ip: str
+    :param without_store: bool
+    :param activity_days: int
     """
 
     config_entry = MockConfigEntry(
         domain=DOMAIN,
-        data=OPTIONS_FLOW_DATA,
+        data=OPTIONS_FLOW_DATA | {CONF_IP_ADDRESS: ip},
         options={},
     )
     config_entry.add_to_hass(hass)
@@ -63,13 +71,13 @@ async def async_setup(hass: HomeAssistant) -> list:
 
     updater: LuciUpdater = LuciUpdater(
         hass,
-        MOCK_IP_ADDRESS,
+        ip,
         get_config_value(config_entry, CONF_PASSWORD),
         get_config_value(config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         get_config_value(config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT),
         get_config_value(config_entry, CONF_IS_FORCE_LOAD, False),
-        get_config_value(config_entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS),
-        get_store(hass, MOCK_IP_ADDRESS),
+        activity_days,
+        get_store(hass, ip) if not without_store else None,
         entry_id=config_entry.entry_id,
     )
 
@@ -88,7 +96,7 @@ async def async_setup(hass: HomeAssistant) -> list:
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][config_entry.entry_id] = {
-        CONF_IP_ADDRESS: MOCK_IP_ADDRESS,
+        CONF_IP_ADDRESS: ip,
         UPDATER: updater,
         RELOAD_ENTRY: False,
     }
@@ -147,6 +155,12 @@ async def async_mock_luci_client(mock_luci_client) -> None:
 
     mock_luci_client.return_value.avaliable_channels = AsyncMock(
         side_effect=mock_avaliable_channels
+    )
+    mock_luci_client.return_value.new_status = AsyncMock(
+        return_value=json.loads(load_fixture("new_status_data.json"))
+    )
+    mock_luci_client.return_value.wifi_ap_signal = AsyncMock(
+        return_value=json.loads(load_fixture("wifi_ap_signal_data.json"))
     )
 
 

@@ -1,7 +1,7 @@
 {
   "dev": [
     {
-      "mac": "00:00:00:00:00:00",
+      "mac": "01:00:00:00:00:00",
       "maxdownloadspeed": "30541116",
       "isap": 0,
       "upload": "1128085312",
@@ -28,7 +28,7 @@
     "online_without_mash": 23
   },
   "hardware": {
-    "mac": "00:00:00:00:00:00",
+    "mac": "01:00:00:00:00:00",
     "platform": "RA67",
     "version": "3.0.34",
     "channel": "release",

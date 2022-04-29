@@ -7,8 +7,8 @@
     },
     {
       "mac": "00:00:00:00:00:02",
-      "wifiIndex": 2,
-      "signal": 100
+      "signal": 100,
+      "wifiIndex": 9
     }
   ],
   "code": 0

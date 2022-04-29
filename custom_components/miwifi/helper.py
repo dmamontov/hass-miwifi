@@ -14,7 +14,7 @@ from homeassistant.loader import async_get_integration
 from homeassistant.util import slugify
 from httpx import codes
 
-from .const import DOMAIN, STORAGE_VERSION, DEFAULT_TIMEOUT
+from .const import DOMAIN, STORAGE_VERSION, DEFAULT_TIMEOUT, MANUFACTURERS
 from .updater import LuciUpdater
 
 
@@ -124,3 +124,18 @@ def pretty_size(speed: float) -> str:
     _p = math.pow(1024, _i)
 
     return f"{round(speed / _p, 2)} {_unit[_i]}"
+
+
+def detect_manufacturer(mac: str | None) -> str | None:
+    """Get manufacturer by mac address
+
+    :param mac: str | None: Mac address
+    :return str | None: Manufacturer
+    """
+
+    if mac is None:
+        return None
+
+    identifier: str = mac.replace(":", "").upper()[0:6]
+
+    return MANUFACTURERS[identifier] if identifier in MANUFACTURERS else None

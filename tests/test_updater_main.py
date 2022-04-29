@@ -18,51 +18,14 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.miwifi.const import (
     DOMAIN,
-    ATTR_STATE,
     DEFAULT_SCAN_INTERVAL,
-    DEFAULT_ACTIVITY_DAYS,
     DEFAULT_NAME,
     DEFAULT_MANUFACTURER,
     ATTR_STATE,
-    ATTR_MODEL,
-    ATTR_DEVICE_MODEL,
-    ATTR_DEVICE_MANUFACTURER,
-    ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_DEVICE_NAME,
-    ATTR_DEVICE_SW_VERSION,
     ATTR_BINARY_SENSOR_WAN_STATE,
     ATTR_BINARY_SENSOR_DUAL_BAND,
-    ATTR_SENSOR_UPTIME,
-    ATTR_SENSOR_MEMORY_USAGE,
-    ATTR_SENSOR_MEMORY_TOTAL,
-    ATTR_SENSOR_TEMPERATURE,
     ATTR_SENSOR_MODE,
-    ATTR_SENSOR_AP_SIGNAL,
-    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
-    ATTR_SENSOR_WAN_UPLOAD_SPEED,
-    ATTR_SENSOR_DEVICES,
-    ATTR_SENSOR_DEVICES_LAN,
-    ATTR_SENSOR_DEVICES_GUEST,
-    ATTR_SENSOR_DEVICES_2_4,
-    ATTR_SENSOR_DEVICES_5_0,
-    ATTR_SENSOR_DEVICES_5_0_GAME,
-    ATTR_CAMERA_IMAGE,
     ATTR_LIGHT_LED,
-    ATTR_WIFI_DATA_FIELDS,
-    ATTR_WIFI_ADAPTER_LENGTH,
-    ATTR_TRACKER_ENTRY_ID,
-    ATTR_TRACKER_UPDATER_ENTRY_ID,
-    ATTR_TRACKER_MAC,
-    ATTR_TRACKER_ROUTER_MAC_ADDRESS,
-    ATTR_TRACKER_SIGNAL,
-    ATTR_TRACKER_NAME,
-    ATTR_TRACKER_CONNECTION,
-    ATTR_TRACKER_IP,
-    ATTR_TRACKER_ONLINE,
-    ATTR_TRACKER_LAST_ACTIVITY,
-    ATTR_TRACKER_DOWN_SPEED,
-    ATTR_TRACKER_UP_SPEED,
-    ATTR_TRACKER_OPTIONAL_MAC,
     ATTR_UPDATE_FIRMWARE,
     ATTR_UPDATE_TITLE,
     ATTR_UPDATE_CURRENT_VERSION,
@@ -71,6 +34,22 @@ from custom_components.miwifi.const import (
     ATTR_UPDATE_DOWNLOAD_URL,
     ATTR_UPDATE_FILE_SIZE,
     ATTR_UPDATE_FILE_HASH,
+    ATTR_SWITCH_WIFI_2_4,
+    ATTR_WIFI_2_4_DATA,
+    ATTR_SWITCH_WIFI_5_0,
+    ATTR_WIFI_5_0_DATA,
+    ATTR_SWITCH_WIFI_5_0_GAME,
+    ATTR_WIFI_5_0_GAME_DATA,
+    ATTR_SWITCH_WIFI_GUEST,
+    ATTR_WIFI_GUEST_DATA,
+    ATTR_SELECT_WIFI_2_4_CHANNEL,
+    ATTR_SELECT_WIFI_2_4_CHANNELS,
+    ATTR_SELECT_WIFI_5_0_CHANNEL,
+    ATTR_SELECT_WIFI_5_0_CHANNELS,
+    ATTR_SELECT_WIFI_5_0_GAME_CHANNEL,
+    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
+    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
+    ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
 )
 from custom_components.miwifi.enum import Mode
 from custom_components.miwifi.exceptions import (
@@ -119,7 +98,7 @@ async def test_updater(hass: HomeAssistant) -> None:
     assert isinstance(updater._store, Store)
     assert updater._entry_id == config_entry.entry_id
     assert updater._scan_interval == DEFAULT_SCAN_INTERVAL
-    assert updater._activity_days == DEFAULT_ACTIVITY_DAYS
+    assert updater._activity_days == 0
     assert not updater._is_only_login
     assert isinstance(updater.data, dict)
     assert len(updater.data) == 0
@@ -127,8 +106,6 @@ async def test_updater(hass: HomeAssistant) -> None:
     assert len(updater.devices) == 0
     assert updater.code == codes.BAD_GATEWAY
     assert updater.new_device_callback is not None
-    assert isinstance(updater._manufacturers, dict)
-    assert len(updater._manufacturers) == 0
     assert updater._is_reauthorization
     assert updater._is_first_update
     assert isinstance(updater._signals, dict)
@@ -533,3 +510,243 @@ async def test_updater_incorrect_led(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
     assert not updater.data[ATTR_LIGHT_LED]
+
+
+async def test_updater_undefined_bsd_wifi_info(hass: HomeAssistant) -> None:
+    """Test updater undefined bsd wifi info.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.wifi_detail_all = AsyncMock(
+            return_value=json.loads(
+                load_fixture("wifi_detail_all_undefined_bsd_data.json")
+            )
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert not updater.data[ATTR_BINARY_SENSOR_DUAL_BAND]
+
+
+async def test_updater_empty_wifi_info(hass: HomeAssistant) -> None:
+    """Test updater empty wifi info.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.wifi_detail_all = AsyncMock(
+            return_value=json.loads(load_fixture("wifi_detail_all_empty_data.json"))
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert ATTR_SWITCH_WIFI_2_4 not in updater.data
+    assert ATTR_WIFI_2_4_DATA not in updater.data
+    assert ATTR_SWITCH_WIFI_5_0 not in updater.data
+    assert ATTR_WIFI_5_0_DATA not in updater.data
+    assert ATTR_SWITCH_WIFI_5_0_GAME not in updater.data
+    assert ATTR_WIFI_5_0_GAME_DATA not in updater.data
+    assert ATTR_SWITCH_WIFI_GUEST not in updater.data
+    assert ATTR_WIFI_GUEST_DATA not in updater.data
+
+    assert ATTR_SELECT_WIFI_2_4_CHANNEL not in updater.data
+    assert ATTR_SELECT_WIFI_5_0_CHANNEL not in updater.data
+    assert ATTR_SELECT_WIFI_5_0_GAME_CHANNEL not in updater.data
+
+    assert ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH not in updater.data
+    assert ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH not in updater.data
+    assert ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH not in updater.data
+
+
+async def test_updater_unsupported_guest_wifi_info(hass: HomeAssistant) -> None:
+    """Test updater unsupported guest wifi info.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.wifi_diag_detail_all = AsyncMock(
+            return_value=json.loads(
+                load_fixture("wifi_diag_detail_all_unsupported_guest_data.json")
+            )
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert ATTR_SWITCH_WIFI_GUEST not in updater.data
+    assert ATTR_WIFI_GUEST_DATA not in updater.data
+    assert not updater.is_support_guest_wifi
+
+
+async def test_updater_error_guest_wifi_info(hass: HomeAssistant) -> None:
+    """Test updater error guest wifi info.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.wifi_diag_detail_all = AsyncMock(
+            side_effect=LuciException
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert ATTR_SWITCH_WIFI_GUEST not in updater.data
+    assert ATTR_WIFI_GUEST_DATA not in updater.data
+    assert not updater.is_support_guest_wifi
+
+
+async def test_updater_is_absent_ifname_wifi_info(hass: HomeAssistant) -> None:
+    """Test updater is absent ifname wifi info.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.wifi_detail_all = AsyncMock(
+            return_value=json.loads(
+                load_fixture("wifi_detail_all_is_absent_ifname_data.json")
+            )
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert ATTR_SWITCH_WIFI_2_4 not in updater.data
+    assert ATTR_WIFI_2_4_DATA not in updater.data
+
+    assert ATTR_SELECT_WIFI_2_4_CHANNEL not in updater.data
+
+    assert ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH not in updater.data
+
+
+async def test_updater_undefined_ifname_wifi_info(hass: HomeAssistant) -> None:
+    """Test updater undefined ifname wifi info.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.wifi_detail_all = AsyncMock(
+            return_value=json.loads(
+                load_fixture("wifi_detail_all_undefined_ifname_data.json")
+            )
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert ATTR_SWITCH_WIFI_2_4 not in updater.data
+    assert ATTR_WIFI_2_4_DATA not in updater.data
+
+    assert ATTR_SELECT_WIFI_2_4_CHANNEL not in updater.data
+
+    assert ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH not in updater.data
+
+
+async def test_updater_empty_2g_avaliable_channels(hass: HomeAssistant) -> None:
+    """Test updater empty 2g avaliable channels.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        async def mock_avaliable_channels(index: int = 1) -> dict:
+            """Mock channels"""
+
+            if index == 2:
+                return json.loads(load_fixture("avaliable_channels_5g_data.json"))
+
+            return json.loads(load_fixture("avaliable_channels_empty_2g_data.json"))
+
+        mock_luci_client.return_value.avaliable_channels = AsyncMock(
+            side_effect=mock_avaliable_channels
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+
+        await hass.async_block_till_done()
+
+    assert ATTR_SELECT_WIFI_2_4_CHANNELS not in updater.data
+    assert ATTR_SELECT_WIFI_5_0_CHANNELS in updater.data
+
+
+async def test_updater_without_store(hass: HomeAssistant) -> None:
+    """Test updater without_store.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch("custom_components.miwifi.helper.Store") as mock_store:
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_store.return_value.async_load = AsyncMock(return_value=None)
+        mock_store.return_value.async_save = AsyncMock(return_value=None)
+
+        setup_data: list = await async_setup(hass, without_store=True)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+        await updater.async_stop()
+
+        await hass.async_block_till_done()
+
+    assert len(mock_store.mock_calls) == 0

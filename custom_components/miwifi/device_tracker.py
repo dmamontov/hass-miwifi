@@ -45,7 +45,12 @@ from .const import (
     ATTR_TRACKER_OPTIONAL_MAC,
 )
 from .enum import Connection
-from .helper import generate_entity_id, parse_last_activity, pretty_size
+from .helper import (
+    generate_entity_id,
+    parse_last_activity,
+    pretty_size,
+    detect_manufacturer,
+)
 from .updater import LuciUpdater
 
 ATTR_CHANGES: Final = [
@@ -204,7 +209,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         :return str | None: Manufacturer
         """
 
-        return self._updater.manufacturer(self.mac_address)
+        return detect_manufacturer(self.mac_address)
 
     @property
     def ip_address(self) -> str | None:

@@ -1,0 +1,21 @@
+{
+  "count":1,
+  "code": 0,
+  "hardware": {
+    "mac": "00:00:00:00:00:00",
+    "platform": "RA67",
+    "version": "3.0.34",
+    "channel": "release",
+    "sn": "**REDACTED**"
+  },
+  "2g": {
+    "pssswd": "**REDACTED**",
+    "ssid": "**REDACTED**",
+    "online_sta_count": 1
+  },
+  "5g": {
+    "online_sta_count": 0,
+    "ssid": "**REDACTED**",
+    "passwd": "**REDACTED**"
+  }
+}

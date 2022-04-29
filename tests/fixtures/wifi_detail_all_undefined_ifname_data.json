@@ -2,7 +2,7 @@
   "bsd": 0,
   "info": [
     {
-      "ifname": "wl1",
+      "ifname": "wl99",
       "channelInfo": {
         "bandwidth": "20",
         "bandList": [
@@ -52,15 +52,6 @@
       "txpwr": "max",
       "txbf": "3",
       "signal": -95
-    },
-    {
-      "password": "**REDACTED**",
-      "ifname": "wl14",
-      "ssid": "**REDACTED**",
-      "encryption": "none",
-      "status": 0,
-      "iftype": 3,
-      "enabled": "1"
     }
   ],
   "code": 0
