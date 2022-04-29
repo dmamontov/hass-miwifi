@@ -62,7 +62,7 @@ from .const import (
     ATTR_SENSOR_DEVICES_5_0_GAME,
     ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
 )
-from .helper import generate_entity_id, pretty_size
+from .helper import generate_entity_id
 from .updater import LuciUpdater
 
 DISABLE_ZERO: Final = [
@@ -76,6 +76,7 @@ ONLY_WAN: Final = [
 ]
 
 PCS: Final = "pcs"
+BS: Final = "B/s"
 
 MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
@@ -133,6 +134,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         key=ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
         name=ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME,
         icon="mdi:speedometer",
+        native_unit_of_measurement=BS,
         state_class=SensorStateClass.MEASUREMENT,
         entity_registry_enabled_default=True,
     ),
@@ -140,6 +142,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         key=ATTR_SENSOR_WAN_UPLOAD_SPEED,
         name=ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME,
         icon="mdi:speedometer",
+        native_unit_of_measurement=BS,
         state_class=SensorStateClass.MEASUREMENT,
         entity_registry_enabled_default=True,
     ),
@@ -280,9 +283,7 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
         self._attr_unique_id = unique_id
         self._attr_available = updater.data.get(ATTR_STATE, False)
 
-        self._attr_native_value = self._prepare_state(
-            updater.data.get(description.key, None)
-        )
+        self._attr_native_value = updater.data.get(description.key, None)
 
         self._attr_device_info = updater.device_info
 
@@ -326,22 +327,6 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
             return
 
         self._attr_available = is_available
-        self._attr_native_value = self._prepare_state(state)
+        self._attr_native_value = state
 
         self.async_write_ha_state()
-
-    def _prepare_state(self, state: Any) -> Any:
-        """Prepare state
-
-        :param state: Any: Sensor state
-        :return Any
-        """
-
-        if self.entity_description.key in ONLY_WAN and state is not None:
-            split_size: list = pretty_size(float(state)).split()
-
-            self._attr_native_unit_of_measurement = split_size[1]
-
-            return split_size[0]
-
-        return state

@@ -96,6 +96,38 @@
       },
       "icon": "",
       "type": 0
+    },
+    {
+      "mac": "00:00:00:00:00:04",
+      "oname": "Device 4 (Repeater)",
+      "isap": 0,
+      "parent": "",
+      "authority": {
+        "wan": 1,
+        "pridisk": 0,
+        "admin": 1,
+        "lan": 1
+      },
+      "push": 0,
+      "online": 1,
+      "name": "Device 4 (Repeater)",
+      "times": 0,
+      "ip": [
+        {
+          "downspeed": "0",
+          "online": "29101",
+          "active": 1,
+          "upspeed": "0",
+          "ip": "192.168.31.100"
+        }
+      ],
+      "statistics": {
+        "downspeed": "0",
+        "online": "29101",
+        "upspeed": "0"
+      },
+      "icon": "",
+      "type": 0
     }
   ],
   "code": 0
