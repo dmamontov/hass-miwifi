@@ -95,14 +95,12 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize update.")
-
-        return
-
     entities: list[MiWifiUpdate] = []
     for description in MIWIFI_UPDATES:
-        if description.key == ATTR_UPDATE_FIRMWARE and len(description.key) == 0:
+        if (
+            description.key == ATTR_UPDATE_FIRMWARE
+            and len(updater.data.get(description.key, {})) == 0
+        ):
             continue
 
         entities.append(
@@ -157,10 +155,9 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
 
         self._update_data = updater.data.get(description.key, {})
 
-        # fmt: off
-        self._attr_available = updater.data.get(ATTR_STATE, False) \
-            and len(self._update_data) > 0
-        # fmt: on
+        self._attr_available = (
+            updater.data.get(ATTR_STATE, False) and len(self._update_data) > 0
+        )
 
         self._attr_title = self._update_data.get(ATTR_UPDATE_TITLE, None)
         self._attr_installed_version = self._update_data.get(
@@ -194,27 +191,21 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         if self._attr_entity_picture is not None:
             return self._attr_entity_picture
 
-        if self.platform is None:
-            return None
-
-        return (
-            f"https://brands.home-assistant.io/_/{self.platform.platform_name}/icon.png"
-        )
+        return f"https://brands.home-assistant.io/_/{DOMAIN}/icon.png"
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
         if self.state_attributes.get(ATTR_IN_PROGRESS, False):
-            return
+            return  # pragma: no cover
 
         _update_data: dict[str, Any] = self._updater.data.get(
             self.entity_description.key, {}
         )
 
-        # fmt: off
-        is_available: bool = self._updater.data.get(ATTR_STATE, False) \
-            and len(_update_data) > 0
-        # fmt: on
+        is_available: bool = (
+            self._updater.data.get(ATTR_STATE, False) and len(_update_data) > 0
+        )
 
         entity_picture: str | None = self._update_picture()
 
@@ -299,9 +290,6 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
 
         :return str | None: Notes
         """
-
-        if self.entity_description.key not in MAP_NOTES:
-            return None
 
         return MAP_NOTES[self.entity_description.key]
 

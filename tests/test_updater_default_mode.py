@@ -100,7 +100,9 @@ async def test_updater_default_mode(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send:
+    ) as mock_async_dispatcher_send, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         setup_data: list = await async_setup(hass)
@@ -296,7 +298,9 @@ async def test_updater_restore_data(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.async_dispatcher_send"
     ) as mock_async_dispatcher_send, patch(
         "custom_components.miwifi.helper.Store"
-    ) as mock_store:
+    ) as mock_store, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_store.return_value.async_load = AsyncMock(
@@ -408,7 +412,9 @@ async def test_updater_incorrect_connection_restore_data(hass: HomeAssistant) ->
         "custom_components.miwifi.updater.async_dispatcher_send"
     ) as mock_async_dispatcher_send, patch(
         "custom_components.miwifi.helper.Store"
-    ) as mock_store:
+    ) as mock_store, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_store.return_value.async_load = AsyncMock(
@@ -520,7 +526,9 @@ async def test_updater_incorrect_mac_default_mode(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send:
+    ) as mock_async_dispatcher_send, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.device_list = AsyncMock(
@@ -596,127 +604,6 @@ async def test_updater_incorrect_mac_default_mode(hass: HomeAssistant) -> None:
     assert len(mock_luci_client.mock_calls) == 17
 
 
-async def test_updater_default_mode_manual_remove(hass: HomeAssistant) -> None:
-    """Test updater.
-
-    :param hass: HomeAssistant
-    """
-
-    with patch(
-        "custom_components.miwifi.updater.LuciClient"
-    ) as mock_luci_client, patch(
-        "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send:
-        await async_mock_luci_client(mock_luci_client)
-
-        setup_data: list = await async_setup(hass)
-
-        updater: LuciUpdater = setup_data[0]
-        config_entry: MockConfigEntry = setup_data[1]
-
-        await updater.async_config_entry_first_refresh()
-        await updater.async_stop()
-
-        await hass.async_block_till_done()
-
-    assert len(updater.devices) == 3
-
-    assert updater.devices == {
-        "00:00:00:00:00:01": {
-            ATTR_TRACKER_ENTRY_ID: config_entry.entry_id,
-            ATTR_TRACKER_UPDATER_ENTRY_ID: config_entry.entry_id,
-            ATTR_TRACKER_MAC: "00:00:00:00:00:01",
-            ATTR_TRACKER_ROUTER_MAC_ADDRESS: "00:00:00:00:00:00",
-            ATTR_TRACKER_SIGNAL: 100,
-            ATTR_TRACKER_NAME: "Device 1",
-            ATTR_TRACKER_IP: "192.168.31.2",
-            ATTR_TRACKER_CONNECTION: Connection.WIFI_2_4,
-            ATTR_TRACKER_DOWN_SPEED: 0.0,
-            ATTR_TRACKER_UP_SPEED: 0.0,
-            ATTR_TRACKER_ONLINE: "8:05:01",
-            ATTR_TRACKER_LAST_ACTIVITY: updater.devices["00:00:00:00:00:01"][
-                "last_activity"
-            ],
-            ATTR_TRACKER_OPTIONAL_MAC: None,
-        },
-        "00:00:00:00:00:02": {
-            ATTR_TRACKER_ENTRY_ID: config_entry.entry_id,
-            ATTR_TRACKER_UPDATER_ENTRY_ID: config_entry.entry_id,
-            ATTR_TRACKER_MAC: "00:00:00:00:00:02",
-            ATTR_TRACKER_ROUTER_MAC_ADDRESS: "00:00:00:00:00:00",
-            ATTR_TRACKER_SIGNAL: 100,
-            ATTR_TRACKER_NAME: "Device 2",
-            ATTR_TRACKER_IP: "192.168.31.3",
-            ATTR_TRACKER_CONNECTION: Connection.WIFI_5_0,
-            ATTR_TRACKER_DOWN_SPEED: 0.0,
-            ATTR_TRACKER_UP_SPEED: 0.0,
-            ATTR_TRACKER_ONLINE: "8:05:01",
-            ATTR_TRACKER_LAST_ACTIVITY: updater.devices["00:00:00:00:00:02"][
-                "last_activity"
-            ],
-            ATTR_TRACKER_OPTIONAL_MAC: None,
-        },
-        "00:00:00:00:00:03": {
-            ATTR_TRACKER_ENTRY_ID: config_entry.entry_id,
-            ATTR_TRACKER_UPDATER_ENTRY_ID: config_entry.entry_id,
-            ATTR_TRACKER_MAC: "00:00:00:00:00:03",
-            ATTR_TRACKER_ROUTER_MAC_ADDRESS: "00:00:00:00:00:00",
-            ATTR_TRACKER_SIGNAL: None,
-            ATTR_TRACKER_NAME: "Device 3",
-            ATTR_TRACKER_IP: "192.168.31.4",
-            ATTR_TRACKER_CONNECTION: Connection.LAN,
-            ATTR_TRACKER_DOWN_SPEED: 0.0,
-            ATTR_TRACKER_UP_SPEED: 0.0,
-            ATTR_TRACKER_ONLINE: "8:05:01",
-            ATTR_TRACKER_LAST_ACTIVITY: updater.devices["00:00:00:00:00:03"][
-                "last_activity"
-            ],
-            ATTR_TRACKER_OPTIONAL_MAC: None,
-        },
-    }
-
-    await updater.async_remove_device("00:00:00:00:00:03")
-
-    assert len(updater.devices) == 2
-
-    assert updater.devices == {
-        "00:00:00:00:00:01": {
-            ATTR_TRACKER_ENTRY_ID: config_entry.entry_id,
-            ATTR_TRACKER_UPDATER_ENTRY_ID: config_entry.entry_id,
-            ATTR_TRACKER_MAC: "00:00:00:00:00:01",
-            ATTR_TRACKER_ROUTER_MAC_ADDRESS: "00:00:00:00:00:00",
-            ATTR_TRACKER_SIGNAL: 100,
-            ATTR_TRACKER_NAME: "Device 1",
-            ATTR_TRACKER_IP: "192.168.31.2",
-            ATTR_TRACKER_CONNECTION: Connection.WIFI_2_4,
-            ATTR_TRACKER_DOWN_SPEED: 0.0,
-            ATTR_TRACKER_UP_SPEED: 0.0,
-            ATTR_TRACKER_ONLINE: "8:05:01",
-            ATTR_TRACKER_LAST_ACTIVITY: updater.devices["00:00:00:00:00:01"][
-                "last_activity"
-            ],
-            ATTR_TRACKER_OPTIONAL_MAC: None,
-        },
-        "00:00:00:00:00:02": {
-            ATTR_TRACKER_ENTRY_ID: config_entry.entry_id,
-            ATTR_TRACKER_UPDATER_ENTRY_ID: config_entry.entry_id,
-            ATTR_TRACKER_MAC: "00:00:00:00:00:02",
-            ATTR_TRACKER_ROUTER_MAC_ADDRESS: "00:00:00:00:00:00",
-            ATTR_TRACKER_SIGNAL: 100,
-            ATTR_TRACKER_NAME: "Device 2",
-            ATTR_TRACKER_IP: "192.168.31.3",
-            ATTR_TRACKER_CONNECTION: Connection.WIFI_5_0,
-            ATTR_TRACKER_DOWN_SPEED: 0.0,
-            ATTR_TRACKER_UP_SPEED: 0.0,
-            ATTR_TRACKER_ONLINE: "8:05:01",
-            ATTR_TRACKER_LAST_ACTIVITY: updater.devices["00:00:00:00:00:02"][
-                "last_activity"
-            ],
-            ATTR_TRACKER_OPTIONAL_MAC: None,
-        },
-    }
-
-
 async def test_updater_default_mode_auto_remove(hass: HomeAssistant) -> None:
     """Test updater.
 
@@ -729,7 +616,9 @@ async def test_updater_default_mode_auto_remove(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.async_dispatcher_send"
     ) as mock_async_dispatcher_send, patch(
         "custom_components.miwifi.helper.Store"
-    ) as mock_store:
+    ) as mock_store, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_store.return_value.async_load = AsyncMock(
@@ -816,7 +705,9 @@ async def test_updater_default_mode_auto_remove_incorrect(hass: HomeAssistant) -
         "custom_components.miwifi.updater.async_dispatcher_send"
     ) as mock_async_dispatcher_send, patch(
         "custom_components.miwifi.helper.Store"
-    ) as mock_store:
+    ) as mock_store, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_store.return_value.async_load = AsyncMock(

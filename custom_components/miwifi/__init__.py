@@ -30,7 +30,6 @@ from .const import (
     DEFAULT_CALL_DELAY,
     UPDATER,
     UPDATE_LISTENER,
-    RELOAD_ENTRY,
 )
 from .discovery import async_start_discovery
 from .helper import get_config_value, get_store
@@ -73,7 +72,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         CONF_IP_ADDRESS: _ip,
         UPDATER: _updater,
-        RELOAD_ENTRY: False,
     }
 
     hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER] = entry.add_update_listener(
@@ -127,8 +125,6 @@ async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
     if entry.entry_id not in hass.data[DOMAIN]:
         return
 
-    hass.data[DOMAIN][entry.entry_id][RELOAD_ENTRY] = True
-
     await hass.config_entries.async_reload(entry.entry_id)
 
 
@@ -140,20 +136,26 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     :return bool: Is success
     """
 
-    if hass.data[DOMAIN][entry.entry_id].get(RELOAD_ENTRY, False):
-        hass.data[DOMAIN][RELOAD_ENTRY] = False
-    elif CONF_IP_ADDRESS in hass.data[DOMAIN][entry.entry_id]:
-        store: Store = get_store(
-            hass, hass.data[DOMAIN][entry.entry_id][CONF_IP_ADDRESS]
-        )
-        await store.async_remove()
+    if is_unload := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        _updater: LuciUpdater = hass.data[DOMAIN][entry.entry_id][UPDATER]
+        await _updater.async_stop()
 
-    is_unload = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if not is_unload:
-        return is_unload
+        _update_listener: CALLBACK_TYPE = hass.data[DOMAIN][entry.entry_id][
+            UPDATE_LISTENER
+        ]
+        _update_listener()
 
-    update_listener: CALLBACK_TYPE = hass.data[DOMAIN][entry.entry_id][UPDATE_LISTENER]
-    update_listener()
-    hass.data[DOMAIN].pop(entry.entry_id)
+        hass.data[DOMAIN].pop(entry.entry_id)
 
     return is_unload
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Clear store on deletion.
+
+    :param hass: HomeAssistant: Home Assistant object
+    :param entry: ConfigEntry: Config Entry object
+    """
+
+    _updater: LuciUpdater = hass.data[DOMAIN][entry.entry_id][UPDATER]
+    await _updater.async_stop(clean_store=True)

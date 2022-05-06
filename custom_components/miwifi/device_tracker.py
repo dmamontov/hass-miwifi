@@ -178,12 +178,6 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
             lambda: self.hass.async_create_task(self.check_ports()),
         )
 
-    async def async_will_remove_from_hass(self) -> None:
-        """Remove device from store."""
-
-        if self.mac_address is not None:
-            await self._updater.async_remove_device(self.mac_address)
-
     @property
     def available(self) -> bool:
         """Is available

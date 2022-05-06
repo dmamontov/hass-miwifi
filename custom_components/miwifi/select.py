@@ -14,7 +14,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -151,11 +150,6 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize select.")
-
-        return
-
     entities: list[MiWifiSelect] = []
     for description in MIWIFI_SELECTS:
         if (
@@ -179,7 +173,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
+class MiWifiSelect(SelectEntity, CoordinatorEntity):
     """MiWifi select entry."""
 
     _attr_attribution: str = ATTRIBUTION
@@ -198,7 +192,6 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         """
 
         CoordinatorEntity.__init__(self, coordinator=updater)
-        RestoreEntity.__init__(self)
 
         self.entity_description = description
         self._updater: LuciUpdater = updater
@@ -234,30 +227,18 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
             else:
                 self._attr_options = OPTIONS_MAP[description.key]
 
+        self._wifi_data: dict = {}
         if description.key in DATA_MAP:
             self._wifi_data = updater.data.get(DATA_MAP[description.key], {})
-        else:
-            self._wifi_data = {}
 
-        # fmt: off
-        self._attr_available = updater.data.get(ATTR_STATE, False) \
-            and len(self._attr_options) > 0
-        # fmt: on
+        self._attr_available: bool = (
+            updater.data.get(ATTR_STATE, False) and len(self._attr_options) > 0
+        )
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
 
-        await RestoreEntity.async_added_to_hass(self)
         await CoordinatorEntity.async_added_to_hass(self)
-
-        state = await self.async_get_last_state()
-        if not state:
-            return
-
-        self._attr_current_option = state.state
-        self._change_icon(self._attr_current_option)
-
-        self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
@@ -273,18 +254,17 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
 
         current_option: str = self._updater.data.get(self.entity_description.key, False)
 
+        wifi_data: dict = {}
         if self.entity_description.key in DATA_MAP:
             wifi_data: dict = self._updater.data.get(
                 DATA_MAP[self.entity_description.key], {}
             )
-        else:
-            wifi_data = {}
 
-        # fmt: off
-        is_available: bool = self._updater.data.get(ATTR_STATE, False) \
-            and len(self._attr_options) > 0 \
+        is_available: bool = (
+            self._updater.data.get(ATTR_STATE, False)
+            and len(self._attr_options) > 0
             and len(wifi_data) > 0
-        # fmt: on
+        )
 
         is_update_data: bool = False
         for key, value in wifi_data.items():
@@ -388,15 +368,13 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         :param option: str: Option
         """
 
-        if option not in self._attr_options:
-            return
-
         action = getattr(self, f"_{self.entity_description.key}_change")
 
         if action:
             await action(option)
 
             self._updater.data[self.entity_description.key] = option
+            self._attr_current_option = option
             self._change_icon(option)
 
             self.async_write_ha_state()

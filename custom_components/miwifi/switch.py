@@ -18,7 +18,6 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -28,7 +27,6 @@ from .const import (
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
     ATTR_BINARY_SENSOR_DUAL_BAND,
-    ATTR_WIFI_NAME,
     ATTR_WIFI_ADAPTER_LENGTH,
     ATTR_SWITCH_WIFI_2_4,
     ATTR_SWITCH_WIFI_2_4_NAME,
@@ -115,17 +113,15 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize switch.")
-
-        return
-
     entities: list[MiWifiSwitch] = []
     for description in MIWIFI_SWITCHES:
         if (
             description.key == ATTR_SWITCH_WIFI_5_0_GAME
             and updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) != 3
-        ) or (
+        ):
+            continue
+
+        if (
             description.key == ATTR_SWITCH_WIFI_GUEST
             and not updater.is_support_guest_wifi
         ):
@@ -142,7 +138,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
+class MiWifiSwitch(SwitchEntity, CoordinatorEntity):
     """MiWifi switch entry."""
 
     _attr_attribution: str = ATTRIBUTION
@@ -161,7 +157,6 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
         """
 
         CoordinatorEntity.__init__(self, coordinator=updater)
-        RestoreEntity.__init__(self)
 
         self.entity_description = description
         self._updater: LuciUpdater = updater
@@ -182,41 +177,27 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
 
         self._attr_available = self._additional_prepare()
 
+        self._wifi_data: dict = {}
         if description.key in DATA_MAP:
             self._wifi_data = updater.data.get(DATA_MAP[description.key], {})
-        else:
-            self._wifi_data = {}
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
 
-        await RestoreEntity.async_added_to_hass(self)
         await CoordinatorEntity.async_added_to_hass(self)
-
-        state = await self.async_get_last_state()
-        if not state:
-            return
-
-        self._attr_is_on = state.state == STATE_ON
-
-        self.async_write_ha_state()
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
         is_on: bool = self._updater.data.get(self.entity_description.key, False)
 
+        wifi_data: dict = {}
         if self.entity_description.key in DATA_MAP:
-            wifi_data: dict = self._updater.data.get(
+            wifi_data = self._updater.data.get(
                 DATA_MAP[self.entity_description.key], {}
             )
-        else:
-            wifi_data = {}
 
-        # fmt: off
-        is_available: bool = self._additional_prepare() \
-            and len(wifi_data) > 0
-        # fmt: on
+        is_available: bool = self._additional_prepare() and len(wifi_data) > 0
 
         is_update_data: bool = False
         for key, value in wifi_data.items():
@@ -390,9 +371,6 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
                 self._attr_entity_registry_enabled_default = False
                 is_available = False
 
-            if self.entity_description.key == ATTR_SWITCH_WIFI_2_4:
-                self._attr_name = ATTR_WIFI_NAME
-
         return is_available
 
     def _change_icon(self, is_on: bool) -> None:
@@ -401,8 +379,8 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity, RestoreEntity):
         :param is_on: bool
         """
 
-        # fmt: off
-        icon_name: str = f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
-        # fmt: on
+        icon_name: str = (
+            f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
+        )
         if icon_name in ICONS:
             self._attr_icon = ICONS[icon_name]

@@ -57,11 +57,6 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize button.")
-
-        return
-
     entities: list[MiWifiButton] = [
         MiWifiButton(
             f"{config_entry.entry_id}-{description.key}",
@@ -135,7 +130,7 @@ class MiWifiButton(ButtonEntity, CoordinatorEntity):
         try:
             await self._updater.luci.reboot()
         except LuciException as _e:
-            _LOGGER.debug("WiFi reboot error: %r", _e)
+            _LOGGER.debug("Reboot error: %r", _e)
 
     async def async_press(self) -> None:
         """Async press action."""

@@ -19,7 +19,6 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -39,7 +38,7 @@ from .updater import LuciUpdater
 
 ICONS: Final = {
     f"{ATTR_STATE}_{STATE_ON}": "mdi:router-wireless",
-    f"{ATTR_STATE}_{STATE_OFF}": "router-wireless-off",
+    f"{ATTR_STATE}_{STATE_OFF}": "mdi:router-wireless-off",
 }
 
 MIWIFI_BINARY_SENSORS: tuple[BinarySensorEntityDescription, ...] = (
@@ -85,11 +84,6 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize binary sensor.")
-
-        return
-
     entities: list[MiWifiBinarySensor] = [
         MiWifiBinarySensor(
             f"{config_entry.entry_id}-{description.key}",
@@ -101,7 +95,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
+class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity):
     """MiWifi binary sensor entry."""
 
     _attr_attribution: str = ATTRIBUTION
@@ -120,7 +114,6 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
         """
 
         CoordinatorEntity.__init__(self, coordinator=updater)
-        RestoreEntity.__init__(self)
 
         self.entity_description = description
         self._updater: LuciUpdater = updater
@@ -133,11 +126,12 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
 
         self._attr_name = description.name
         self._attr_unique_id = unique_id
-        # fmt: off
-        self._attr_available = updater.data.get(ATTR_STATE, False) \
-            if description.key != ATTR_STATE \
+
+        self._attr_available: bool = (
+            updater.data.get(ATTR_STATE, False)
+            if description.key != ATTR_STATE
             else True
-        # fmt: on
+        )
 
         self._attr_is_on = updater.data.get(description.key, False)
         self._change_icon(self._attr_is_on)
@@ -147,17 +141,7 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
 
-        await RestoreEntity.async_added_to_hass(self)
         await CoordinatorEntity.async_added_to_hass(self)
-
-        state = await self.async_get_last_state()
-        if not state:
-            return
-
-        self._attr_is_on = state.state == STATE_ON
-        self._change_icon(self._attr_is_on)
-
-        self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
@@ -171,11 +155,11 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
-        # fmt: off
-        is_available: bool = self._updater.data.get(ATTR_STATE, False) \
-            if self.entity_description.key != ATTR_STATE \
+        is_available: bool = (
+            self._updater.data.get(ATTR_STATE, False)
+            if self.entity_description.key != ATTR_STATE
             else True
-        # fmt: on
+        )
 
         is_on: bool = self._updater.data.get(self.entity_description.key, False)
 
@@ -195,8 +179,9 @@ class MiWifiBinarySensor(BinarySensorEntity, CoordinatorEntity, RestoreEntity):
         :param is_on: bool
         """
 
-        # fmt: off
-        icon_name: str = f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
-        # fmt: on
+        icon_name: str = (
+            f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
+        )
+
         if icon_name in ICONS:
             self._attr_icon = ICONS[icon_name]

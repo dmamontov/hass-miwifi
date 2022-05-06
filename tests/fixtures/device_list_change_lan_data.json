@@ -1,0 +1,70 @@
+{
+  "mac": "00:00:00:00:00:00",
+  "list": [
+    {
+      "mac": "00:00:00:00:00:01",
+      "oname": "Device 1",
+      "isap": 0,
+      "parent": "",
+      "authority": {
+        "wan": 1,
+        "pridisk": 0,
+        "admin": 1,
+        "lan": 1
+      },
+      "push": 0,
+      "online": 1,
+      "name": "Device 1",
+      "times": 0,
+      "ip": [
+        {
+          "downspeed": "0",
+          "online": "29101",
+          "active": 1,
+          "upspeed": "0",
+          "ip": "192.168.31.2"
+        }
+      ],
+      "statistics": {
+        "downspeed": "0",
+        "online": "29101",
+        "upspeed": "0"
+      },
+      "icon": "",
+      "type": 1
+    },
+    {
+      "mac": "00:00:00:00:00:02",
+      "oname": "Device 2",
+      "isap": 0,
+      "parent": "",
+      "authority": {
+        "wan": 1,
+        "pridisk": 0,
+        "admin": 1,
+        "lan": 1
+      },
+      "push": 0,
+      "online": 1,
+      "name": "Device 2",
+      "times": 0,
+      "ip": [
+        {
+          "downspeed": "0",
+          "online": "29101",
+          "active": 1,
+          "upspeed": "0",
+          "ip": "192.168.31.3"
+        }
+      ],
+      "statistics": {
+        "downspeed": "0",
+        "online": "29101",
+        "upspeed": "0"
+      },
+      "icon": "",
+      "type": 2
+    }
+  ],
+  "code": 0
+}

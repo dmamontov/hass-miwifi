@@ -18,7 +18,6 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -67,11 +66,6 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize light.")
-
-        return
-
     entities: list[MiWifiLight] = [
         MiWifiLight(
             f"{config_entry.entry_id}-{description.key}",
@@ -83,7 +77,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
+class MiWifiLight(LightEntity, CoordinatorEntity):
     """MiWifi light entry."""
 
     _attr_attribution: str = ATTRIBUTION
@@ -102,7 +96,6 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         """
 
         CoordinatorEntity.__init__(self, coordinator=updater)
-        RestoreEntity.__init__(self)
 
         self.entity_description = description
         self._updater = updater
@@ -125,17 +118,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
 
-        await RestoreEntity.async_added_to_hass(self)
         await CoordinatorEntity.async_added_to_hass(self)
-
-        state = await self.async_get_last_state()
-        if not state:
-            return
-
-        self._attr_is_on = state.state == STATE_ON
-        self._change_icon(self._attr_is_on)
-
-        self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
@@ -226,8 +209,8 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         :param is_on: bool
         """
 
-        # fmt: off
-        icon_name: str = f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
-        # fmt: on
+        icon_name: str = (
+            f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
+        )
         if icon_name in ICONS:
             self._attr_icon = ICONS[icon_name]

@@ -160,7 +160,11 @@ async def test_updater_reauthorization(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         def login_success() -> dict:
@@ -209,7 +213,9 @@ async def test_updater_skip_method(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.LuciClient.new_status"
-    ) as mock_new_status:
+    ) as mock_new_status, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.init_info = AsyncMock(
@@ -235,7 +241,11 @@ async def test_updater_without_model_info(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.init_info = AsyncMock(
@@ -264,7 +274,9 @@ async def test_updater_undefined_router(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_self_check", return_value=None
-    ) as mock_async_self_check:
+    ) as mock_async_self_check, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.init_info = AsyncMock(
@@ -295,7 +307,9 @@ async def test_updater_without_hardware_info(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.pn.async_create", return_value=None
-    ) as mock_async_create_pm:
+    ) as mock_async_create_pm, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.init_info = AsyncMock(
@@ -322,7 +336,11 @@ async def test_updater_without_version_info(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.status = AsyncMock(
@@ -345,7 +363,11 @@ async def test_updater_raise_rom_update(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.rom_update = AsyncMock(side_effect=LuciException)
@@ -370,7 +392,11 @@ async def test_updater_need_rom_update(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.rom_update = AsyncMock(
@@ -401,7 +427,11 @@ async def test_updater_key_error_rom_update(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.rom_update = AsyncMock(
@@ -425,7 +455,11 @@ async def test_updater_skip_mode_mesh(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         setup_data: list = await async_setup(hass)
@@ -446,7 +480,11 @@ async def test_updater_value_error_mode(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.mode = AsyncMock(
@@ -470,7 +508,11 @@ async def test_updater_incorrect_wan_info(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.wan_info = AsyncMock(
@@ -494,7 +536,11 @@ async def test_updater_incorrect_led(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.led = AsyncMock(
@@ -518,7 +564,11 @@ async def test_updater_undefined_bsd_wifi_info(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.wifi_detail_all = AsyncMock(
@@ -544,7 +594,11 @@ async def test_updater_empty_wifi_info(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.wifi_detail_all = AsyncMock(
@@ -583,7 +637,11 @@ async def test_updater_unsupported_guest_wifi_info(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.wifi_diag_detail_all = AsyncMock(
@@ -611,7 +669,11 @@ async def test_updater_error_guest_wifi_info(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.wifi_diag_detail_all = AsyncMock(
@@ -637,7 +699,11 @@ async def test_updater_is_absent_ifname_wifi_info(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.wifi_detail_all = AsyncMock(
@@ -668,7 +734,11 @@ async def test_updater_undefined_ifname_wifi_info(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.wifi_detail_all = AsyncMock(
@@ -699,7 +769,11 @@ async def test_updater_empty_2g_avaliable_channels(hass: HomeAssistant) -> None:
     :param hass: HomeAssistant
     """
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         async def mock_avaliable_channels(index: int = 1) -> dict:
@@ -734,7 +808,11 @@ async def test_updater_without_store(hass: HomeAssistant) -> None:
 
     with patch(
         "custom_components.miwifi.updater.LuciClient"
-    ) as mock_luci_client, patch("custom_components.miwifi.helper.Store") as mock_store:
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.helper.Store"
+    ) as mock_store, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_store.return_value.async_load = AsyncMock(return_value=None)
@@ -750,3 +828,26 @@ async def test_updater_without_store(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
     assert len(mock_store.mock_calls) == 0
+
+
+async def test_updater_with_clean_store(hass: HomeAssistant) -> None:
+    """Test updater with clean store.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
+        await async_mock_luci_client(mock_luci_client)
+
+        setup_data: list = await async_setup(hass)
+
+        updater: LuciUpdater = setup_data[0]
+
+        await updater.async_config_entry_first_refresh()
+        await updater.async_stop(clean_store=True)
+
+        await hass.async_block_till_done()

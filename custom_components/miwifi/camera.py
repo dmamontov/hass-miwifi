@@ -55,11 +55,6 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize camera: Missing mac address. Restart HASS.")
-
-        return
-
     entities: list[MiWifiCamera] = [
         MiWifiCamera(
             f"{config_entry.entry_id}-{description.key}",

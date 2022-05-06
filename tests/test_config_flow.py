@@ -75,7 +75,9 @@ async def test_user(hass: HomeAssistant) -> None:
         return_value=True,
     ) as mock_async_setup_entry, patch(
         "custom_components.miwifi.updater.LuciClient"
-    ) as mock_luci_client:
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
         mock_luci_client.return_value.login = AsyncMock(
             return_value=json.loads(load_fixture("login_data.json"))
@@ -115,7 +117,11 @@ async def test_user_ip_error(hass: HomeAssistant) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
         mock_luci_client.return_value.login = AsyncMock(
             side_effect=LuciConnectionException
@@ -142,7 +148,11 @@ async def test_token_error(hass: HomeAssistant) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    with patch("custom_components.miwifi.updater.LuciClient") as mock_luci_client:
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
         mock_luci_client.return_value.login = AsyncMock(side_effect=LuciTokenException)
 
@@ -171,7 +181,9 @@ async def test_undefined_router(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_self_check", return_value=None
-    ) as mock_async_self_check:
+    ) as mock_async_self_check, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
         mock_luci_client.return_value.login = AsyncMock(
             return_value=json.loads(load_fixture("login_data.json"))
@@ -208,7 +220,9 @@ async def test_undefined_router_without_hardware_info(hass: HomeAssistant) -> No
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.pn.async_create", return_value=None
-    ) as mock_async_create_pm:
+    ) as mock_async_create_pm, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
         mock_luci_client.return_value.login = AsyncMock(
             return_value=json.loads(load_fixture("login_data.json"))
@@ -240,7 +254,9 @@ async def test_ssdp(hass: HomeAssistant) -> None:
 
     with patch(
         "custom_components.miwifi.config_flow.async_start_discovery", return_value=None
-    ) as mock_async_start_discovery:
+    ) as mock_async_start_discovery, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         result_init = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_SSDP}
         )
@@ -261,7 +277,9 @@ async def test_dhcp(hass: HomeAssistant) -> None:
 
     with patch(
         "custom_components.miwifi.config_flow.async_start_discovery", return_value=None
-    ) as mock_async_start_discovery:
+    ) as mock_async_start_discovery, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         result_init = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_DHCP}
         )
@@ -311,7 +329,9 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         return_value=True,
     ) as mock_async_setup_entry, patch(
         "custom_components.miwifi.updater.LuciClient"
-    ) as mock_luci_client:
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
         mock_luci_client.return_value.login = AsyncMock(
             return_value=json.loads(load_fixture("login_data.json"))
@@ -371,7 +391,9 @@ async def test_options_flow_ip_error(hass: HomeAssistant) -> None:
         return_value=True,
     ) as mock_async_setup_entry, patch(
         "custom_components.miwifi.updater.LuciClient"
-    ) as mock_luci_client:
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
         mock_luci_client.return_value.login = AsyncMock(
             side_effect=LuciConnectionException
@@ -414,7 +436,9 @@ async def test_options_flow_token_error(hass: HomeAssistant) -> None:
         return_value=True,
     ) as mock_async_setup_entry, patch(
         "custom_components.miwifi.updater.LuciClient"
-    ) as mock_luci_client:
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
         mock_luci_client.return_value.login = AsyncMock(side_effect=LuciTokenException)
 
@@ -457,7 +481,9 @@ async def test_options_flow_undefined_router(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_self_check", return_value=None
-    ) as mock_async_self_check:
+    ) as mock_async_self_check, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
         mock_luci_client.return_value.login = AsyncMock(
             return_value=json.loads(load_fixture("login_data.json"))

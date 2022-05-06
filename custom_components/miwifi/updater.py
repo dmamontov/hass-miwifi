@@ -166,7 +166,6 @@ class LuciUpdater(DataUpdateCoordinator):
     _activity_days: int
     _is_only_login: bool = False
     _is_reauthorization: bool = True
-    _is_first_update: bool = True
 
     def __init__(
         self,
@@ -222,14 +221,22 @@ class LuciUpdater(DataUpdateCoordinator):
         self.devices: dict[str, dict[str, Any]] = {}
         self._signals: dict[str, int] = {}
         self._moved_devices: list = []
+        self._is_first_update: bool = True
 
-    async def async_stop(self) -> None:
-        """Stop updater"""
+    async def async_stop(self, clean_store: bool = False) -> None:
+        """Stop updater
+
+        :param clean_store: bool
+        """
 
         if self.new_device_callback is not None:
             self.new_device_callback()  # pylint: disable=not-callable
 
-        await self._async_save_devices()
+        if clean_store:
+            await self._store.async_remove()
+        else:
+            await self._async_save_devices()
+
         await self.luci.logout()
 
     @cached_property
@@ -590,22 +597,24 @@ class LuciUpdater(DataUpdateCoordinator):
         _adapters: list = response["info"]
 
         if self.is_support_guest_wifi:
+            self.is_support_guest_wifi = False
+
             try:
                 response_diag = await self.luci.wifi_diag_detail_all()
+                _adapters_len: int = len(_adapters)
 
-                if "info" in response_diag and len(response_diag["info"]) > len(
-                    _adapters
-                ):
+                if "info" in response_diag:
                     _adapters += [
                         _adapter
                         for _adapter in response_diag["info"]
                         if "ifname" in _adapter
                         and _adapter["ifname"] == IfName.WL14.value
                     ]
-                else:
-                    self.is_support_guest_wifi = False
+
+                if _adapters_len < len(_adapters):
+                    self.is_support_guest_wifi = True
             except LuciException:
-                self.is_support_guest_wifi = False
+                pass
 
         length: int = 0
 
@@ -726,18 +735,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
         if "list" not in response or len(response["list"]) == 0:
             if len(self._signals) > 0 and not self.is_repeater:
-                data[ATTR_SENSOR_MODE] = Mode.MESH
+                self.reset_counter(is_remove=True)
 
-                for attr in [
-                    ATTR_SENSOR_DEVICES,
-                    ATTR_SENSOR_DEVICES_LAN,
-                    ATTR_SENSOR_DEVICES_GUEST,
-                    ATTR_SENSOR_DEVICES_2_4,
-                    ATTR_SENSOR_DEVICES_5_0,
-                    ATTR_SENSOR_DEVICES_5_0_GAME,
-                ]:
-                    if attr in data:
-                        del data[attr]
+                data[ATTR_SENSOR_MODE] = Mode.MESH
 
                 if self.is_force_load:
                     await self._async_prepare_devices(data)
@@ -753,6 +753,8 @@ class LuciUpdater(DataUpdateCoordinator):
         }
 
         add_to: dict = {}
+
+        self.reset_counter(is_force=True)
 
         for device in response["list"]:
             action: DeviceAction = DeviceAction.ADD
@@ -821,7 +823,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         for _ip, devices in add_to.items():
             if not integrations[_ip][UPDATER].is_force_load:
-                integrations[_ip][UPDATER].reset_counter(True)
+                integrations[_ip][UPDATER].reset_counter(is_force=True)
 
             for device in devices.values():
                 if ATTR_TRACKER_MAC in device[0]:
@@ -1165,31 +1167,28 @@ class LuciUpdater(DataUpdateCoordinator):
             if isinstance(integration, dict)
         }
 
-    def reset_counter(self, is_force: bool = False) -> None:
+    def reset_counter(self, is_force: bool = False, is_remove: bool = False) -> None:
         """Reset counter
 
         :param is_force: bool: Force reset
+        :param is_remove: bool: Force remove
         """
 
         if self.is_repeater and not self.is_force_load and not is_force:
             return
 
-        self.data[ATTR_SENSOR_DEVICES] = 0
-        self.data[ATTR_SENSOR_DEVICES_LAN] = 0
-        self.data[ATTR_SENSOR_DEVICES_GUEST] = 0
-        self.data[ATTR_SENSOR_DEVICES_2_4] = 0
-        self.data[ATTR_SENSOR_DEVICES_5_0] = 0
-        self.data[ATTR_SENSOR_DEVICES_5_0_GAME] = 0
-
-    async def async_remove_device(self, mac: str) -> None:
-        """Async remove device
-
-        :param mac: str
-        """
-
-        for integration in self.get_integrations().values():
-            if mac in integration[UPDATER].devices:
-                del integration[UPDATER].devices[mac]
+        for attr in [
+            ATTR_SENSOR_DEVICES,
+            ATTR_SENSOR_DEVICES_LAN,
+            ATTR_SENSOR_DEVICES_GUEST,
+            ATTR_SENSOR_DEVICES_2_4,
+            ATTR_SENSOR_DEVICES_5_0,
+            ATTR_SENSOR_DEVICES_5_0_GAME,
+        ]:
+            if attr in self.data and is_remove:
+                del self.data[attr]
+            elif not is_remove:
+                self.data[attr] = 0
 
     async def _async_load_devices(self) -> dict | None:
         """Async load devices from Store"""

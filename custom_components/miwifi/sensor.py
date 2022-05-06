@@ -22,7 +22,6 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -107,7 +106,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=ATTR_SENSOR_TEMPERATURE,
         name=ATTR_SENSOR_TEMPERATURE_NAME,
-        icon="mdi:timer-sand",
+        icon="mdi:temperature-celsius",
         native_unit_of_measurement=TEMP_CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -136,6 +135,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         icon="mdi:speedometer",
         native_unit_of_measurement=BS,
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=True,
     ),
     SensorEntityDescription(
@@ -144,6 +144,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         icon="mdi:speedometer",
         native_unit_of_measurement=BS,
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=True,
     ),
     SensorEntityDescription(
@@ -214,11 +215,6 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize sensor.")
-
-        return
-
     entities: list[MiWifiSensor] = []
     for description in MIWIFI_SENSORS:
         if (
@@ -249,7 +245,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
+class MiWifiSensor(SensorEntity, CoordinatorEntity):
     """MiWifi binary sensor entry."""
 
     _attr_attribution: str = ATTRIBUTION
@@ -268,7 +264,6 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
         """
 
         CoordinatorEntity.__init__(self, coordinator=updater)
-        RestoreEntity.__init__(self)
 
         self.entity_description = description
         self._updater: LuciUpdater = updater
@@ -283,23 +278,18 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity, RestoreEntity):
         self._attr_unique_id = unique_id
         self._attr_available = updater.data.get(ATTR_STATE, False)
 
-        self._attr_native_value = updater.data.get(description.key, None)
+        state: Any = self._updater.data.get(description.key, None)
+        if state is not None and isinstance(state, Enum):
+            state = state.phrase  # type: ignore
+
+        self._attr_native_value = state
 
         self._attr_device_info = updater.device_info
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
 
-        await RestoreEntity.async_added_to_hass(self)
         await CoordinatorEntity.async_added_to_hass(self)
-
-        state = await self.async_get_last_state()
-        if not state:
-            return
-
-        self._attr_native_value = state.state
-
-        self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
