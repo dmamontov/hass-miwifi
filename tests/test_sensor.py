@@ -1,12 +1,14 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
 from unittest.mock import AsyncMock, patch
-import pytest
 import json
+import pytest
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT as SENSOR_ENTITY_ID_FORMAT,
 )
@@ -98,60 +100,62 @@ async def test_init(hass: HomeAssistant) -> None:
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_MEMORY_TOTAL_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MEMORY_TOTAL_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_TEMPERATURE_NAME, updater)
-        assert hass.states.get(unique_id) is None
-        assert registry.async_get(unique_id) is None
-
-        unique_id: str = _generate_id(ATTR_SENSOR_MODE_NAME, updater)
-        assert hass.states.get(unique_id) is not None
-        assert registry.async_get(unique_id) is not None
-
-        unique_id: str = _generate_id(ATTR_SENSOR_AP_SIGNAL_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_TEMPERATURE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MODE_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_AP_SIGNAL_NAME, updater)
+        assert hass.states.get(unique_id) is None
+        assert registry.async_get(unique_id) is None
+
+        unique_id = _generate_id(ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_LAN_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_NAME, updater)
+        assert hass.states.get(unique_id) is not None
+        assert registry.async_get(unique_id) is not None
+
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_LAN_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_2_4_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_2_4_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_5_0_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_5_0_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_GUEST_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_GUEST_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_5_0_GAME_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_5_0_GAME_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
 
-async def test_init_with_game(hass: HomeAssistant) -> None:
+async def test_init_with_game(
+    hass: HomeAssistant,
+) -> None:
     """Test init.
 
     :param hass: HomeAssistant
@@ -192,60 +196,62 @@ async def test_init_with_game(hass: HomeAssistant) -> None:
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_MEMORY_TOTAL_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MEMORY_TOTAL_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_TEMPERATURE_NAME, updater)
-        assert hass.states.get(unique_id) is None
-        assert registry.async_get(unique_id) is None
-
-        unique_id: str = _generate_id(ATTR_SENSOR_MODE_NAME, updater)
-        assert hass.states.get(unique_id) is not None
-        assert registry.async_get(unique_id) is not None
-
-        unique_id: str = _generate_id(ATTR_SENSOR_AP_SIGNAL_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_TEMPERATURE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MODE_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_AP_SIGNAL_NAME, updater)
+        assert hass.states.get(unique_id) is None
+        assert registry.async_get(unique_id) is None
+
+        unique_id = _generate_id(ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_LAN_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_NAME, updater)
+        assert hass.states.get(unique_id) is not None
+        assert registry.async_get(unique_id) is not None
+
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_LAN_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_2_4_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_2_4_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_5_0_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_5_0_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_GUEST_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_GUEST_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_5_0_GAME_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_5_0_GAME_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
 
-async def test_init_without_zero(hass: HomeAssistant) -> None:
+async def test_init_without_zero(
+    hass: HomeAssistant,
+) -> None:
     """Test init.
 
     :param hass: HomeAssistant
@@ -289,60 +295,62 @@ async def test_init_without_zero(hass: HomeAssistant) -> None:
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_MEMORY_TOTAL_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MEMORY_TOTAL_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_TEMPERATURE_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_TEMPERATURE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_MODE_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MODE_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_AP_SIGNAL_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_AP_SIGNAL_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_LAN_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_LAN_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_2_4_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_2_4_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_5_0_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_5_0_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_GUEST_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_GUEST_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_5_0_GAME_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_5_0_GAME_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
 
-async def test_init_without_wan(hass: HomeAssistant) -> None:
+async def test_init_without_wan(
+    hass: HomeAssistant,
+) -> None:
     """Test init.
 
     :param hass: HomeAssistant
@@ -383,55 +391,55 @@ async def test_init_without_wan(hass: HomeAssistant) -> None:
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_MEMORY_TOTAL_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MEMORY_TOTAL_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_TEMPERATURE_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_TEMPERATURE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_MODE_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_MODE_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_AP_SIGNAL_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_AP_SIGNAL_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_LAN_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_LAN_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_2_4_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_2_4_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_5_0_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_5_0_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_GUEST_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_GUEST_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SENSOR_DEVICES_5_0_GAME_NAME, updater)
+        unique_id = _generate_id(ATTR_SENSOR_DEVICES_5_0_GAME_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
@@ -492,6 +500,7 @@ async def test_update_uptime(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -590,6 +599,7 @@ async def test_update_memory_usage(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -688,6 +698,7 @@ async def test_update_memory_total(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -786,6 +797,7 @@ async def test_update_temperature(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -887,6 +899,7 @@ async def test_update_mode(hass: HomeAssistant) -> None:
         assert state.name == ATTR_SENSOR_MODE_NAME
         assert state.attributes["icon"] == "mdi:transit-connection-variant"
         assert state.attributes["attribution"] == ATTRIBUTION
+        assert entry is not None
         assert entry.entity_category == EntityCategory.DIAGNOSTIC
 
         async_fire_time_changed(
@@ -969,6 +982,7 @@ async def test_update_ap_signal(hass: HomeAssistant) -> None:
         assert state.name == ATTR_SENSOR_AP_SIGNAL_NAME
         assert state.attributes["icon"] == "mdi:wifi-arrow-left-right"
         assert state.attributes["attribution"] == ATTRIBUTION
+        assert entry is not None
         assert entry.entity_category == EntityCategory.DIAGNOSTIC
 
         async_fire_time_changed(
@@ -1047,6 +1061,7 @@ async def test_update_download_speed(hass: HomeAssistant) -> None:
         assert state.name == ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME
         assert state.attributes["icon"] == "mdi:speedometer"
         assert state.attributes["attribution"] == ATTRIBUTION
+        assert entry is not None
         assert entry.entity_category == EntityCategory.DIAGNOSTIC
 
         async_fire_time_changed(
@@ -1125,6 +1140,7 @@ async def test_update_upload_speed(hass: HomeAssistant) -> None:
         assert state.name == ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME
         assert state.attributes["icon"] == "mdi:speedometer"
         assert state.attributes["attribution"] == ATTRIBUTION
+        assert entry is not None
         assert entry.entity_category == EntityCategory.DIAGNOSTIC
 
         async_fire_time_changed(
@@ -1203,6 +1219,7 @@ async def test_update_devices(hass: HomeAssistant) -> None:
         assert state.name == ATTR_SENSOR_DEVICES_NAME
         assert state.attributes["icon"] == "mdi:counter"
         assert state.attributes["attribution"] == ATTRIBUTION
+        assert entry is not None
         assert entry.entity_category is None
 
         async_fire_time_changed(
@@ -1288,6 +1305,7 @@ async def test_update_devices_lan(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1396,6 +1414,7 @@ async def test_update_devices_2_4(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1504,6 +1523,7 @@ async def test_update_devices_5_0(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1612,6 +1632,7 @@ async def test_update_devices_guest(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1724,6 +1745,7 @@ async def test_update_devices_5_0_game(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1774,11 +1796,11 @@ async def test_update_devices_5_0_game(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
-def _generate_id(code: str, updater: UPDATER) -> str:
+def _generate_id(code: str, updater: LuciUpdater) -> str:
     """Generate unique id
 
     :param code: str
-    :param updater: UPDATER
+    :param updater: LuciUpdater
     :return str
     """
 

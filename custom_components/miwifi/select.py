@@ -256,7 +256,7 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity):
 
         wifi_data: dict = {}
         if self.entity_description.key in DATA_MAP:
-            wifi_data: dict = self._updater.data.get(
+            wifi_data = self._updater.data.get(
                 DATA_MAP[self.entity_description.key], {}
             )
 

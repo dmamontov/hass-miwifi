@@ -1,12 +1,14 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
 from unittest.mock import AsyncMock, patch
-import pytest
 import json
+import pytest
 from homeassistant.components.camera import ENTITY_ID_FORMAT as CAMERA_ENTITY_ID_FORMAT
 from homeassistant.components.update import (
     ENTITY_ID_FORMAT as UPDATE_ENTITY_ID_FORMAT,
@@ -19,7 +21,6 @@ from homeassistant.const import (
     ATTR_ENTITY_ID,
     STATE_ON,
     STATE_OFF,
-    STATE_UNAVAILABLE,
 )
 from homeassistant.core import HomeAssistant, State
 from homeassistant.exceptions import HomeAssistantError
@@ -187,6 +188,7 @@ async def test_update(hass: HomeAssistant) -> None:
         assert state.attributes["attribution"] == ATTRIBUTION
         assert state.attributes["device_class"] == UpdateDeviceClass.FIRMWARE
         assert state.attributes["friendly_name"] == ATTR_UPDATE_FIRMWARE_NAME
+        assert entry is not None
         assert entry.entity_category == EntityCategory.CONFIG
 
         camera_unique_id: str = _generate_id(
@@ -247,6 +249,7 @@ async def test_update_incorrect_camera(hass: HomeAssistant) -> None:
         assert state.attributes["attribution"] == ATTRIBUTION
         assert state.attributes["device_class"] == UpdateDeviceClass.FIRMWARE
         assert state.attributes["friendly_name"] == ATTR_UPDATE_FIRMWARE_NAME
+        assert entry is not None
         assert entry.entity_category == EntityCategory.CONFIG
         assert (
             state.attributes["entity_picture"]
@@ -275,14 +278,14 @@ async def test_need_update(hass: HomeAssistant) -> None:
 
         await async_mock_luci_client(mock_luci_client)
 
-        def off() -> dict:
+        def _off() -> dict:
             return json.loads(load_fixture("rom_update_data.json"))
 
-        def on() -> dict:
+        def _on() -> dict:
             return json.loads(load_fixture("rom_update_need_data.json"))
 
         mock_luci_client.return_value.rom_update = AsyncMock(
-            side_effect=MultipleSideEffect(off, on)
+            side_effect=MultipleSideEffect(_off, _on)
         )
 
         setup_data: list = await async_setup(hass)
@@ -307,7 +310,7 @@ async def test_need_update(hass: HomeAssistant) -> None:
         )
         await hass.async_block_till_done()
 
-        state: State = hass.states.get(unique_id)
+        state = hass.states.get(unique_id)
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
 
         assert state.state == STATE_ON
@@ -319,6 +322,7 @@ async def test_need_update(hass: HomeAssistant) -> None:
         assert state.attributes["attribution"] == ATTRIBUTION
         assert state.attributes["device_class"] == UpdateDeviceClass.FIRMWARE
         assert state.attributes["friendly_name"] == ATTR_UPDATE_FIRMWARE_NAME
+        assert entry is not None
         assert entry.entity_category == EntityCategory.CONFIG
 
         camera_unique_id: str = _generate_id(
@@ -360,7 +364,6 @@ async def test_release_notes(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
         updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
-        registry = er.async_get(hass)
 
         assert updater.last_update_success
 
@@ -369,6 +372,7 @@ async def test_release_notes(hass: HomeAssistant) -> None:
         component = hass.data[UPDATE_DOMAIN]
         entity: UpdateEntity | None = component.get_entity(unique_id)
 
+        assert entity is not None
         assert await entity.async_release_notes() == MAP_NOTES[ATTR_UPDATE_FIRMWARE]
 
 
@@ -393,14 +397,14 @@ async def test_install(hass: HomeAssistant) -> None:
 
         await async_mock_luci_client(mock_luci_client)
 
-        def off() -> dict:
+        def _off() -> dict:
             return json.loads(load_fixture("rom_update_data.json"))
 
-        def on() -> dict:
+        def _on() -> dict:
             return json.loads(load_fixture("rom_update_need_data.json"))
 
         mock_luci_client.return_value.rom_update = AsyncMock(
-            side_effect=MultipleSideEffect(off, off, on)
+            side_effect=MultipleSideEffect(_off, _off, _on)
         )
 
         mock_luci_client.return_value.rom_upgrade = AsyncMock(return_value={"code": 0})
@@ -434,12 +438,12 @@ async def test_install(hass: HomeAssistant) -> None:
         )
         await hass.async_block_till_done()
 
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        updater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
 
         assert updater.last_update_success
         updater.data[ATTR_STATE] = False
 
-        state: State = hass.states.get(unique_id)
+        state = hass.states.get(unique_id)
         assert state.state == STATE_ON
 
         assert await hass.services.async_call(
@@ -474,14 +478,14 @@ async def test_install_flash_error(hass: HomeAssistant) -> None:
 
         await async_mock_luci_client(mock_luci_client)
 
-        def off() -> dict:
+        def _off() -> dict:
             return json.loads(load_fixture("rom_update_data.json"))
 
-        def on() -> dict:
+        def _on() -> dict:
             return json.loads(load_fixture("rom_update_need_data.json"))
 
         mock_luci_client.return_value.rom_update = AsyncMock(
-            side_effect=MultipleSideEffect(off, on)
+            side_effect=MultipleSideEffect(_off, _on)
         )
 
         mock_luci_client.return_value.rom_upgrade = AsyncMock(return_value={"code": 0})
@@ -511,7 +515,7 @@ async def test_install_flash_error(hass: HomeAssistant) -> None:
         )
         await hass.async_block_till_done()
 
-        state: State = hass.states.get(unique_id)
+        state = hass.states.get(unique_id)
         assert state.state == STATE_ON
 
         assert await hass.services.async_call(
@@ -539,21 +543,21 @@ async def test_install_error(hass: HomeAssistant) -> None:
         "custom_components.miwifi.async_start_discovery", return_value=None
     ), patch(
         "custom_components.miwifi.update.asyncio.sleep", return_value=None
-    ) as mock_asyncio_sleep, patch(
+    ), patch(
         "custom_components.miwifi.device_tracker.socket.socket"
     ) as mock_socket:
         mock_socket.return_value.recv.return_value = AsyncMock(return_value=None)
 
         await async_mock_luci_client(mock_luci_client)
 
-        def off() -> dict:
+        def _off() -> dict:
             return json.loads(load_fixture("rom_update_data.json"))
 
-        def on() -> dict:
+        def _on() -> dict:
             return json.loads(load_fixture("rom_update_need_data.json"))
 
         mock_luci_client.return_value.rom_update = AsyncMock(
-            side_effect=MultipleSideEffect(off, on)
+            side_effect=MultipleSideEffect(_off, _on)
         )
 
         mock_luci_client.return_value.rom_upgrade = AsyncMock(
@@ -581,7 +585,7 @@ async def test_install_error(hass: HomeAssistant) -> None:
         )
         await hass.async_block_till_done()
 
-        state: State = hass.states.get(unique_id)
+        state = hass.states.get(unique_id)
         assert state.state == STATE_ON
 
         with pytest.raises(HomeAssistantError):
@@ -595,12 +599,12 @@ async def test_install_error(hass: HomeAssistant) -> None:
 
 
 def _generate_id(
-    code: str, updater: UPDATER, domain: str = UPDATE_ENTITY_ID_FORMAT
+    code: str, updater: LuciUpdater, domain: str = UPDATE_ENTITY_ID_FORMAT
 ) -> str:
     """Generate unique id
 
     :param code: str
-    :param updater: UPDATER
+    :param updater: LuciUpdater
     :param domain: str
     :return str
     """

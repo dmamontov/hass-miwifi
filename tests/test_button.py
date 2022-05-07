@@ -1,12 +1,14 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
 from unittest.mock import AsyncMock, patch
-import pytest
 import json
+import pytest
 from homeassistant.components.button import (
     DOMAIN as BUTTON_DOMAIN,
     ENTITY_ID_FORMAT as BUTTON_ENTITY_ID_FORMAT,
@@ -63,9 +65,9 @@ async def test_init(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send, patch(
+    ), patch(
         "custom_components.miwifi.async_start_discovery", return_value=None
-    ) as mock_async_start_discovery, patch(
+    ), patch(
         "custom_components.miwifi.device_tracker.socket.socket"
     ) as mock_socket, patch(
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
@@ -149,6 +151,7 @@ async def test_update_reboot(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNKNOWN
         assert state.name == ATTR_BUTTON_REBOOT_NAME
         assert state.attributes["attribution"] == ATTRIBUTION
+        assert entry is not None
         assert entry.entity_category == EntityCategory.CONFIG
         assert entry.original_device_class == ButtonDeviceClass.RESTART
 
@@ -188,11 +191,11 @@ async def test_update_reboot(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
-def _generate_id(code: str, updater: UPDATER) -> str:
+def _generate_id(code: str, updater: LuciUpdater) -> str:
     """Generate unique id
 
     :param code: str
-    :param updater: UPDATER
+    :param updater: LuciUpdater
     :return str
     """
 

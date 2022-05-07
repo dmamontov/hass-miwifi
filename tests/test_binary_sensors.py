@@ -1,12 +1,14 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
 from unittest.mock import AsyncMock, patch
-import pytest
 import json
+import pytest
 from homeassistant.components.binary_sensor import (
     ENTITY_ID_FORMAT as BINARY_SENSOR_ENTITY_ID_FORMAT,
 )
@@ -62,9 +64,9 @@ async def test_init(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send, patch(
+    ), patch(
         "custom_components.miwifi.async_start_discovery", return_value=None
-    ) as mock_async_start_discovery, patch(
+    ), patch(
         "custom_components.miwifi.device_tracker.socket.socket"
     ) as mock_socket, patch(
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
@@ -153,6 +155,7 @@ async def test_update_state(hass: HomeAssistant) -> None:
         assert state.name == ATTR_STATE_NAME
         assert state.attributes["icon"] == "mdi:router-wireless"
         assert state.attributes["attribution"] == ATTRIBUTION
+        assert entry is not None
         assert entry.entity_category == EntityCategory.DIAGNOSTIC
 
         async_fire_time_changed(
@@ -203,14 +206,14 @@ async def test_update_wan_state(hass: HomeAssistant) -> None:
             side_effect=MultipleSideEffect(success, error, error)
         )
 
-        def on() -> dict:
+        def _on() -> dict:
             return json.loads(load_fixture("wan_info_data.json"))
 
-        def off() -> dict:
+        def _off() -> dict:
             return json.loads(load_fixture("wan_info_wan_off_data.json"))
 
         mock_luci_client.return_value.wan_info = AsyncMock(
-            side_effect=MultipleSideEffect(on, off, off)
+            side_effect=MultipleSideEffect(_on, _off, _off)
         )
 
         setup_data: list = await async_setup(hass)
@@ -233,6 +236,7 @@ async def test_update_wan_state(hass: HomeAssistant) -> None:
         assert state.name == ATTR_BINARY_SENSOR_WAN_STATE_NAME
         assert state.attributes["icon"] == "mdi:wan"
         assert state.attributes["attribution"] == ATTRIBUTION
+        assert entry is not None
         assert entry.entity_category == EntityCategory.DIAGNOSTIC
 
         async_fire_time_changed(
@@ -281,14 +285,14 @@ async def test_update_dual_band(hass: HomeAssistant) -> None:
             side_effect=MultipleSideEffect(success, success, success, error, error)
         )
 
-        def off() -> dict:
+        def _off() -> dict:
             return json.loads(load_fixture("wifi_detail_all_data.json"))
 
-        def on() -> dict:
+        def _on() -> dict:
             return json.loads(load_fixture("wifi_detail_all_bsd_on_data.json"))
 
         mock_luci_client.return_value.wifi_detail_all = AsyncMock(
-            side_effect=MultipleSideEffect(off, off, off, on, on)
+            side_effect=MultipleSideEffect(_off, _off, _off, _on, _on)
         )
 
         setup_data: list = await async_setup(hass)
@@ -308,6 +312,7 @@ async def test_update_dual_band(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -350,11 +355,11 @@ async def test_update_dual_band(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
-def _generate_id(code: str, updater: UPDATER) -> str:
+def _generate_id(code: str, updater: LuciUpdater) -> str:
     """Generate unique id
 
     :param code: str
-    :param updater: UPDATER
+    :param updater: LuciUpdater
     :return str
     """
 

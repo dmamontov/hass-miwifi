@@ -72,6 +72,7 @@ from .const import (
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
     ATTR_TRACKER_OPTIONAL_MAC,
+    ATTR_TRACKER_IS_RESTORED,
     ATTR_UPDATE_FIRMWARE,
     ATTR_UPDATE_TITLE,
     ATTR_UPDATE_CURRENT_VERSION,
@@ -232,7 +233,7 @@ class LuciUpdater(DataUpdateCoordinator):
         if self.new_device_callback is not None:
             self.new_device_callback()  # pylint: disable=not-callable
 
-        if clean_store:
+        if clean_store and self._store is not None:
             await self._store.async_remove()
         else:
             await self._async_save_devices()
@@ -910,7 +911,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
             self.devices[mac] = device
 
-            async_dispatcher_send(self.hass, SIGNAL_NEW_DEVICE, device)
+            async_dispatcher_send(
+                self.hass, SIGNAL_NEW_DEVICE, device | {ATTR_TRACKER_IS_RESTORED: True}
+            )
 
             _LOGGER.debug("Restore device: %s, %s", mac, device)
 

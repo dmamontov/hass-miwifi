@@ -1,5 +1,7 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 import base64
@@ -41,7 +43,7 @@ from custom_components.miwifi.const import (
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
 
-from tests.setup import async_mock_luci_client, async_setup, MultipleSideEffect
+from tests.setup import async_mock_luci_client, async_setup
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,9 +65,9 @@ async def test_init(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send, patch(
+    ), patch(
         "custom_components.miwifi.async_start_discovery", return_value=None
-    ) as mock_async_start_discovery, patch(
+    ), patch(
         "custom_components.miwifi.device_tracker.socket.socket"
     ) as mock_socket, patch(
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
@@ -106,9 +108,9 @@ async def test_init_disabled(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send, patch(
+    ), patch(
         "custom_components.miwifi.async_start_discovery", return_value=None
-    ) as mock_async_start_discovery, patch(
+    ), patch(
         "custom_components.miwifi.device_tracker.socket.socket"
     ) as mock_socket, patch(
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
@@ -135,6 +137,7 @@ async def test_init_disabled(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -167,9 +170,9 @@ async def test_get_image(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send, patch(
+    ), patch(
         "custom_components.miwifi.async_start_discovery", return_value=None
-    ) as mock_async_start_discovery, patch(
+    ), patch(
         "custom_components.miwifi.device_tracker.socket.socket"
     ) as mock_socket, patch(
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
@@ -204,11 +207,11 @@ async def test_get_image(hass: HomeAssistant) -> None:
             await async_get_image(hass, unique_id)
 
 
-def _generate_id(code: str, updater: UPDATER) -> str:
+def _generate_id(code: str, updater: LuciUpdater) -> str:
     """Generate unique id
 
     :param code: str
-    :param updater: UPDATER
+    :param updater: LuciUpdater
     :return str
     """
 

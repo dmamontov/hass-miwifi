@@ -43,6 +43,7 @@ from .const import (
     ATTR_TRACKER_UP_SPEED,
     ATTR_TRACKER_LAST_ACTIVITY,
     ATTR_TRACKER_OPTIONAL_MAC,
+    ATTR_TRACKER_IS_RESTORED,
 )
 from .enum import Connection
 from .helper import (
@@ -84,33 +85,28 @@ async def async_setup_entry(
     data: dict = hass.data[DOMAIN][config_entry.entry_id]
     updater: LuciUpdater = data[UPDATER]
 
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize device tracker.")
-
-        return
-
     @callback
-    def add_device(device: dict) -> None:
+    def add_device(new_device: dict) -> None:
         """Add device.
 
-        :param device: dict: Device object
+        :param new_device: dict: Device object
         """
 
-        if device[ATTR_TRACKER_UPDATER_ENTRY_ID] != config_entry.entry_id:
-            return
+        if new_device[ATTR_TRACKER_UPDATER_ENTRY_ID] != config_entry.entry_id:
+            return  # pragma: no cover
 
         entity_id: str = generate_entity_id(
-            ENTITY_ID_FORMAT, str(device.get(ATTR_TRACKER_MAC))
+            ENTITY_ID_FORMAT, str(new_device.get(ATTR_TRACKER_MAC))
         )
 
         try:
             platform: EntityPlatform = async_get_current_platform()
-        except RuntimeError as _e:
+        except RuntimeError as _e:  # pragma: no cover
             _LOGGER.debug("An error occurred while adding the device: %r", _e)
 
             return
 
-        if entity_id in platform.entities:
+        if entity_id in platform.entities:  # pragma: no cover
             _LOGGER.debug("Device already added: %s", entity_id)
 
             return
@@ -120,7 +116,7 @@ async def async_setup_entry(
                 MiWifiDeviceTracker(
                     f"{DOMAIN}-{device.get(ATTR_TRACKER_MAC)}",
                     entity_id,
-                    device,
+                    new_device,
                     updater,
                 )
             ]
@@ -140,7 +136,6 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
     _attr_attribution: str = ATTRIBUTION
     _configuration_port: int | None = None
     _is_connected: bool = False
-    _device: dict
 
     def __init__(
         self,
@@ -159,14 +154,17 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         CoordinatorEntity.__init__(self, coordinator=updater)
 
-        self._device = device
-        self._updater = updater
+        self._device: dict = dict(device)
+        self._updater: LuciUpdater = updater
 
         self._attr_name = device.get(ATTR_TRACKER_NAME, self.mac_address)
 
         self.entity_id = entity_id
         self._attr_unique_id = unique_id
         self._attr_available = updater.data.get(ATTR_STATE, False)
+
+        if self._attr_available:
+            self._is_connected = not device.get(ATTR_TRACKER_IS_RESTORED, False)
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
@@ -188,13 +186,13 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         return self._attr_available and self.coordinator.last_update_success
 
     @cached_property
-    def mac_address(self) -> str | None:
+    def mac_address(self) -> str:
         """Return the mac address of the device.
 
         :return str | None: Mac address
         """
 
-        return self._device.get(ATTR_TRACKER_MAC, None)
+        return str(self._device.get(ATTR_TRACKER_MAC))
 
     @property
     def manufacturer(self) -> str | None:
@@ -251,12 +249,6 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         signal: Any = self._device.get(ATTR_TRACKER_SIGNAL, "")
         connection: Any = self._device.get(ATTR_TRACKER_CONNECTION, None)
 
-        if isinstance(connection, int):
-            try:
-                connection = Connection(connection)
-            except ValueError:
-                connection = None
-
         if not self.is_connected or connection == Connection.LAN:
             signal = ""
 
@@ -300,13 +292,14 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         if self._configuration_port is None:
             return None
 
-        if self._configuration_port == 80:
-            return f"http://{self.ip_address}"
+        _schema: str = "https" if self._configuration_port == 443 else "http"
 
-        if self._configuration_port == 443:
-            return f"https://{self.ip_address}"
+        _url: str = f"{_schema}://{self.ip_address}:{self._configuration_port}"
 
-        return f"http://{self.ip_address}:{self._configuration_port}"
+        if self._configuration_port in [80, 443]:
+            _url = f"{_schema}://{self.ip_address}"
+
+        return _url
 
     @property
     def device_info(self) -> DeviceInfo:  # pylint: disable=overridden-final-method
@@ -357,9 +350,6 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         is_available: bool = self._updater.data.get(ATTR_STATE, False)
 
-        if self.mac_address is None:
-            return
-
         device = self._updater.devices.get(self.mac_address, None)
 
         if device is None or self._device is None:
@@ -370,16 +360,11 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
             return
 
-        self._update_entry(device.get(ATTR_TRACKER_ENTRY_ID, None))
+        device = self._update_entry(device)
 
-        if not device.get(ATTR_TRACKER_LAST_ACTIVITY, False):
-            is_connected = False
-        elif not self._device.get(ATTR_TRACKER_LAST_ACTIVITY, False):
-            is_connected = True
-        else:
-            is_connected = parse_last_activity(
-                str(device.get(ATTR_TRACKER_LAST_ACTIVITY))
-            ) > parse_last_activity(str(self._device.get(ATTR_TRACKER_LAST_ACTIVITY)))
+        is_connected = parse_last_activity(
+            str(device.get(ATTR_TRACKER_LAST_ACTIVITY))
+        ) > parse_last_activity(str(self._device.get(ATTR_TRACKER_LAST_ACTIVITY)))
 
         is_update = False
         for attr in ATTR_CHANGES:
@@ -397,15 +382,18 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         self._attr_available = is_available
         self._is_connected = is_connected
-        self._device = device
+        self._device = dict(device)
 
         self.async_write_ha_state()
 
-    def _update_entry(self, entry_id: str) -> None:
+    def _update_entry(self, track_device: dict) -> dict:
         """Update device entry.
 
-        :param entry_id: str: To entry id
+        :param track_device: dict: Track device
+        :return dict
         """
+
+        entry_id: str = track_device.get(ATTR_TRACKER_ENTRY_ID, None)
 
         device_registry = dr.async_get(self.hass)
         device = device_registry.async_get_device(
@@ -429,16 +417,18 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
                 )
 
         if (
-            entry_id not in self.hass.data[DOMAIN]
-            or self._updater == self.hass.data[DOMAIN][entry_id][UPDATER]
+            entry_id in self.hass.data[DOMAIN]
+            and self._updater != self.hass.data[DOMAIN][entry_id][UPDATER]
         ):
-            return
+            self._updater = self.hass.data[DOMAIN][entry_id][UPDATER]
+            self._device[ATTR_TRACKER_ENTRY_ID] = entry_id
+            track_device = self._updater.devices.get(self.mac_address, track_device)
 
-        self._updater = self.hass.data[DOMAIN][entry_id][UPDATER]
-        self._device[ATTR_TRACKER_ENTRY_ID] = entry_id
+        return track_device
 
     async def check_ports(self) -> None:
         """Scan port to configuration url"""
+
         if self.ip_address is None:
             return
 
@@ -450,9 +440,6 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
                 if result == 0:
                     self._configuration_port = port
 
-                    break
+                    _LOGGER.debug("Found open port %s: %s", self.ip_address, port)
 
-            if self._configuration_port is not None:
-                _LOGGER.debug(
-                    "Found open port %s: %s", self.ip_address, self._configuration_port
-                )
+                    break

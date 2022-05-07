@@ -1,12 +1,14 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 from typing import Final
 import logging
 from unittest.mock import AsyncMock, patch
-import pytest
 import json
+import pytest
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
@@ -90,7 +92,9 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
-async def test_updater_default_mode(hass: HomeAssistant) -> None:
+async def test_updater_default_mode(
+    hass: HomeAssistant,
+) -> None:
     """Test updater.
 
     :param hass: HomeAssistant
@@ -227,7 +231,10 @@ async def test_updater_default_mode(hass: HomeAssistant) -> None:
     assert updater.data[ATTR_SENSOR_DEVICES_5_0_GAME] == 0
     assert updater.data[ATTR_STATE]
 
-    assert updater._signals == {"00:00:00:00:00:01": 100, "00:00:00:00:00:02": 100}
+    assert updater._signals == {
+        "00:00:00:00:00:01": 100,
+        "00:00:00:00:00:02": 100,
+    }
     assert updater.devices == {
         "00:00:00:00:00:01": {
             ATTR_TRACKER_ENTRY_ID: config_entry.entry_id,
@@ -562,7 +569,10 @@ async def test_updater_incorrect_mac_default_mode(hass: HomeAssistant) -> None:
     assert updater.data[ATTR_SENSOR_DEVICES_5_0_GAME] == 0
     assert updater.data[ATTR_STATE]
 
-    assert updater._signals == {"00:00:00:00:00:01": 100, "00:00:00:00:00:02": 100}
+    assert updater._signals == {
+        "00:00:00:00:00:01": 100,
+        "00:00:00:00:00:02": 100,
+    }
     assert updater.devices == {
         "00:00:00:00:00:02": {
             ATTR_TRACKER_ENTRY_ID: config_entry.entry_id,
@@ -614,7 +624,7 @@ async def test_updater_default_mode_auto_remove(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send, patch(
+    ), patch(
         "custom_components.miwifi.helper.Store"
     ) as mock_store, patch(
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
@@ -703,7 +713,7 @@ async def test_updater_default_mode_auto_remove_incorrect(hass: HomeAssistant) -
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send, patch(
+    ), patch(
         "custom_components.miwifi.helper.Store"
     ) as mock_store, patch(
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None

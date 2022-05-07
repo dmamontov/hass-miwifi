@@ -1,12 +1,14 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
 from unittest.mock import AsyncMock, patch
-import pytest
 import json
+import pytest
 from homeassistant.components.light import (
     ENTITY_ID_FORMAT as LIGHT_ENTITY_ID_FORMAT,
     DOMAIN as LIGHT_DOMAIN,
@@ -36,7 +38,6 @@ from custom_components.miwifi.const import (
     DEFAULT_SCAN_INTERVAL,
     ATTRIBUTION,
     ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_LIGHT_LED,
     ATTR_LIGHT_LED_NAME,
 )
 from custom_components.miwifi.exceptions import LuciTokenException
@@ -96,6 +97,7 @@ async def test_init(hass: HomeAssistant) -> None:
         assert state.name == ATTR_LIGHT_LED_NAME
         assert state.attributes["icon"] == "mdi:led-on"
         assert state.attributes["attribution"] == ATTRIBUTION
+        assert entry is not None
         assert entry.entity_category == EntityCategory.CONFIG
 
 
@@ -227,11 +229,11 @@ async def test_update_led(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
-def _generate_id(code: str, updater: UPDATER) -> str:
+def _generate_id(code: str, updater: LuciUpdater) -> str:
     """Generate unique id
 
     :param code: str
-    :param updater: UPDATER
+    :param updater: LuciUpdater
     :return str
     """
 

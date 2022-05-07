@@ -218,6 +218,7 @@ ATTR_TRACKER_DOWN_SPEED: Final = "down_speed"
 ATTR_TRACKER_UP_SPEED: Final = "up_speed"
 ATTR_TRACKER_LAST_ACTIVITY: Final = "last_activity"
 ATTR_TRACKER_OPTIONAL_MAC: Final = "optional_mac"
+ATTR_TRACKER_IS_RESTORED: Final = "is_restored"
 
 """Update attributes"""
 ATTR_UPDATE_FIRMWARE: Final = "firmware"

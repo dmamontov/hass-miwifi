@@ -126,15 +126,12 @@ def pretty_size(speed: float) -> str:
     return f"{round(speed / _p, 2)} {_unit[_i]}"
 
 
-def detect_manufacturer(mac: str | None) -> str | None:
+def detect_manufacturer(mac: str) -> str | None:
     """Get manufacturer by mac address
 
-    :param mac: str | None: Mac address
+    :param mac: str: Mac address
     :return str | None: Manufacturer
     """
-
-    if mac is None:
-        return None
 
     identifier: str = mac.replace(":", "").upper()[0:6]
 

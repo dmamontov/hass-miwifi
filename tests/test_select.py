@@ -1,12 +1,14 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
 from unittest.mock import AsyncMock, patch
-import pytest
 import json
+import pytest
 from homeassistant.components.select import (
     ENTITY_ID_FORMAT as SELECT_ENTITY_ID_FORMAT,
     DOMAIN as SELECT_DOMAIN,
@@ -101,27 +103,23 @@ async def test_init(hass: HomeAssistant) -> None:
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SELECT_WIFI_5_0_CHANNEL_NAME, updater)
+        unique_id = _generate_id(ATTR_SELECT_WIFI_5_0_CHANNEL_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME, updater)
+        unique_id = _generate_id(ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
-        unique_id: str = _generate_id(
-            ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME, updater
-        )
+        unique_id = _generate_id(ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(
-            ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME, updater
-        )
+        unique_id = _generate_id(ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(
+        unique_id = _generate_id(
             ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME, updater
         )
         assert hass.states.get(unique_id) is None
@@ -169,27 +167,23 @@ async def test_init_with_game(hass: HomeAssistant) -> None:
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SELECT_WIFI_5_0_CHANNEL_NAME, updater)
+        unique_id = _generate_id(ATTR_SELECT_WIFI_5_0_CHANNEL_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME, updater)
+        unique_id = _generate_id(ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(
-            ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME, updater
-        )
+        unique_id = _generate_id(ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(
-            ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME, updater
-        )
+        unique_id = _generate_id(ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(
+        unique_id = _generate_id(
             ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME, updater
         )
         assert hass.states.get(unique_id) is None
@@ -242,6 +236,7 @@ async def test_update_channel_2_4(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -325,6 +320,7 @@ async def test_update_channel_2_4_empty_channels(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -409,6 +405,7 @@ async def test_update_channel_2_4_wifi_data(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -433,7 +430,7 @@ async def test_update_channel_2_4_wifi_data(hass: HomeAssistant) -> None:
 
         assert entry.disabled_by is None
 
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        updater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
 
         assert updater.last_update_success
         assert updater.data.get(ATTR_WIFI_2_4_DATA) == {
@@ -498,6 +495,7 @@ async def test_update_channel_2_4_change_channel(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -590,6 +588,7 @@ async def test_update_channel_5_0(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -682,6 +681,7 @@ async def test_update_channel_5_0_empty_channels(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -750,6 +750,7 @@ async def test_update_channel_5_0_empty_channels_and_5g_game(
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -834,6 +835,7 @@ async def test_update_channel_5_0_wifi_data(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -858,7 +860,7 @@ async def test_update_channel_5_0_wifi_data(hass: HomeAssistant) -> None:
 
         assert entry.disabled_by is None
 
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        updater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
 
         assert updater.last_update_success
         assert updater.data.get(ATTR_WIFI_5_0_DATA) == {
@@ -923,6 +925,7 @@ async def test_update_channel_5_0_change_channel(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1019,6 +1022,7 @@ async def test_update_channel_5_0_game(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1106,6 +1110,7 @@ async def test_update_channel_5_0_game_empty_channels(hass: HomeAssistant) -> No
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1192,6 +1197,7 @@ async def test_update_channel_5_0_game_wifi_data(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1216,7 +1222,7 @@ async def test_update_channel_5_0_game_wifi_data(hass: HomeAssistant) -> None:
 
         assert entry.disabled_by is None
 
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        updater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
 
         assert updater.last_update_success
         assert updater.data.get(ATTR_WIFI_5_0_GAME_DATA) == {
@@ -1285,6 +1291,7 @@ async def test_update_channel_5_0_game_change_channel(hass: HomeAssistant) -> No
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1379,6 +1386,7 @@ async def test_update_strength_2_4(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1486,6 +1494,7 @@ async def test_update_strength_2_4_wifi_data(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1510,7 +1519,7 @@ async def test_update_strength_2_4_wifi_data(hass: HomeAssistant) -> None:
 
         assert entry.disabled_by is None
 
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        updater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
 
         assert updater.last_update_success
         assert updater.data.get(ATTR_WIFI_2_4_DATA) == {
@@ -1577,6 +1586,7 @@ async def test_update_strength_2_4_change_strength(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1596,7 +1606,8 @@ async def test_update_strength_2_4_change_strength(hass: HomeAssistant) -> None:
 
         assert entry.disabled_by is None
 
-        state: State = hass.states.get(unique_id)
+        state = hass.states.get(unique_id)
+        assert state is not None
         assert state.attributes["icon"] == "mdi:wifi-strength-4"
 
         _prev_calls: int = len(mock_luci_client.mock_calls)
@@ -1676,6 +1687,7 @@ async def test_update_strength_5_0(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1783,6 +1795,7 @@ async def test_update_strength_5_0_wifi_data(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1807,7 +1820,7 @@ async def test_update_strength_5_0_wifi_data(hass: HomeAssistant) -> None:
 
         assert entry.disabled_by is None
 
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        updater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
 
         assert updater.last_update_success
         assert updater.data.get(ATTR_WIFI_5_0_DATA) == {
@@ -1874,6 +1887,7 @@ async def test_update_strength_5_0_change_channel(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1977,6 +1991,7 @@ async def test_update_strength_5_0_game(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -2086,6 +2101,7 @@ async def test_update_strength_5_0_game_wifi_data(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -2110,7 +2126,7 @@ async def test_update_strength_5_0_game_wifi_data(hass: HomeAssistant) -> None:
 
         assert entry.disabled_by is None
 
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        updater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
 
         assert updater.last_update_success
         assert updater.data.get(ATTR_WIFI_5_0_GAME_DATA) == {
@@ -2181,6 +2197,7 @@ async def test_update_strength_5_0_game_change_strength(hass: HomeAssistant) -> 
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -2232,11 +2249,11 @@ async def test_update_strength_5_0_game_change_strength(hass: HomeAssistant) -> 
         assert len(mock_luci_client.mock_calls) == _prev_calls + 2
 
 
-def _generate_id(code: str, updater: UPDATER) -> str:
+def _generate_id(code: str, updater: LuciUpdater) -> str:
     """Generate unique id
 
     :param code: str
-    :param updater: UPDATER
+    :param updater: LuciUpdater
     :return str
     """
 

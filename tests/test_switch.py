@@ -1,12 +1,14 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
 from unittest.mock import AsyncMock, patch
-import pytest
 import json
+import pytest
 from homeassistant.components.switch import (
     ENTITY_ID_FORMAT as SWITCH_ENTITY_ID_FORMAT,
     DOMAIN as SWITCH_DOMAIN,
@@ -98,15 +100,15 @@ async def test_init(hass: HomeAssistant) -> None:
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_5_0_GAME_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_GAME_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_GUEST_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_GUEST_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
@@ -157,15 +159,15 @@ async def test_init_with_game(hass: HomeAssistant) -> None:
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_5_0_GAME_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_GAME_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_GUEST_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_GUEST_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
@@ -212,20 +214,22 @@ async def test_init_without_guest(hass: HomeAssistant) -> None:
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_5_0_GAME_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_GAME_NAME, updater)
         assert hass.states.get(unique_id) is not None
         assert registry.async_get(unique_id) is not None
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_GUEST_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_GUEST_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
 
 
-async def test_init_bsd(hass: HomeAssistant) -> None:
+async def test_init_bsd(
+    hass: HomeAssistant,
+) -> None:
     """Test init.
 
     :param hass: HomeAssistant
@@ -282,16 +286,16 @@ async def test_init_bsd(hass: HomeAssistant) -> None:
         assert state.attributes["friendly_name"] == ATTR_SWITCH_WIFI_2_4_NAME
         assert entry.original_name == ATTR_SWITCH_WIFI_2_4_NAME
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
         entry = registry.async_get(unique_id)
-        state: State = hass.states.get(unique_id)
+        state = hass.states.get(unique_id)
         assert state.state == STATE_ON
         assert state.attributes["friendly_name"] == ATTR_SWITCH_WIFI_5_0_NAME
         assert entry.original_name == ATTR_SWITCH_WIFI_5_0_NAME
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_5_0_GAME_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_GAME_NAME, updater)
         entry = registry.async_get(unique_id)
-        state: State = hass.states.get(unique_id)
+        state = hass.states.get(unique_id)
         assert state.state == STATE_ON
         assert state.attributes["friendly_name"] == ATTR_SWITCH_WIFI_5_0_GAME_NAME
         assert entry.original_name == ATTR_SWITCH_WIFI_5_0_GAME_NAME
@@ -301,23 +305,23 @@ async def test_init_bsd(hass: HomeAssistant) -> None:
         )
         await hass.async_block_till_done()
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_2_4_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_2_4_NAME, updater)
         entry = registry.async_get(unique_id)
-        state: State = hass.states.get(unique_id)
+        state = hass.states.get(unique_id)
         assert state.state == STATE_ON
         assert state.attributes["friendly_name"] == ATTR_SWITCH_WIFI_2_4_NAME
         assert entry.original_name == ATTR_SWITCH_WIFI_2_4_NAME
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
         entry = registry.async_get(unique_id)
-        state: State = hass.states.get(unique_id)
+        state = hass.states.get(unique_id)
         assert state.state == STATE_UNAVAILABLE
         assert state.attributes["friendly_name"] == ATTR_SWITCH_WIFI_5_0_NAME
         assert entry.original_name == ATTR_SWITCH_WIFI_5_0_NAME
 
-        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_5_0_GAME_NAME, updater)
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_GAME_NAME, updater)
         entry = registry.async_get(unique_id)
-        state: State = hass.states.get(unique_id)
+        state = hass.states.get(unique_id)
         assert state.state == STATE_UNAVAILABLE
         assert state.attributes["friendly_name"] == ATTR_SWITCH_WIFI_5_0_GAME_NAME
         assert entry.original_name == ATTR_SWITCH_WIFI_5_0_GAME_NAME
@@ -440,7 +444,6 @@ async def test_update_2_4_wifi_data(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
         updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
-        registry = er.async_get(hass)
 
         assert updater.last_update_success
         assert updater.data.get(ATTR_WIFI_2_4_DATA) == {
@@ -696,7 +699,6 @@ async def test_update_5_0_wifi_data(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
         updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
-        registry = er.async_get(hass)
 
         assert updater.last_update_success
         assert updater.data.get(ATTR_WIFI_5_0_DATA) == {
@@ -969,7 +971,6 @@ async def test_update_5_0_game_wifi_data(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
         updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
-        registry = er.async_get(hass)
 
         assert updater.last_update_success
         assert updater.data.get(ATTR_WIFI_5_0_GAME_DATA) == {
@@ -1163,6 +1164,7 @@ async def test_update_guest(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1181,8 +1183,7 @@ async def test_update_guest(hass: HomeAssistant) -> None:
         entry = registry.async_get(unique_id)
         state = hass.states.get(unique_id)
 
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
-        _LOGGER.error("{}".format(updater.is_support_guest_wifi))
+        updater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
 
         assert entry.disabled_by is None
         assert state.state == STATE_OFF
@@ -1265,6 +1266,7 @@ async def test_update_guest_wifi_data(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1289,7 +1291,7 @@ async def test_update_guest_wifi_data(hass: HomeAssistant) -> None:
 
         assert entry.disabled_by is None
 
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        updater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
 
         assert updater.last_update_success
         assert updater.data.get(ATTR_WIFI_GUEST_DATA) == {
@@ -1351,6 +1353,7 @@ async def test_update_guest_turn(hass: HomeAssistant) -> None:
         entry: er.RegistryEntry | None = registry.async_get(unique_id)
         state: State = hass.states.get(unique_id)
         assert state is None
+        assert entry is not None
         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
 
         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
@@ -1428,11 +1431,11 @@ async def test_update_guest_turn(hass: HomeAssistant) -> None:
         assert len(mock_luci_client.mock_calls) == _prev_calls + 4
 
 
-def _generate_id(code: str, updater: UPDATER) -> str:
+def _generate_id(code: str, updater: LuciUpdater) -> str:
     """Generate unique id
 
     :param code: str
-    :param updater: UPDATER
+    :param updater: LuciUpdater
     :return str
     """
 

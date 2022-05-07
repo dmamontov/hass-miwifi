@@ -1,12 +1,14 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 from typing import Final
 import logging
 from unittest.mock import AsyncMock, patch
-import pytest
 import json
+import pytest
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
@@ -475,7 +477,7 @@ async def test_updater_ap_mode_move(hass: HomeAssistant) -> None:
             return_value=json.loads(load_fixture("device_list_parent_data.json"))
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -661,7 +663,7 @@ async def test_updater_ap_mode_revert_move(hass: HomeAssistant) -> None:
             side_effect=MultipleSideEffect(first_device_list, second_device_list)
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -956,7 +958,7 @@ async def test_updater_ap_mode_revert_move_force_mode(hass: HomeAssistant) -> No
             return_value=json.loads(load_fixture("device_list_parent_data.json"))
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -1259,7 +1261,7 @@ async def test_updater_ap_mode_move_force_mode(hass: HomeAssistant) -> None:
             return_value=json.loads(load_fixture("device_list_parent_data.json"))
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -1438,7 +1440,7 @@ async def test_updater_ap_mode_restore(hass: HomeAssistant) -> None:
             return_value=json.loads(load_fixture("device_list_parent_data.json"))
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -1663,7 +1665,7 @@ async def test_updater_ap_mode_restore_force_mode(hass: HomeAssistant) -> None:
             return_value=json.loads(load_fixture("device_list_parent_data.json"))
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]

@@ -1,20 +1,20 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
 from typing import Final
 import logging
-import pytest
 import json
 from unittest.mock import Mock, AsyncMock, patch
-from pytest_homeassistant_custom_component.common import load_fixture
+import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.storage import Store
 from httpx import codes
-
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.miwifi.const import (
     DOMAIN,

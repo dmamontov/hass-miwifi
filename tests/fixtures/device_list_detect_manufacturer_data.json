@@ -1,0 +1,38 @@
+{
+  "mac": "00:00:00:00:00:00",
+  "list": [
+    {
+      "mac": "CC:50:E3:96:29:78",
+      "oname": "Device 1",
+      "isap": 0,
+      "parent": "",
+      "authority": {
+        "wan": 1,
+        "pridisk": 0,
+        "admin": 1,
+        "lan": 1
+      },
+      "push": 0,
+      "online": 1,
+      "name": "Device 1",
+      "times": 0,
+      "ip": [
+        {
+          "downspeed": "10000000",
+          "online": "29101",
+          "active": 1,
+          "upspeed": "0",
+          "ip": "192.168.31.2"
+        }
+      ],
+      "statistics": {
+        "downspeed": "0",
+        "online": "29101",
+        "upspeed": "0"
+      },
+      "icon": "",
+      "type": 1
+    }
+  ],
+  "code": 0
+}
