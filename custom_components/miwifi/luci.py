@@ -149,6 +149,9 @@ class LuciClient:
         :return dict: dict with api data.
         """
 
+        if use_stok and self._token is None:
+            raise LuciTokenException("Token not found")
+
         if query_params is not None and len(query_params) > 0:
             path += f"?{urllib.parse.urlencode(query_params, doseq=True)}"
 
@@ -216,14 +219,6 @@ class LuciClient:
         """
 
         return await self.get("xqnetwork/mode")
-
-    async def wifi_status(self) -> dict:
-        """xqnetwork/wifi_status method.
-
-        :return dict: dict with api data.
-        """
-
-        return await self.get("xqnetwork/wifi_status")
 
     async def wifi_ap_signal(self) -> dict:
         """xqnetwork/wifiap_signal method.

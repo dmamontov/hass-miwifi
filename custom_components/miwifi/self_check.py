@@ -30,6 +30,29 @@ SELF_CHECK_METHODS: Final = {
     "xqnetwork/wifiap_signal": "wifi_ap_signal",
 }
 
+METHODS_SORT: Final = [
+    "xqsystem/login",
+    "xqsystem/init_info",
+    "misystem/status",
+    "xqnetwork/mode",
+    "misystem/topo_graph",
+    "xqsystem/check_rom_update",
+    "xqnetwork/wan_info",
+    "misystem/led",
+    "xqnetwork/wifi_detail_all",
+    "xqnetwork/wifi_diag_detail_all",
+    "xqnetwork/avaliable_channels",
+    "xqnetwork/wifi_connect_devices",
+    "misystem/devicelist",
+    "xqnetwork/wifiap_signal",
+    "misystem/newstatus",
+    "xqsystem/reboot",
+    "xqsystem/upgrade_rom",
+    "xqsystem/flash_permission",
+    "xqnetwork/set_wifi",
+    "xqnetwork/set_wifi_without_restart",
+]
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -54,23 +77,20 @@ async def async_self_check(hass: HomeAssistant, client: LuciClient, model: str) 
     for code, method in SELF_CHECK_METHODS.items():
         action = getattr(client, method)
 
-        if not action:
-            data[code] = "🔴"
-
-            continue
-
-        try:
-            await action()
-            data[code] = "🟢"
-        except LuciException:
-            data[code] = "🔴"
+        if action:
+            try:
+                await action()
+                data[code] = "🟢"
+            except LuciException:
+                data[code] = "🔴"
 
     title: str = f"Router {client.ip} not supported.\n\nModel: {model}"
 
     message: str = "Check list:"
 
-    for code, status in data.items():
-        message += f"\n * {code}: {status}"
+    for method in METHODS_SORT:
+        if method in data:
+            message += f"\n * {method}: {data[method]}"
 
     integration = await async_get_integration(hass, DOMAIN)
 
@@ -81,7 +101,7 @@ async def async_self_check(hass: HomeAssistant, client: LuciClient, model: str) 
         + urllib.parse.quote_plus(message)
     # fmt: on
 
-    message = f"{title}\n\n{message}\n\n "
+    message = f"{title}\n\n{message}\n\n"
 
     # fmt: off
     # pylint: disable=line-too-long

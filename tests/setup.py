@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Final
 import logging
 import json
+import urllib.parse
 from unittest.mock import AsyncMock
 from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
 
@@ -173,6 +174,27 @@ async def async_mock_luci_client(mock_luci_client) -> None:
     mock_luci_client.return_value.topo_graph = AsyncMock(
         return_value=json.loads(load_fixture("topo_graph_data.json"))
     )
+
+
+def get_url(
+    path: str,
+    query_params: dict | None = None,
+    use_stok: bool = True,
+) -> str:
+    """Generate url
+
+    :param path: str
+    :param query_params: dict | None
+    :param use_stok:  bool
+    :return: str
+    """
+
+    if query_params is not None and len(query_params) > 0:
+        path += f"?{urllib.parse.urlencode(query_params, doseq=True)}"
+
+    _stok: str = ";stok=**REDACTED**/" if use_stok else ""
+
+    return f"http://{MOCK_IP_ADDRESS}/cgi-bin/luci/{_stok}api/{path}"
 
 
 class MultipleSideEffect:  # pylint: disable=too-few-public-methods

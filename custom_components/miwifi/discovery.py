@@ -129,7 +129,7 @@ def parse_leafs(devices: list, leafs: list) -> list:
 
         devices.append(leaf["ip"].strip())
 
-        if "leafs" in leaf:
+        if "leafs" in leaf and len(leaf["leafs"]) > 0:
             devices = parse_leafs(devices, leaf["leafs"])
 
     return devices
