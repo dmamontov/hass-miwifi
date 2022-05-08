@@ -25,6 +25,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     DOMAIN,
     UPDATER,
+    CONF_STAY_ONLINE,
+    DEFAULT_STAY_ONLINE,
     DEFAULT_CALL_DELAY,
     SIGNAL_NEW_DEVICE,
     ATTRIBUTION,
@@ -47,6 +49,7 @@ from .const import (
 )
 from .enum import Connection
 from .helper import (
+    get_config_value,
     generate_entity_id,
     parse_last_activity,
     pretty_size,
@@ -118,6 +121,9 @@ async def async_setup_entry(
                     entity_id,
                     new_device,
                     updater,
+                    get_config_value(
+                        config_entry, CONF_STAY_ONLINE, DEFAULT_STAY_ONLINE
+                    ),
                 )
             ]
         )
@@ -137,12 +143,13 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
     _configuration_port: int | None = None
     _is_connected: bool = False
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         unique_id: str,
         entity_id: str,
         device: dict,
         updater: LuciUpdater,
+        stay_online: int,
     ) -> None:
         """Initialize device_tracker.
 
@@ -150,6 +157,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         :param entity_id: str: Entity ID
         :param device: dict: Device data
         :param updater: LuciUpdater: Luci updater object
+        :param stay_online: int: Stay online
         """
 
         CoordinatorEntity.__init__(self, coordinator=updater)
@@ -158,6 +166,8 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         self._updater: LuciUpdater = updater
 
         self._attr_name = device.get(ATTR_TRACKER_NAME, self.mac_address)
+
+        self._stay_online: int = stay_online
 
         self.entity_id = entity_id
         self._attr_unique_id = unique_id
@@ -362,8 +372,9 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         device = self._update_entry(device)
 
-        is_connected = parse_last_activity(
-            str(device.get(ATTR_TRACKER_LAST_ACTIVITY))
+        is_connected = (
+            parse_last_activity(str(device.get(ATTR_TRACKER_LAST_ACTIVITY)))
+            + self._stay_online
         ) > parse_last_activity(str(self._device.get(ATTR_TRACKER_LAST_ACTIVITY)))
 
         is_update = False

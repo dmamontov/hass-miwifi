@@ -39,6 +39,7 @@ STORAGE_VERSION: Final = 1
 SIGNAL_NEW_DEVICE: Final = f"{DOMAIN}-device-new"
 
 """Custom conf"""
+CONF_STAY_ONLINE: Final = "stay_online"
 CONF_IS_FORCE_LOAD: Final = "is_force_load"
 CONF_ACTIVITY_DAYS: Final = "activity_days"
 
@@ -46,6 +47,7 @@ CONF_ACTIVITY_DAYS: Final = "activity_days"
 DEFAULT_RETRY: Final = 10
 DEFAULT_SCAN_INTERVAL: Final = 30
 DEFAULT_TIMEOUT: Final = 20
+DEFAULT_STAY_ONLINE: Final = 0
 DEFAULT_ACTIVITY_DAYS: Final = 30
 DEFAULT_CALL_DELAY: Final = 1
 DEFAULT_SLEEP: Final = 3

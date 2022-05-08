@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 import math
 from datetime import datetime
 from typing import Any
@@ -98,14 +99,16 @@ def get_store(hass: HomeAssistant, ip: str) -> Store:  # pylint: disable=invalid
     return Store(hass, STORAGE_VERSION, f"{DOMAIN}/{ip}.json", encoder=JSONEncoder)
 
 
-def parse_last_activity(last_activity: str) -> datetime:
+def parse_last_activity(last_activity: str) -> float:
     """Parse last activity string
 
     :param last_activity: str: Last activity
     :return datetime: Last activity in datetime
     """
 
-    return datetime.strptime(last_activity, "%Y-%m-%dT%H:%M:%S")
+    return time.mktime(
+        datetime.strptime(last_activity, "%Y-%m-%dT%H:%M:%S").timetuple()
+    )
 
 
 def pretty_size(speed: float) -> str:
