@@ -20,6 +20,7 @@ from .const import (
     DOMAIN,
     UPDATER,
     ATTRIBUTION,
+    DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
     ATTR_WIFI_2_4_DATA,
@@ -47,9 +48,11 @@ from .const import (
     ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME,
 )
 from .enum import Wifi
-from .exceptions import LuciException
+from .exceptions import LuciError
 from .helper import generate_entity_id
 from .updater import LuciUpdater
+
+PARALLEL_UPDATES = 0
 
 CHANNELS_MAP: Final = {
     ATTR_SELECT_WIFI_2_4_CHANNEL: ATTR_SELECT_WIFI_2_4_CHANNELS,
@@ -113,6 +116,7 @@ MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
         key=ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
         name=ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME,
         icon=ICONS[f"{ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH}_max"],
+        device_class=DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
     ),
@@ -120,6 +124,7 @@ MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
         key=ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
         name=ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME,
         icon=ICONS[f"{ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH}_max"],
+        device_class=DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
     ),
@@ -127,6 +132,7 @@ MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
         key=ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
         name=ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME,
         icon=ICONS[f"{ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH}_max"],
+        device_class=DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
     ),
@@ -359,7 +365,7 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity):
         try:
             await self._updater.luci.set_wifi(new_data)
             self._wifi_data = new_data
-        except LuciException as _e:
+        except LuciError as _e:
             _LOGGER.debug("WiFi update error: %r", _e)
 
     async def async_select_option(self, option: str) -> None:

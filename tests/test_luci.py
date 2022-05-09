@@ -17,9 +17,9 @@ from homeassistant.helpers.httpx_client import get_async_client
 from pytest_homeassistant_custom_component.common import load_fixture, get_fixture_path
 
 from custom_components.miwifi.exceptions import (
-    LuciException,
-    LuciConnectionException,
-    LuciTokenException,
+    LuciError,
+    LuciConnectionError,
+    LuciRequestError,
 )
 from custom_components.miwifi.luci import LuciClient
 
@@ -55,7 +55,7 @@ async def test_login_error_request(hass: HomeAssistant, httpx_mock: HTTPXMock) -
         get_async_client(hass, False), f"{MOCK_IP_ADDRESS}/", "test"
     )
 
-    with pytest.raises(LuciConnectionException):
+    with pytest.raises(LuciConnectionError):
         await client.login()
 
 
@@ -70,7 +70,7 @@ async def test_login_incorrect_token(
         get_async_client(hass, False), f"{MOCK_IP_ADDRESS}/", "test"
     )
 
-    with pytest.raises(LuciTokenException):
+    with pytest.raises(LuciRequestError):
         await client.login()
 
 
@@ -131,7 +131,7 @@ async def test_get_without_token(hass: HomeAssistant, httpx_mock: HTTPXMock) -> 
         get_async_client(hass, False), f"{MOCK_IP_ADDRESS}/", "test"
     )
 
-    with pytest.raises(LuciTokenException):
+    with pytest.raises(LuciRequestError):
         await client.get("misystem/miwifi")
 
     assert not httpx_mock.get_request()
@@ -185,7 +185,7 @@ async def test_get_error(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
 
     await client.login()
 
-    with pytest.raises(LuciConnectionException):
+    with pytest.raises(LuciConnectionError):
         await client.get("misystem/miwifi")
 
 
@@ -201,10 +201,10 @@ async def test_get_error_code(hass: HomeAssistant, httpx_mock: HTTPXMock) -> Non
 
     await client.login()
 
-    with pytest.raises(LuciTokenException):
+    with pytest.raises(LuciRequestError):
         await client.get("misystem/miwifi")
 
-    with pytest.raises(LuciException) as error:
+    with pytest.raises(LuciError) as error:
         await client.get("misystem/miwifi", errors={1: "custom errors"})
 
     assert str(error.value) == "custom errors"

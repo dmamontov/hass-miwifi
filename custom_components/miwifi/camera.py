@@ -28,6 +28,8 @@ from .const import (
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
+PARALLEL_UPDATES = 0
+
 MIWIFI_CAMERAS: tuple[CameraEntityDescription, ...] = (
     CameraEntityDescription(
         key=ATTR_CAMERA_IMAGE,

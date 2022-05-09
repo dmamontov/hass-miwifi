@@ -39,7 +39,7 @@ from custom_components.miwifi.const import (
     ATTR_BUTTON_REBOOT_NAME,
     ATTR_DEVICE_MAC_ADDRESS,
 )
-from custom_components.miwifi.exceptions import LuciTokenException
+from custom_components.miwifi.exceptions import LuciRequestError
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
 
@@ -116,7 +116,7 @@ async def test_update_reboot(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("device_list_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.device_list = AsyncMock(
             side_effect=MultipleSideEffect(success, error, error)
@@ -126,7 +126,7 @@ async def test_update_reboot(hass: HomeAssistant) -> None:
             return {"code": 0}
 
         def error_reboot() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.reboot = AsyncMock(
             side_effect=MultipleSideEffect(success_reboot, error_reboot)

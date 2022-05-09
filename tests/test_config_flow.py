@@ -28,8 +28,8 @@ from custom_components.miwifi.const import (
     DEFAULT_TIMEOUT,
 )
 from custom_components.miwifi.exceptions import (
-    LuciConnectionException,
-    LuciTokenException,
+    LuciConnectionError,
+    LuciRequestError,
 )
 
 MOCK_IP_ADDRESS: Final = "192.168.31.1"
@@ -125,9 +125,7 @@ async def test_user_ip_error(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
     ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
-        mock_luci_client.return_value.login = AsyncMock(
-            side_effect=LuciConnectionException
-        )
+        mock_luci_client.return_value.login = AsyncMock(side_effect=LuciConnectionError)
 
         result_configure = await hass.config_entries.flow.async_configure(
             result_init["flow_id"],
@@ -156,7 +154,7 @@ async def test_token_error(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
     ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
-        mock_luci_client.return_value.login = AsyncMock(side_effect=LuciTokenException)
+        mock_luci_client.return_value.login = AsyncMock(side_effect=LuciRequestError)
 
         result_configure = await hass.config_entries.flow.async_configure(
             result_init["flow_id"],
@@ -397,9 +395,7 @@ async def test_options_flow_ip_error(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
     ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
-        mock_luci_client.return_value.login = AsyncMock(
-            side_effect=LuciConnectionException
-        )
+        mock_luci_client.return_value.login = AsyncMock(side_effect=LuciConnectionError)
 
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
@@ -442,7 +438,7 @@ async def test_options_flow_token_error(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
     ):
         mock_luci_client.return_value.logout = AsyncMock(return_value=None)
-        mock_luci_client.return_value.login = AsyncMock(side_effect=LuciTokenException)
+        mock_luci_client.return_value.login = AsyncMock(side_effect=LuciRequestError)
 
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()

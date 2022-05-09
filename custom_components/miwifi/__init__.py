@@ -15,7 +15,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE
 from homeassistant.exceptions import PlatformNotReady
-from homeassistant.helpers.storage import Store
 
 from .const import (
     DOMAIN,
@@ -33,6 +32,7 @@ from .const import (
 )
 from .discovery import async_start_discovery
 from .helper import get_config_value, get_store
+from .services import SERVICES
 from .updater import LuciUpdater
 
 _LOGGER = logging.getLogger(__name__)
@@ -111,6 +111,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await _updater.async_stop()
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_stop)
+
+    for service_name, service in SERVICES:
+        if not hass.services.has_service(DOMAIN, service_name):
+            hass.services.async_register(
+                DOMAIN, service_name, service(hass).async_call_service, service.schema
+            )
 
     return True
 

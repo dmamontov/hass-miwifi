@@ -25,9 +25,11 @@ from .const import (
     ATTR_BUTTON_REBOOT,
     ATTR_BUTTON_REBOOT_NAME,
 )
-from .exceptions import LuciException
+from .exceptions import LuciError
 from .helper import generate_entity_id
 from .updater import LuciUpdater
+
+PARALLEL_UPDATES = 0
 
 MIWIFI_BUTTONS: tuple[ButtonEntityDescription, ...] = (
     ButtonEntityDescription(
@@ -129,7 +131,7 @@ class MiWifiButton(ButtonEntity, CoordinatorEntity):
 
         try:
             await self._updater.luci.reboot()
-        except LuciException as _e:
+        except LuciError as _e:
             _LOGGER.debug("Reboot error: %r", _e)
 
     async def async_press(self) -> None:

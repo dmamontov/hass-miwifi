@@ -20,7 +20,7 @@ from .const import (
     DISCOVERY,
     DISCOVERY_INTERVAL,
 )
-from .exceptions import LuciException
+from .exceptions import LuciError
 from .luci import LuciClient
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ async def async_discover_devices(client: AsyncClient) -> list:
             response = await LuciClient(client, address).topo_graph()
 
             break
-        except LuciException:
+        except LuciError:
             continue
 
     if (

@@ -29,9 +29,11 @@ from .const import (
     ATTR_LIGHT_LED,
     ATTR_LIGHT_LED_NAME,
 )
-from .exceptions import LuciException
+from .exceptions import LuciError
 from .helper import generate_entity_id
 from .updater import LuciUpdater
+
+PARALLEL_UPDATES = 0
 
 ICONS: Final = {
     f"{ATTR_LIGHT_LED}_{STATE_ON}": "mdi:led-on",
@@ -151,7 +153,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity):
 
         try:
             await self._updater.luci.led(1)
-        except LuciException:
+        except LuciError:
             pass
 
     async def _led_off(self) -> None:
@@ -159,7 +161,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity):
 
         try:
             await self._updater.luci.led(0)
-        except LuciException:
+        except LuciError:
             pass
 
     async def async_turn_on(self, **kwargs: Any) -> None:

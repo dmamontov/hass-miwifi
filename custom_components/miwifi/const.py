@@ -8,6 +8,7 @@ from homeassistant.const import Platform
 
 # fmt: off
 DOMAIN: Final = "miwifi"
+NAME: Final = "MiWifi"
 ATTRIBUTION: Final = "Data provided by MiWifi"
 
 PLATFORMS: Final = [
@@ -42,6 +43,8 @@ SIGNAL_NEW_DEVICE: Final = f"{DOMAIN}-device-new"
 CONF_STAY_ONLINE: Final = "stay_online"
 CONF_IS_FORCE_LOAD: Final = "is_force_load"
 CONF_ACTIVITY_DAYS: Final = "activity_days"
+CONF_URI: Final = "uri"
+CONF_BODY: Final = "body"
 
 """Default settings"""
 DEFAULT_RETRY: Final = 10
@@ -62,6 +65,15 @@ CLIENT_USERNAME: Final = "admin"
 CLIENT_LOGIN_TYPE: Final = 2
 CLIENT_NONCE_TYPE: Final = 0
 CLIENT_PUBLIC_KEY: Final = "a2ffa5c9be07488bbb04a3a47d3c5f6a"
+
+"""Device classes"""
+DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH: Final = "miwifi__signal_strength"
+DEVICE_CLASS_MIWIFI_DEVICE_TRACKER: Final = "miwifi__device_tracker"
+DEVICE_CLASS_MIWIFI_MODE: Final = "miwifi__mode"
+
+"""Services"""
+SERVICE_CALC_PASSWD: Final = "calc_passwd"
+SERVICE_REQUEST: Final = "request"
 
 """Attributes"""
 ATTR_STATE: Final = "state"

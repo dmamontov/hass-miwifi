@@ -23,6 +23,7 @@ from httpx import codes
 
 from .const import (
     DOMAIN,
+    NAME,
     UPDATER,
     SIGNAL_NEW_DEVICE,
     DEFAULT_RETRY,
@@ -91,11 +92,11 @@ from .enum import (
     Wifi,
     DeviceAction,
 )
-from .exceptions import LuciConnectionException, LuciTokenException, LuciException
+from .exceptions import LuciConnectionError, LuciRequestError, LuciError
 from .luci import LuciClient
 from .self_check import async_self_check
 
-PREPARE_METHODS: Final = [
+PREPARE_METHODS: Final = (
     "init",
     "status",
     "rom_update",
@@ -109,7 +110,7 @@ PREPARE_METHODS: Final = [
     "device_restore",
     "ap",
     "new_status",
-]
+)
 
 NEW_STATUS_MAP: Final = {
     "2g": ATTR_SENSOR_DEVICES_2_4,
@@ -117,14 +118,14 @@ NEW_STATUS_MAP: Final = {
     "game": ATTR_SENSOR_DEVICES_5_0_GAME,
 }
 
-REPEATER_SKIP_ATTRS: Final = [
+REPEATER_SKIP_ATTRS: Final = (
     ATTR_TRACKER_NAME,
     ATTR_TRACKER_IP,
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
     ATTR_TRACKER_ONLINE,
     ATTR_TRACKER_OPTIONAL_MAC,
-]
+)
 
 UNSUPPORTED: Final = {
     "new_status": [
@@ -214,7 +215,7 @@ class LuciUpdater(DataUpdateCoordinator):
             super().__init__(
                 hass,
                 _LOGGER,
-                name="MiWifi updater",
+                name=f"{NAME} updater",
                 update_interval=self._update_interval,
                 update_method=self.update,
             )
@@ -260,7 +261,7 @@ class LuciUpdater(DataUpdateCoordinator):
         self.code = codes.OK
 
         _is_before_reauthorization: bool = self._is_reauthorization
-        _err: LuciException | None = None
+        _err: LuciError | None = None
 
         try:
             if self._is_reauthorization or self._is_only_login or self._is_first_update:
@@ -273,12 +274,12 @@ class LuciUpdater(DataUpdateCoordinator):
             for method in PREPARE_METHODS:
                 if not self._is_only_login or method == "init":
                     await self._async_prepare(method, self.data)
-        except LuciConnectionException as _e:
+        except LuciConnectionError as _e:
             _err = _e
 
             self._is_reauthorization = False
             self.code = codes.NOT_FOUND
-        except LuciTokenException as _e:
+        except LuciRequestError as _e:
             _err = _e
 
             self._is_reauthorization = True
@@ -423,7 +424,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 await async_self_check(self.hass, self.luci, response["hardware"])
 
                 if not self._is_only_login:
-                    raise LuciException(f"Router {self.ip} not supported") from _e
+                    raise LuciError(f"Router {self.ip} not supported") from _e
 
                 self.code = codes.CONFLICT
 
@@ -433,10 +434,10 @@ class LuciUpdater(DataUpdateCoordinator):
 
             return
 
-        pn.async_create(self.hass, f"Router {self.ip} not supported", "MiWifi")
+        pn.async_create(self.hass, f"Router {self.ip} not supported", NAME)
 
         if not self._is_only_login:
-            raise LuciException(f"Router {self.ip} not supported")
+            raise LuciError(f"Router {self.ip} not supported")
 
         self.code = codes.CONFLICT
 
@@ -505,7 +506,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         try:
             response: dict = await self.luci.rom_update()
-        except LuciException:
+        except LuciError:
             response = {}
 
         if (
@@ -618,7 +619,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
                 if _adapters_len < len(_adapters):
                     self.is_support_guest_wifi = True
-            except LuciException:
+            except LuciError:
                 pass
 
         length: int = 0

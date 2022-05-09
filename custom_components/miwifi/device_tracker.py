@@ -31,6 +31,7 @@ from .const import (
     DEFAULT_CALL_DELAY,
     SIGNAL_NEW_DEVICE,
     ATTRIBUTION,
+    DEVICE_CLASS_MIWIFI_DEVICE_TRACKER,
     ATTR_STATE,
     ATTR_TRACKER_ENTRY_ID,
     ATTR_TRACKER_UPDATER_ENTRY_ID,
@@ -58,7 +59,9 @@ from .helper import (
 )
 from .updater import LuciUpdater
 
-ATTR_CHANGES: Final = [
+PARALLEL_UPDATES = 0
+
+ATTR_CHANGES: Final = (
     ATTR_TRACKER_IP,
     ATTR_TRACKER_ONLINE,
     ATTR_TRACKER_CONNECTION,
@@ -67,7 +70,7 @@ ATTR_CHANGES: Final = [
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
     ATTR_TRACKER_OPTIONAL_MAC,
-]
+)
 
 CONFIGURATION_PORTS: Final = [80, 443]
 
@@ -141,6 +144,8 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
     """MiWifi device tracker entry."""
 
     _attr_attribution: str = ATTRIBUTION
+    _attr_device_class: str = DEVICE_CLASS_MIWIFI_DEVICE_TRACKER
+
     _configuration_port: int | None = None
     _is_connected: bool = False
 

@@ -45,7 +45,7 @@ from custom_components.miwifi.const import (
     ATTR_UPDATE_FIRMWARE,
     ATTR_UPDATE_FIRMWARE_NAME,
 )
-from custom_components.miwifi.exceptions import LuciTokenException
+from custom_components.miwifi.exceptions import LuciRequestError
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.update import MAP_NOTES
 from custom_components.miwifi.updater import LuciUpdater
@@ -491,7 +491,7 @@ async def test_install_flash_error(hass: HomeAssistant) -> None:
         mock_luci_client.return_value.rom_upgrade = AsyncMock(return_value={"code": 0})
 
         mock_luci_client.return_value.flash_permission = AsyncMock(
-            side_effect=LuciTokenException
+            side_effect=LuciRequestError
         )
 
         setup_data: list = await async_setup(hass)
@@ -561,7 +561,7 @@ async def test_install_error(hass: HomeAssistant) -> None:
         )
 
         mock_luci_client.return_value.rom_upgrade = AsyncMock(
-            side_effect=LuciTokenException
+            side_effect=LuciRequestError
         )
 
         setup_data: list = await async_setup(hass)

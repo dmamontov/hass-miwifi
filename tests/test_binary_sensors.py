@@ -38,7 +38,7 @@ from custom_components.miwifi.const import (
     ATTR_BINARY_SENSOR_WAN_STATE_NAME,
     ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
 )
-from custom_components.miwifi.exceptions import LuciTokenException
+from custom_components.miwifi.exceptions import LuciRequestError
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
 
@@ -129,7 +129,7 @@ async def test_update_state(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("status_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.status = AsyncMock(
             side_effect=MultipleSideEffect(success, error, error)
@@ -200,7 +200,7 @@ async def test_update_wan_state(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("device_list_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.device_list = AsyncMock(
             side_effect=MultipleSideEffect(success, error, error)
@@ -279,7 +279,7 @@ async def test_update_dual_band(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("device_list_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.device_list = AsyncMock(
             side_effect=MultipleSideEffect(success, success, success, error, error)

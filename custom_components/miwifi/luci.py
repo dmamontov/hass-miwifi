@@ -29,7 +29,7 @@ from .const import (
     DIAGNOSTIC_MESSAGE,
     DIAGNOSTIC_CONTENT,
 )
-from .exceptions import LuciException, LuciConnectionException, LuciTokenException
+from .exceptions import LuciError, LuciConnectionError, LuciRequestError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,12 +105,12 @@ class LuciClient:
         except (HTTPError, ValueError, TypeError) as _e:
             self._debug("Connection error", _url, _e, _method)
 
-            raise LuciConnectionException("Connection error") from _e
+            raise LuciConnectionError("Connection error") from _e
 
         if response.status_code != 200 or "token" not in _data:
             self._debug("Failed to get token", _url, _data, _method)
 
-            raise LuciTokenException("Failed to get token")
+            raise LuciRequestError("Failed to get token")
 
         self._token = _data["token"]
 
@@ -150,7 +150,7 @@ class LuciClient:
         """
 
         if use_stok and self._token is None:
-            raise LuciTokenException("Token not found")
+            raise LuciRequestError("Token not found")
 
         if query_params is not None and len(query_params) > 0:
             path += f"?{urllib.parse.urlencode(query_params, doseq=True)}"
@@ -168,15 +168,21 @@ class LuciClient:
         except (HTTPError, ValueError, TypeError, json.JSONDecodeError) as _e:
             self._debug("Connection error", _url, _e, path)
 
-            raise LuciConnectionException("Connection error") from _e
+            raise LuciConnectionError("Connection error") from _e
 
         if "code" not in _data or _data["code"] > 0:
+            _code: int = -1 if "code" not in _data else int(_data["code"])
+
             self._debug("Invalid error code received", _url, _data, path)
 
             if "code" in _data and errors is not None and _data["code"] in errors:
-                raise LuciException(errors[_data["code"]])
+                raise LuciError(errors[_data["code"]])
 
-            raise LuciTokenException("Invalid error code received")
+            raise LuciRequestError(
+                _data["msg"]
+                if "msg" in _data
+                else f"Invalid error code received: {_code}"
+            )
 
         return _data
 
@@ -393,7 +399,7 @@ class LuciClient:
 
         as_hex: str = f"{uuid.getnode():012x}"
 
-        return ":".join(as_hex[i : i + 2] for i in range(0, 12, 2))
+        return ":".join(as_hex[i: i + 2] for i in range(0, 12, 2))
 
     def generate_nonce(self) -> str:
         """Generate fake nonce.

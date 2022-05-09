@@ -28,6 +28,7 @@ from .const import (
     DOMAIN,
     UPDATER,
     ATTRIBUTION,
+    DEVICE_CLASS_MIWIFI_MODE,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
     ATTR_WIFI_ADAPTER_LENGTH,
@@ -64,15 +65,17 @@ from .const import (
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
-DISABLE_ZERO: Final = [
+PARALLEL_UPDATES = 0
+
+DISABLE_ZERO: Final = (
     ATTR_SENSOR_TEMPERATURE,
     ATTR_SENSOR_AP_SIGNAL,
-]
+)
 
-ONLY_WAN: Final = [
+ONLY_WAN: Final = (
     ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
     ATTR_SENSOR_WAN_UPLOAD_SPEED,
-]
+)
 
 PCS: Final = "pcs"
 BS: Final = "B/s"
@@ -117,7 +120,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         key=ATTR_SENSOR_MODE,
         name=ATTR_SENSOR_MODE_NAME,
         icon="mdi:transit-connection-variant",
-        state_class=SensorStateClass.TOTAL,
+        device_class=DEVICE_CLASS_MIWIFI_MODE,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=True,
     ),

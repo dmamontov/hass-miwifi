@@ -1,0 +1,8 @@
+{
+  "state": {
+    "miwifi__device_tracker": {
+      "home": "[%key:common::state::connected%]",
+      "not_home": "[%key:common::state::disconnected%]"
+    }
+  }
+}

@@ -39,9 +39,11 @@ from .const import (
     ATTR_UPDATE_FILE_SIZE,
     ATTR_UPDATE_FILE_HASH,
 )
-from .exceptions import LuciException
+from .exceptions import LuciError
 from .helper import generate_entity_id
 from .updater import LuciUpdater
+
+PARALLEL_UPDATES = 0
 
 FIRMWARE_UPDATE_WAIT: Final = 180
 FIRMWARE_UPDATE_RETRY: Final = 721
@@ -250,12 +252,12 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
                     "needpermission": 1,
                 }
             )
-        except LuciException as _e:
+        except LuciError as _e:
             raise HomeAssistantError(str(_e)) from _e
 
         try:
             await self._updater.luci.flash_permission()
-        except LuciException as _e:
+        except LuciError as _e:
             _LOGGER.debug("Clear permission error: %r", _e)
 
         await asyncio.sleep(FIRMWARE_UPDATE_WAIT)

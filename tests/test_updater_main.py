@@ -53,8 +53,8 @@ from custom_components.miwifi.const import (
 )
 from custom_components.miwifi.enum import Mode
 from custom_components.miwifi.exceptions import (
-    LuciException,
-    LuciTokenException,
+    LuciError,
+    LuciRequestError,
 )
 from custom_components.miwifi.luci import LuciClient
 from custom_components.miwifi.updater import LuciUpdater
@@ -137,14 +137,14 @@ async def test_updater_login_fail(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.asyncio.sleep"
     ) as mock_asyncio_sleep:
         await async_mock_luci_client(mock_luci_client)
-        mock_luci_client.return_value.login = AsyncMock(side_effect=LuciTokenException)
+        mock_luci_client.return_value.login = AsyncMock(side_effect=LuciRequestError)
         mock_asyncio_sleep.return_value = Mock(return_value=None)
 
         setup_data: list = await async_setup(hass)
 
         updater: LuciUpdater = setup_data[0]
 
-        with pytest.raises(LuciException):
+        with pytest.raises(LuciError):
             await updater.async_config_entry_first_refresh()
 
         await hass.async_block_till_done()
@@ -171,7 +171,7 @@ async def test_updater_reauthorization(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("status_data.json"))
 
         def login_error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.status = AsyncMock(
             side_effect=MultipleSideEffect(login_success, login_error, login_error)
@@ -289,7 +289,7 @@ async def test_updater_undefined_router(hass: HomeAssistant) -> None:
 
         updater: LuciUpdater = setup_data[0]
 
-        with pytest.raises(LuciException):
+        with pytest.raises(LuciError):
             await updater.async_config_entry_first_refresh()
 
         await hass.async_block_till_done()
@@ -322,7 +322,7 @@ async def test_updater_without_hardware_info(hass: HomeAssistant) -> None:
 
         updater: LuciUpdater = setup_data[0]
 
-        with pytest.raises(LuciException):
+        with pytest.raises(LuciError):
             await updater.async_config_entry_first_refresh()
 
         await hass.async_block_till_done()
@@ -370,7 +370,7 @@ async def test_updater_raise_rom_update(hass: HomeAssistant) -> None:
     ):
         await async_mock_luci_client(mock_luci_client)
 
-        mock_luci_client.return_value.rom_update = AsyncMock(side_effect=LuciException)
+        mock_luci_client.return_value.rom_update = AsyncMock(side_effect=LuciError)
 
         setup_data: list = await async_setup(hass)
 
@@ -677,7 +677,7 @@ async def test_updater_error_guest_wifi_info(hass: HomeAssistant) -> None:
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.wifi_diag_detail_all = AsyncMock(
-            side_effect=LuciException
+            side_effect=LuciError
         )
 
         setup_data: list = await async_setup(hass)

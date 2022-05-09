@@ -40,7 +40,7 @@ from custom_components.miwifi.const import (
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_LIGHT_LED_NAME,
 )
-from custom_components.miwifi.exceptions import LuciTokenException
+from custom_components.miwifi.exceptions import LuciRequestError
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
 
@@ -124,7 +124,7 @@ async def test_update_led(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("device_list_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.device_list = AsyncMock(
             side_effect=MultipleSideEffect(success, error, error)
@@ -134,7 +134,7 @@ async def test_update_led(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("led_data.json"))
 
         def error_led(state: int | None = None) -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.led = AsyncMock(
             side_effect=MultipleSideEffect(

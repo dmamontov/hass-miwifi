@@ -47,7 +47,7 @@ from custom_components.miwifi.const import (
     ATTR_SENSOR_DEVICES_5_0_NAME,
     ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
 )
-from custom_components.miwifi.exceptions import LuciTokenException
+from custom_components.miwifi.exceptions import LuciRequestError
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
 
@@ -467,7 +467,7 @@ async def test_update_uptime(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("device_list_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.device_list = AsyncMock(
             side_effect=MultipleSideEffect(success, success, success, error, error)
@@ -566,7 +566,7 @@ async def test_update_memory_usage(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("device_list_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.device_list = AsyncMock(
             side_effect=MultipleSideEffect(success, success, success, error, error)
@@ -665,7 +665,7 @@ async def test_update_memory_total(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("device_list_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.device_list = AsyncMock(
             side_effect=MultipleSideEffect(success, success, success, error, error)
@@ -764,7 +764,7 @@ async def test_update_temperature(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("device_list_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.device_list = AsyncMock(
             side_effect=MultipleSideEffect(success, success, success, error, error)
@@ -863,7 +863,7 @@ async def test_update_mode(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("wifi_connect_devices_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.wifi_connect_devices = AsyncMock(
             side_effect=MultipleSideEffect(success, error, error)
@@ -942,7 +942,7 @@ async def test_update_ap_signal(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("new_status_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.new_status = AsyncMock(
             side_effect=MultipleSideEffect(success, error, error)
@@ -1025,7 +1025,7 @@ async def test_update_download_speed(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("wifi_connect_devices_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.wifi_connect_devices = AsyncMock(
             side_effect=MultipleSideEffect(success, error, error)
@@ -1104,7 +1104,7 @@ async def test_update_upload_speed(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("wifi_connect_devices_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.wifi_connect_devices = AsyncMock(
             side_effect=MultipleSideEffect(success, error, error)
@@ -1183,7 +1183,7 @@ async def test_update_devices(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("wifi_connect_devices_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.wifi_connect_devices = AsyncMock(
             side_effect=MultipleSideEffect(success, success, error, error)
@@ -1270,7 +1270,7 @@ async def test_update_devices_lan(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("wifi_connect_devices_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.wifi_connect_devices = AsyncMock(
             side_effect=MultipleSideEffect(
@@ -1379,7 +1379,7 @@ async def test_update_devices_2_4(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("wifi_connect_devices_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.wifi_connect_devices = AsyncMock(
             side_effect=MultipleSideEffect(
@@ -1488,7 +1488,7 @@ async def test_update_devices_5_0(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("wifi_connect_devices_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.wifi_connect_devices = AsyncMock(
             side_effect=MultipleSideEffect(
@@ -1597,7 +1597,7 @@ async def test_update_devices_guest(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("wifi_connect_devices_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.wifi_connect_devices = AsyncMock(
             side_effect=MultipleSideEffect(
@@ -1710,7 +1710,7 @@ async def test_update_devices_5_0_game(hass: HomeAssistant) -> None:
             return json.loads(load_fixture("wifi_connect_devices_data.json"))
 
         def error() -> None:
-            raise LuciTokenException
+            raise LuciRequestError
 
         mock_luci_client.return_value.wifi_connect_devices = AsyncMock(
             side_effect=MultipleSideEffect(

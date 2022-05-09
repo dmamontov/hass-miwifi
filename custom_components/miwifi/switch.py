@@ -42,9 +42,11 @@ from .const import (
     ATTR_WIFI_GUEST_DATA,
 )
 from .enum import Wifi
-from .exceptions import LuciException
+from .exceptions import LuciError
 from .helper import generate_entity_id
 from .updater import LuciUpdater
+
+PARALLEL_UPDATES = 0
 
 DATA_MAP: Final = {
     ATTR_SWITCH_WIFI_2_4: ATTR_WIFI_2_4_DATA,
@@ -297,7 +299,7 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity):
         try:
             await self._updater.luci.set_wifi(new_data)
             self._wifi_data = new_data
-        except LuciException as _e:
+        except LuciError as _e:
             _LOGGER.debug("WiFi update error: %r", _e)
 
     async def _async_update_guest_wifi(self, data: dict) -> None:
@@ -311,7 +313,7 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity):
         try:
             await self._updater.luci.set_guest_wifi(new_data)
             self._wifi_data = new_data
-        except LuciException as _e:
+        except LuciError as _e:
             _LOGGER.debug("WiFi update error: %r", _e)
 
     async def async_turn_on(self, **kwargs: Any) -> None:

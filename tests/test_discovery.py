@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 
 from pytest_homeassistant_custom_component.common import load_fixture
 
-from custom_components.miwifi.exceptions import LuciException
+from custom_components.miwifi.exceptions import LuciError
 from custom_components.miwifi.const import DOMAIN
 from custom_components.miwifi.discovery import async_start_discovery
 
@@ -93,7 +93,7 @@ async def test_discovery_error(hass: HomeAssistant) -> None:
     with patch("custom_components.miwifi.discovery.LuciClient") as mock_luci_client:
         await async_mock_luci_client(mock_luci_client)
 
-        mock_luci_client.return_value.topo_graph = AsyncMock(side_effect=LuciException)
+        mock_luci_client.return_value.topo_graph = AsyncMock(side_effect=LuciError)
 
         async_start_discovery(hass)
         await hass.async_block_till_done()

@@ -36,6 +36,8 @@ from .const import (
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 
+PARALLEL_UPDATES = 0
+
 ICONS: Final = {
     f"{ATTR_STATE}_{STATE_ON}": "mdi:router-wireless",
     f"{ATTR_STATE}_{STATE_OFF}": "mdi:router-wireless-off",
