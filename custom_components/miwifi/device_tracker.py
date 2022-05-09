@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import socket
+import time
 from contextlib import closing
 from functools import cached_property
 from typing import Any, Final
@@ -372,10 +373,15 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         device = self._update_entry(device)
 
-        is_connected = (
-            parse_last_activity(str(device.get(ATTR_TRACKER_LAST_ACTIVITY)))
-            + self._stay_online
-        ) > parse_last_activity(str(self._device.get(ATTR_TRACKER_LAST_ACTIVITY)))
+        before: int = parse_last_activity(
+            str(self._device.get(ATTR_TRACKER_LAST_ACTIVITY))
+        )
+        current: int = parse_last_activity(str(device.get(ATTR_TRACKER_LAST_ACTIVITY)))
+
+        is_connected = current > before
+
+        if before == current:
+            is_connected = (int(time.time()) - current) <= self._stay_online
 
         is_update = False
         for attr in ATTR_CHANGES:
