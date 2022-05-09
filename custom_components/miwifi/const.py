@@ -74,6 +74,7 @@ ATTR_DEVICE_MAC_ADDRESS: Final = "device_mac_address"
 ATTR_DEVICE_NAME: Final = "device_name"
 ATTR_DEVICE_MANUFACTURER: Final = "device_manufacturer"
 ATTR_DEVICE_SW_VERSION: Final = "device_sw_version"
+ATTR_DEVICE_HW_VERSION: Final = "device_hw_version"
 
 ATTR_WIFI_NAME: Final = "Wifi"
 ATTR_WIFI_DATA_FIELDS: Final = {

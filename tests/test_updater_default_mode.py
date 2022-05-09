@@ -26,6 +26,7 @@ from custom_components.miwifi.const import (
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_DEVICE_NAME,
     ATTR_DEVICE_SW_VERSION,
+    ATTR_DEVICE_HW_VERSION,
     ATTR_BINARY_SENSOR_WAN_STATE,
     ATTR_BINARY_SENSOR_DUAL_BAND,
     ATTR_SENSOR_UPTIME,
@@ -136,12 +137,14 @@ async def test_updater_default_mode(
     assert updater.device_info["manufacturer"] == "Xiaomi"
     assert updater.device_info["model"] == "xiaomi.router.ra67"
     assert updater.device_info["sw_version"] == "3.0.34 (CN)"
+    assert updater.device_info["hw_version"] == "29543/F0SW88385"
     assert updater.device_info["configuration_url"] == f"http://{MOCK_IP_ADDRESS}/"
 
     assert updater.data[ATTR_DEVICE_MODEL] == "xiaomi.router.ra67"
     assert updater.data[ATTR_DEVICE_MANUFACTURER] == DEFAULT_MANUFACTURER
     assert updater.data[ATTR_DEVICE_NAME] == "XIAOMI RA67"
     assert updater.data[ATTR_DEVICE_SW_VERSION] == "3.0.34 (CN)"
+    assert updater.data[ATTR_DEVICE_HW_VERSION] == "29543/F0SW88385"
     assert updater.data[ATTR_MODEL] == Model.RA67
     assert updater.data[ATTR_CAMERA_IMAGE] == load_fixture("image_data.txt")
     assert updater.data[ATTR_DEVICE_MAC_ADDRESS] == "00:00:00:00:00:00"

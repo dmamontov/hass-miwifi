@@ -39,6 +39,7 @@ from .const import (
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_DEVICE_NAME,
     ATTR_DEVICE_SW_VERSION,
+    ATTR_DEVICE_HW_VERSION,
     ATTR_BINARY_SENSOR_WAN_STATE,
     ATTR_BINARY_SENSOR_DUAL_BAND,
     ATTR_SENSOR_UPTIME,
@@ -350,6 +351,7 @@ class LuciUpdater(DataUpdateCoordinator):
             manufacturer=self.data.get(ATTR_DEVICE_MANUFACTURER, DEFAULT_MANUFACTURER),
             model=self.data.get(ATTR_DEVICE_MODEL, None),
             sw_version=self.data.get(ATTR_DEVICE_SW_VERSION, None),
+            hw_version=self.data.get(ATTR_DEVICE_HW_VERSION, None),
             configuration_url=f"http://{self.ip}/",
         )
 
@@ -449,6 +451,8 @@ class LuciUpdater(DataUpdateCoordinator):
         if "hardware" in response and isinstance(response["hardware"], dict):
             if "mac" in response["hardware"]:
                 data[ATTR_DEVICE_MAC_ADDRESS] = response["hardware"]["mac"]
+            if "sn" in response["hardware"]:
+                data[ATTR_DEVICE_HW_VERSION] = response["hardware"]["sn"]
             if "version" in response["hardware"]:
                 data[ATTR_UPDATE_CURRENT_VERSION] = response["hardware"]["version"]
 
