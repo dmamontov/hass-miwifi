@@ -4,19 +4,17 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from unittest.mock import AsyncMock, patch
-import json
+
 import pytest
-
 from homeassistant.core import HomeAssistant
-
 from pytest_homeassistant_custom_component.common import load_fixture
 
-from custom_components.miwifi.exceptions import LuciError
 from custom_components.miwifi.const import DOMAIN
 from custom_components.miwifi.discovery import async_start_discovery
-
+from custom_components.miwifi.exceptions import LuciError
 from tests.setup import async_mock_luci_client
 
 _LOGGER = logging.getLogger(__name__)

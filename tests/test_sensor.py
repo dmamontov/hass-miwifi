@@ -4,54 +4,49 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
-import logging
-from unittest.mock import AsyncMock, patch
 import json
+import logging
+from datetime import timedelta
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from homeassistant.components.sensor import (
-    ENTITY_ID_FORMAT as SENSOR_ENTITY_ID_FORMAT,
-)
-from homeassistant.const import (
-    STATE_UNAVAILABLE,
-)
+from homeassistant.components.sensor import ENTITY_ID_FORMAT as SENSOR_ENTITY_ID_FORMAT
+from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.util.dt import utcnow
-
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
-    load_fixture,
     async_fire_time_changed,
+    load_fixture,
 )
 
 from custom_components.miwifi.const import (
-    DOMAIN,
-    UPDATER,
-    DEFAULT_SCAN_INTERVAL,
-    ATTRIBUTION,
     ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_SENSOR_UPTIME_NAME,
-    ATTR_SENSOR_MEMORY_USAGE_NAME,
-    ATTR_SENSOR_MEMORY_TOTAL_NAME,
-    ATTR_SENSOR_TEMPERATURE_NAME,
-    ATTR_SENSOR_MODE_NAME,
     ATTR_SENSOR_AP_SIGNAL_NAME,
+    ATTR_SENSOR_DEVICES_2_4_NAME,
+    ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
+    ATTR_SENSOR_DEVICES_5_0_NAME,
+    ATTR_SENSOR_DEVICES_GUEST_NAME,
+    ATTR_SENSOR_DEVICES_LAN_NAME,
+    ATTR_SENSOR_DEVICES_NAME,
+    ATTR_SENSOR_MEMORY_TOTAL_NAME,
+    ATTR_SENSOR_MEMORY_USAGE_NAME,
+    ATTR_SENSOR_MODE_NAME,
+    ATTR_SENSOR_TEMPERATURE_NAME,
+    ATTR_SENSOR_UPTIME_NAME,
     ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME,
     ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME,
-    ATTR_SENSOR_DEVICES_NAME,
-    ATTR_SENSOR_DEVICES_LAN_NAME,
-    ATTR_SENSOR_DEVICES_GUEST_NAME,
-    ATTR_SENSOR_DEVICES_2_4_NAME,
-    ATTR_SENSOR_DEVICES_5_0_NAME,
-    ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
+    ATTRIBUTION,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    UPDATER,
 )
 from custom_components.miwifi.exceptions import LuciRequestError
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
-
-from tests.setup import async_mock_luci_client, async_setup, MultipleSideEffect
+from tests.setup import MultipleSideEffect, async_mock_luci_client, async_setup
 
 _LOGGER = logging.getLogger(__name__)
 

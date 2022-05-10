@@ -9,7 +9,8 @@
     "light",
     "select",
     "sensor",
-    "switch"
+    "switch",
+    "update"
   ],
   "homeassistant": "2022.4.0"
 }

@@ -17,47 +17,47 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import (
-    async_get_current_platform,
-    EntityPlatform,
     AddEntitiesCallback,
+    EntityPlatform,
+    async_get_current_platform,
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    DOMAIN,
-    UPDATER,
-    CONF_STAY_ONLINE,
-    DEFAULT_STAY_ONLINE,
-    DEFAULT_CALL_DELAY,
-    SIGNAL_NEW_DEVICE,
-    ATTRIBUTION,
-    DEVICE_CLASS_MIWIFI_DEVICE_TRACKER,
     ATTR_STATE,
-    ATTR_TRACKER_ENTRY_ID,
-    ATTR_TRACKER_UPDATER_ENTRY_ID,
-    ATTR_TRACKER_SCANNER,
-    ATTR_TRACKER_MAC,
-    ATTR_TRACKER_ROUTER_MAC_ADDRESS,
-    ATTR_TRACKER_SIGNAL,
-    ATTR_TRACKER_NAME,
     ATTR_TRACKER_CONNECTION,
-    ATTR_TRACKER_IP,
-    ATTR_TRACKER_ONLINE,
     ATTR_TRACKER_DOWN_SPEED,
-    ATTR_TRACKER_UP_SPEED,
-    ATTR_TRACKER_LAST_ACTIVITY,
-    ATTR_TRACKER_OPTIONAL_MAC,
+    ATTR_TRACKER_ENTRY_ID,
+    ATTR_TRACKER_IP,
     ATTR_TRACKER_IS_RESTORED,
+    ATTR_TRACKER_LAST_ACTIVITY,
+    ATTR_TRACKER_MAC,
+    ATTR_TRACKER_NAME,
+    ATTR_TRACKER_ONLINE,
+    ATTR_TRACKER_OPTIONAL_MAC,
+    ATTR_TRACKER_ROUTER_MAC_ADDRESS,
+    ATTR_TRACKER_SCANNER,
+    ATTR_TRACKER_SIGNAL,
+    ATTR_TRACKER_UP_SPEED,
+    ATTR_TRACKER_UPDATER_ENTRY_ID,
+    ATTRIBUTION,
+    CONF_STAY_ONLINE,
+    DEFAULT_CALL_DELAY,
+    DEFAULT_STAY_ONLINE,
+    DEVICE_CLASS_MIWIFI_DEVICE_TRACKER,
+    DOMAIN,
+    SIGNAL_NEW_DEVICE,
+    UPDATER,
 )
 from .enum import Connection
 from .helper import (
-    get_config_value,
+    detect_manufacturer,
     generate_entity_id,
+    get_config_value,
     parse_last_activity,
     pretty_size,
-    detect_manufacturer,
 )
-from .updater import LuciUpdater
+from .updater import async_get_updater, LuciUpdater
 
 PARALLEL_UPDATES = 0
 
@@ -89,8 +89,7 @@ async def async_setup_entry(
     :param async_add_entities: AddEntitiesCallback: Async add callback
     """
 
-    data: dict = hass.data[DOMAIN][config_entry.entry_id]
-    updater: LuciUpdater = data[UPDATER]
+    updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
     @callback
     def add_device(new_device: dict) -> None:
@@ -388,17 +387,16 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         if before == current:
             is_connected = (int(time.time()) - current) <= self._stay_online
 
-        is_update = False
-        for attr in ATTR_CHANGES:
-            if self._device.get(attr, None) != device.get(attr, None):
-                is_update = True
-
-                break
+        attr_changed: list = [
+            attr
+            for attr in ATTR_CHANGES
+            if self._device.get(attr, None) != device.get(attr, None)
+        ]
 
         if (
             self._attr_available == is_available  # type: ignore
             and self._is_connected == is_connected
-            and not is_update
+            and len(attr_changed) == 0
         ):
             return
 
@@ -417,8 +415,8 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         entry_id: str = track_device.get(ATTR_TRACKER_ENTRY_ID, None)
 
-        device_registry = dr.async_get(self.hass)
-        device = device_registry.async_get_device(
+        device_registry: dr.DeviceRegistry = dr.async_get(self.hass)
+        device: dr.DeviceEntry | None = device_registry.async_get_device(
             set(), {(dr.CONNECTION_NETWORK_MAC, self.mac_address)}
         )
 

@@ -6,20 +6,15 @@ from __future__ import annotations
 
 import logging
 from unittest.mock import AsyncMock, PropertyMock, patch
-import pytest
 
+import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.miwifi.const import NAME
 from custom_components.miwifi.exceptions import LuciError
 from custom_components.miwifi.self_check import async_self_check
 from custom_components.miwifi.updater import LuciUpdater
-
-from tests.setup import (
-    async_setup,
-    async_mock_luci_client,
-    MOCK_IP_ADDRESS,
-)
+from tests.setup import MOCK_IP_ADDRESS, async_mock_luci_client, async_setup
 
 _LOGGER = logging.getLogger(__name__)
 

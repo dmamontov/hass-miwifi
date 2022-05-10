@@ -5,44 +5,36 @@
 from __future__ import annotations
 
 import base64
-from datetime import timedelta
 import logging
+from datetime import timedelta
 from unittest.mock import AsyncMock, patch
-import pytest
 
-from homeassistant.components.camera import (
-    ENTITY_ID_FORMAT as CAMERA_ENTITY_ID_FORMAT,
-    Image,
-    async_get_image,
-)
-from homeassistant.const import (
-    STATE_UNAVAILABLE,
-    STATE_IDLE,
-)
+import pytest
+from homeassistant.components.camera import ENTITY_ID_FORMAT as CAMERA_ENTITY_ID_FORMAT
+from homeassistant.components.camera import Image, async_get_image
+from homeassistant.const import STATE_IDLE, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant, State
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util.dt import utcnow
-
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
-    load_fixture,
     async_fire_time_changed,
+    load_fixture,
 )
 
 from custom_components.miwifi.const import (
-    DOMAIN,
-    UPDATER,
-    DEFAULT_MANUFACTURER,
-    DEFAULT_SCAN_INTERVAL,
-    ATTRIBUTION,
-    ATTR_DEVICE_MAC_ADDRESS,
     ATTR_CAMERA_IMAGE,
     ATTR_CAMERA_IMAGE_NAME,
+    ATTR_DEVICE_MAC_ADDRESS,
+    ATTRIBUTION,
+    DEFAULT_MANUFACTURER,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    UPDATER,
 )
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
-
 from tests.setup import async_mock_luci_client, async_setup
 
 _LOGGER = logging.getLogger(__name__)

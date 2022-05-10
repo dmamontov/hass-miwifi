@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import logging
-from typing import Final
 import urllib.parse
+from typing import Final
 
-from homeassistant.core import HomeAssistant
 import homeassistant.components.persistent_notification as pn
+from homeassistant.core import HomeAssistant
 from homeassistant.loader import async_get_integration
 
-from .luci import LuciClient
 from .const import DOMAIN, NAME
 from .exceptions import LuciError
+from .luci import LuciClient
 
 SELF_CHECK_METHODS: Final = (
     ("xqsystem/login", "🟢"),

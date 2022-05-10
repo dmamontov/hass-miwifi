@@ -42,5 +42,10 @@
         }
       }
     }
+  },
+  "system_health": {
+    "info": {
+      "version": "Version"
+    }
   }
 }

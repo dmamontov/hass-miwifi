@@ -13,22 +13,22 @@ from homeassistant.const import (
     CONF_TIMEOUT,
     EVENT_HOMEASSISTANT_STOP,
 )
-from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE
+from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
 
 from .const import (
-    DOMAIN,
-    PLATFORMS,
-    CONF_IS_FORCE_LOAD,
     CONF_ACTIVITY_DAYS,
-    OPTION_IS_FROM_FLOW,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_TIMEOUT,
+    CONF_IS_FORCE_LOAD,
     DEFAULT_ACTIVITY_DAYS,
-    DEFAULT_SLEEP,
     DEFAULT_CALL_DELAY,
-    UPDATER,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SLEEP,
+    DEFAULT_TIMEOUT,
+    DOMAIN,
+    OPTION_IS_FROM_FLOW,
+    PLATFORMS,
     UPDATE_LISTENER,
+    UPDATER,
 )
 from .discovery import async_start_discovery
 from .helper import get_config_value, get_store

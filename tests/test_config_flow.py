@@ -4,13 +4,13 @@
 
 from __future__ import annotations
 
-from typing import Final
-import logging
 import json
+import logging
+from typing import Final
 from unittest.mock import AsyncMock, patch
-import pytest
 
-from homeassistant import data_entry_flow, config_entries, setup
+import pytest
+from homeassistant import config_entries, data_entry_flow, setup
 from homeassistant.const import (
     CONF_IP_ADDRESS,
     CONF_PASSWORD,
@@ -18,19 +18,15 @@ from homeassistant.const import (
     CONF_TIMEOUT,
 )
 from homeassistant.core import HomeAssistant
-
 from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
 
 from custom_components.miwifi.const import (
-    DOMAIN,
-    OPTION_IS_FROM_FLOW,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TIMEOUT,
+    DOMAIN,
+    OPTION_IS_FROM_FLOW,
 )
-from custom_components.miwifi.exceptions import (
-    LuciConnectionError,
-    LuciRequestError,
-)
+from custom_components.miwifi.exceptions import LuciConnectionError, LuciRequestError
 
 MOCK_IP_ADDRESS: Final = "192.168.31.1"
 MOCK_PASSWORD: Final = "**REDACTED**"

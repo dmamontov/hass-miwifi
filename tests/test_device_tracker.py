@@ -4,42 +4,37 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
-import logging
-from unittest.mock import Mock, AsyncMock, patch
 import json
+import logging
+from datetime import timedelta
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
 from homeassistant.components.device_tracker import (
     ENTITY_ID_FORMAT as DEVICE_TRACKER_ENTITY_ID_FORMAT,
-    SOURCE_TYPE_ROUTER,
 )
-from homeassistant.const import (
-    STATE_HOME,
-    STATE_NOT_HOME,
-    STATE_UNAVAILABLE,
-)
+from homeassistant.components.device_tracker import SOURCE_TYPE_ROUTER
+from homeassistant.const import STATE_HOME, STATE_NOT_HOME, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import device_registry as dr
 from homeassistant.util.dt import utcnow
-
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
-    load_fixture,
     async_fire_time_changed,
+    load_fixture,
 )
 
 from custom_components.miwifi.const import (
-    DOMAIN,
-    UPDATER,
-    DEFAULT_SCAN_INTERVAL,
     ATTRIBUTION,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
     MANUFACTURERS,
+    UPDATER,
 )
 from custom_components.miwifi.enum import Connection
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
-
-from tests.setup import async_mock_luci_client, async_setup, MultipleSideEffect
+from tests.setup import MultipleSideEffect, async_mock_luci_client, async_setup
 
 _LOGGER = logging.getLogger(__name__)
 

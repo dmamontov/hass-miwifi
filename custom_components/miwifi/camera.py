@@ -7,26 +7,24 @@ import logging
 
 from homeassistant.components.camera import (
     ENTITY_ID_FORMAT,
-    CameraEntityDescription,
     Camera,
+    CameraEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    DOMAIN,
-    UPDATER,
-    ATTRIBUTION,
-    DEFAULT_MANUFACTURER,
-    ATTR_DEVICE_MANUFACTURER,
-    ATTR_DEVICE_MODEL,
-    ATTR_DEVICE_MAC_ADDRESS,
     ATTR_CAMERA_IMAGE,
     ATTR_CAMERA_IMAGE_NAME,
+    ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_DEVICE_MANUFACTURER,
+    ATTR_DEVICE_MODEL,
+    ATTRIBUTION,
+    DEFAULT_MANUFACTURER,
 )
 from .helper import generate_entity_id
-from .updater import LuciUpdater
+from .updater import async_get_updater, LuciUpdater
 
 PARALLEL_UPDATES = 0
 
@@ -54,8 +52,7 @@ async def async_setup_entry(
     :param async_add_entities: AddEntitiesCallback: Async add callback
     """
 
-    data: dict = hass.data[DOMAIN][config_entry.entry_id]
-    updater: LuciUpdater = data[UPDATER]
+    updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
     entities: list[MiWifiCamera] = [
         MiWifiCamera(

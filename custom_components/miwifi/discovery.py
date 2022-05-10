@@ -14,11 +14,11 @@ from homeassistant.helpers.httpx_client import get_async_client
 from httpx import AsyncClient
 
 from .const import (
-    DOMAIN,
     CLIENT_ADDRESS,
     CLIENT_ADDRESS_IP,
     DISCOVERY,
     DISCOVERY_INTERVAL,
+    DOMAIN,
 )
 from .exceptions import LuciError
 from .luci import LuciClient

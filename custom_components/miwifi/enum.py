@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from enum import IntEnum, Enum
+from enum import Enum, IntEnum
 
 from .const import (
     ATTR_SWITCH_WIFI_2_4,

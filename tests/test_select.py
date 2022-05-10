@@ -4,57 +4,50 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
-import logging
-from unittest.mock import AsyncMock, patch
 import json
+import logging
+from datetime import timedelta
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from homeassistant.components.select import (
-    ENTITY_ID_FORMAT as SELECT_ENTITY_ID_FORMAT,
-    DOMAIN as SELECT_DOMAIN,
-    SERVICE_SELECT_OPTION,
-)
-from homeassistant.const import (
-    ATTR_ENTITY_ID,
-    ATTR_OPTION,
-    STATE_UNAVAILABLE,
-)
+from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
+from homeassistant.components.select import ENTITY_ID_FORMAT as SELECT_ENTITY_ID_FORMAT
+from homeassistant.components.select import SERVICE_SELECT_OPTION
+from homeassistant.const import ATTR_ENTITY_ID, ATTR_OPTION, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.util.dt import utcnow
-
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
-    load_fixture,
     async_fire_time_changed,
+    load_fixture,
 )
 
 from custom_components.miwifi.const import (
-    DOMAIN,
-    UPDATER,
-    DEFAULT_SCAN_INTERVAL,
-    ATTRIBUTION,
     ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_WIFI_2_4_DATA,
-    ATTR_WIFI_5_0_DATA,
-    ATTR_WIFI_5_0_GAME_DATA,
+    ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
     ATTR_SELECT_WIFI_2_4_CHANNEL_NAME,
     ATTR_SELECT_WIFI_2_4_CHANNEL_OPTIONS,
+    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME,
     ATTR_SELECT_WIFI_5_0_CHANNEL_NAME,
     ATTR_SELECT_WIFI_5_0_CHANNEL_OPTIONS,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_OPTIONS,
-    ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
-    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME,
-    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME,
     ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME,
+    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME,
+    ATTR_WIFI_2_4_DATA,
+    ATTR_WIFI_5_0_DATA,
+    ATTR_WIFI_5_0_GAME_DATA,
+    ATTRIBUTION,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    UPDATER,
 )
 from custom_components.miwifi.exceptions import LuciRequestError
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
-
-from tests.setup import async_mock_luci_client, async_setup, MultipleSideEffect
+from tests.setup import MultipleSideEffect, async_mock_luci_client, async_setup
 
 _LOGGER = logging.getLogger(__name__)
 

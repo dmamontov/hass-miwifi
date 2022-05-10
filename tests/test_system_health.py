@@ -9,10 +9,14 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.setup import async_setup_component
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    get_system_health_info,
+)
 
-from custom_components.miwifi.const import DOMAIN, UPDATER
-from custom_components.miwifi.updater import LuciUpdater
+from custom_components.miwifi.const import DOMAIN
+from custom_components.miwifi.helper import async_get_version
 from tests.setup import async_mock_luci_client, async_setup
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,8 +29,8 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
-async def test_init(hass: HomeAssistant) -> None:
-    """Test init.
+async def test_system_health(hass: HomeAssistant) -> None:
+    """Test system_health.
 
     :param hass: HomeAssistant
     """
@@ -41,17 +45,12 @@ async def test_init(hass: HomeAssistant) -> None:
         "custom_components.miwifi.device_tracker.socket.socket"
     ) as mock_socket, patch(
         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
-    ), patch(
-        "custom_components.miwifi.helper.Store"
-    ) as mock_store:
+    ):
         mock_socket.return_value.recv.return_value = AsyncMock(return_value=None)
-
-        mock_store.return_value.async_load = AsyncMock(return_value=None)
-        mock_store.return_value.async_save = AsyncMock(return_value=None)
-        mock_store.return_value.async_remove = AsyncMock(return_value=None)
 
         await async_mock_luci_client(mock_luci_client)
 
+        assert await async_setup_component(hass, "system_health", {})
         setup_data: list = await async_setup(hass)
 
         config_entry: MockConfigEntry = setup_data[1]
@@ -59,16 +58,11 @@ async def test_init(hass: HomeAssistant) -> None:
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        info = await get_system_health_info(hass, DOMAIN)
 
-        assert updater.last_update_success
-        assert len(mock_store.mock_calls) == 3
+        assert info is not None
 
-        mock_store.reset_mock()
-
-        await hass.config_entries.async_get_entry(config_entry.entry_id).async_remove(
-            hass
-        )
-        await hass.async_block_till_done()
-
-        assert len(mock_store.mock_calls) == 1
+        assert info == {
+            "version": await async_get_version(hass),
+            "192.168.31.1 (xiaomi.router.ra67)": "ok",
+        }

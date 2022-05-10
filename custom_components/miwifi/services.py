@@ -2,31 +2,32 @@
 
 from __future__ import annotations
 
-from typing import Final
-
 import hashlib
 import logging
-import voluptuous as vol
-
-from homeassistant.const import CONF_IP_ADDRESS
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ServiceCallType
+from typing import Final
 
 import homeassistant.components.persistent_notification as pn
+import voluptuous as vol
+from homeassistant.const import CONF_IP_ADDRESS, CONF_TYPE, CONF_DEVICE_ID
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.typing import ServiceCallType
 
 from .const import (
-    DOMAIN,
-    NAME,
-    UPDATER,
-    CONF_URI,
+    ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_DEVICE_HW_VERSION,
     CONF_BODY,
+    CONF_URI,
+    CONF_REQUEST,
+    CONF_RESPONSE,
+    EVENT_LUCI,
+    EVENT_TYPE_RESPONSE,
+    NAME,
     SERVICE_CALC_PASSWD,
     SERVICE_REQUEST,
-    ATTR_DEVICE_HW_VERSION,
 )
 from .exceptions import NotSupportedError
-from .luci import LuciClient
-from .updater import LuciUpdater
+from .updater import async_get_updater, LuciUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,18 +52,7 @@ class MiWifiServiceCall:
         :return LuciUpdater
         """
 
-        integrations: dict[str, LuciUpdater] = {
-            integration[CONF_IP_ADDRESS]: integration[UPDATER]
-            for integration in self.hass.data[DOMAIN].values()
-            if isinstance(integration, dict)
-        }
-
-        _ip = dict(service.data).get(CONF_IP_ADDRESS)
-
-        if _ip not in integrations:
-            raise ValueError(f"Integration with ip address: {_ip} not found.")
-
-        return integrations[_ip]
+        return async_get_updater(self.hass, dict(service.data).get(CONF_IP_ADDRESS))
 
     async def async_call_service(self, service: ServiceCallType) -> None:
         """Execute service call.
@@ -118,11 +108,31 @@ class MiWifiRequestServiceCall(MiWifiServiceCall):
         :param service: ServiceCallType
         """
 
-        client: LuciClient = self.get_updater(service).luci
+        updater: LuciUpdater = self.get_updater(service)
+        device_identifier: str = updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip)
 
         _data: dict = dict(service.data)
 
-        await client.get(_data.get(CONF_URI), _data.get(CONF_BODY, {}))  # type: ignore
+        response: dict = await updater.luci.get(
+            uri := _data.get(CONF_URI), body := _data.get(CONF_BODY, {})  # type: ignore
+        )
+
+        device: dr.DeviceEntry | None = dr.async_get(self.hass).async_get_device(
+            set(),
+            {(dr.CONNECTION_NETWORK_MAC, device_identifier)},
+        )
+
+        if device is not None:
+            self.hass.bus.async_fire(
+                EVENT_LUCI,
+                {
+                    CONF_DEVICE_ID: device.id,
+                    CONF_TYPE: EVENT_TYPE_RESPONSE,
+                    CONF_URI: uri,
+                    CONF_REQUEST: body,
+                    CONF_RESPONSE: response,
+                },
+            )
 
 
 SERVICES: Final = (

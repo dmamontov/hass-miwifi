@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import time
 import math
+import time
 from datetime import datetime
 from typing import Any
 
@@ -15,7 +15,7 @@ from homeassistant.loader import async_get_integration
 from homeassistant.util import slugify
 from httpx import codes
 
-from .const import DOMAIN, STORAGE_VERSION, DEFAULT_TIMEOUT, MANUFACTURERS
+from .const import DEFAULT_TIMEOUT, DOMAIN, MANUFACTURERS, STORAGE_VERSION
 from .updater import LuciUpdater
 
 
@@ -72,6 +72,18 @@ async def async_user_documentation_url(hass: HomeAssistant) -> str:
     integration = await async_get_integration(hass, DOMAIN)
 
     return f"{integration.documentation}"
+
+
+async def async_get_version(hass: HomeAssistant) -> str:
+    """Get the documentation url for creating a local user.
+
+    :param hass: HomeAssistant: Home Assistant object
+    :return str: Documentation URL
+    """
+
+    integration = await async_get_integration(hass, DOMAIN)
+
+    return f"{integration.version}"
 
 
 def generate_entity_id(entity_id_format: str, mac: str, name: str | None = None) -> str:

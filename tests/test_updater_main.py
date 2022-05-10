@@ -4,62 +4,58 @@
 
 from __future__ import annotations
 
-from typing import Final
-import logging
 import json
-from unittest.mock import Mock, AsyncMock, patch
-import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
+import logging
+from typing import Final
+from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.storage import Store
 from httpx import codes
+from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
 
 from custom_components.miwifi.const import (
-    DOMAIN,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_NAME,
-    DEFAULT_MANUFACTURER,
-    ATTR_STATE,
-    ATTR_BINARY_SENSOR_WAN_STATE,
     ATTR_BINARY_SENSOR_DUAL_BAND,
-    ATTR_SENSOR_MODE,
+    ATTR_BINARY_SENSOR_WAN_STATE,
     ATTR_LIGHT_LED,
-    ATTR_UPDATE_FIRMWARE,
-    ATTR_UPDATE_TITLE,
-    ATTR_UPDATE_CURRENT_VERSION,
-    ATTR_UPDATE_LATEST_VERSION,
-    ATTR_UPDATE_RELEASE_URL,
-    ATTR_UPDATE_DOWNLOAD_URL,
-    ATTR_UPDATE_FILE_SIZE,
-    ATTR_UPDATE_FILE_HASH,
-    ATTR_SWITCH_WIFI_2_4,
-    ATTR_WIFI_2_4_DATA,
-    ATTR_SWITCH_WIFI_5_0,
-    ATTR_WIFI_5_0_DATA,
-    ATTR_SWITCH_WIFI_5_0_GAME,
-    ATTR_WIFI_5_0_GAME_DATA,
-    ATTR_SWITCH_WIFI_GUEST,
-    ATTR_WIFI_GUEST_DATA,
     ATTR_SELECT_WIFI_2_4_CHANNEL,
     ATTR_SELECT_WIFI_2_4_CHANNELS,
+    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
     ATTR_SELECT_WIFI_5_0_CHANNEL,
     ATTR_SELECT_WIFI_5_0_CHANNELS,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL,
-    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
-    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
     ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
+    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
+    ATTR_SENSOR_MODE,
+    ATTR_STATE,
+    ATTR_SWITCH_WIFI_2_4,
+    ATTR_SWITCH_WIFI_5_0,
+    ATTR_SWITCH_WIFI_5_0_GAME,
+    ATTR_SWITCH_WIFI_GUEST,
+    ATTR_UPDATE_CURRENT_VERSION,
+    ATTR_UPDATE_DOWNLOAD_URL,
+    ATTR_UPDATE_FILE_HASH,
+    ATTR_UPDATE_FILE_SIZE,
+    ATTR_UPDATE_FIRMWARE,
+    ATTR_UPDATE_LATEST_VERSION,
+    ATTR_UPDATE_RELEASE_URL,
+    ATTR_UPDATE_TITLE,
+    ATTR_WIFI_2_4_DATA,
+    ATTR_WIFI_5_0_DATA,
+    ATTR_WIFI_5_0_GAME_DATA,
+    ATTR_WIFI_GUEST_DATA,
+    DEFAULT_MANUFACTURER,
+    DEFAULT_NAME,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
 )
 from custom_components.miwifi.enum import Mode
-from custom_components.miwifi.exceptions import (
-    LuciError,
-    LuciRequestError,
-)
+from custom_components.miwifi.exceptions import LuciError, LuciRequestError
 from custom_components.miwifi.luci import LuciClient
 from custom_components.miwifi.updater import LuciUpdater
-
-from tests.setup import async_setup, async_mock_luci_client, MultipleSideEffect
+from tests.setup import MultipleSideEffect, async_mock_luci_client, async_setup
 
 MOCK_IP_ADDRESS: Final = "192.168.31.1"
 MOCK_PASSWORD: Final = "**REDACTED**"
@@ -660,7 +656,7 @@ async def test_updater_unsupported_guest_wifi_info(hass: HomeAssistant) -> None:
 
     assert ATTR_SWITCH_WIFI_GUEST not in updater.data
     assert ATTR_WIFI_GUEST_DATA not in updater.data
-    assert not updater.is_support_guest_wifi
+    assert not updater.supports_guest
 
 
 async def test_updater_error_guest_wifi_info(hass: HomeAssistant) -> None:
@@ -690,7 +686,7 @@ async def test_updater_error_guest_wifi_info(hass: HomeAssistant) -> None:
 
     assert ATTR_SWITCH_WIFI_GUEST not in updater.data
     assert ATTR_WIFI_GUEST_DATA not in updater.data
-    assert not updater.is_support_guest_wifi
+    assert not updater.supports_guest
 
 
 async def test_updater_is_absent_ifname_wifi_info(hass: HomeAssistant) -> None:

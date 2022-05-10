@@ -4,33 +4,49 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Final, Any
+from typing import Any, Final
 
 from homeassistant.components.camera import ENTITY_ID_FORMAT as CAMERA_ENTITY_ID_FORMAT
 from homeassistant.components.update import (
-    ENTITY_ID_FORMAT,
     ATTR_IN_PROGRESS,
-    UpdateEntityDescription,
-    UpdateEntity,
-    UpdateEntityFeature,
+    ENTITY_ID_FORMAT,
     UpdateDeviceClass,
+    UpdateEntity,
+    UpdateEntityDescription,
+    UpdateEntityFeature,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    DOMAIN,
-    UPDATER,
-    ATTRIBUTION,
+    ATTR_CAMERA_IMAGE_NAME,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
-    ATTR_CAMERA_IMAGE_NAME,
+    ATTR_UPDATE_CURRENT_VERSION,
+    ATTR_UPDATE_DOWNLOAD_URL,
+    ATTR_UPDATE_FILE_HASH,
+    ATTR_UPDATE_FILE_SIZE,
     ATTR_UPDATE_FIRMWARE,
     ATTR_UPDATE_FIRMWARE_NAME,
+    ATTR_UPDATE_LATEST_VERSION,
+    ATTR_UPDATE_RELEASE_URL,
+    ATTR_UPDATE_TITLE,
+    DOMAIN,
+)
+from .entity import MiWifiEntity
+from .exceptions import LuciError
+from .helper import generate_entity_id
+from .updater import async_get_updater, LuciUpdater
+
+PARALLEL_UPDATES = 0
+
+FIRMWARE_UPDATE_WAIT: Final = 180
+FIRMWARE_UPDATE_RETRY: Final = 721
+
+ATTR_CHANGES: Final = (
     ATTR_UPDATE_TITLE,
     ATTR_UPDATE_CURRENT_VERSION,
     ATTR_UPDATE_LATEST_VERSION,
@@ -39,24 +55,6 @@ from .const import (
     ATTR_UPDATE_FILE_SIZE,
     ATTR_UPDATE_FILE_HASH,
 )
-from .exceptions import LuciError
-from .helper import generate_entity_id
-from .updater import LuciUpdater
-
-PARALLEL_UPDATES = 0
-
-FIRMWARE_UPDATE_WAIT: Final = 180
-FIRMWARE_UPDATE_RETRY: Final = 721
-
-ATTR_CHANGES: Final = [
-    ATTR_UPDATE_TITLE,
-    ATTR_UPDATE_CURRENT_VERSION,
-    ATTR_UPDATE_LATEST_VERSION,
-    ATTR_UPDATE_RELEASE_URL,
-    ATTR_UPDATE_DOWNLOAD_URL,
-    ATTR_UPDATE_FILE_SIZE,
-    ATTR_UPDATE_FILE_HASH,
-]
 
 MAP_FEATURE: Final = {
     ATTR_UPDATE_FIRMWARE: UpdateEntityFeature.INSTALL
@@ -94,15 +92,11 @@ async def async_setup_entry(
     :param async_add_entities: AddEntitiesCallback: AddEntitiesCallback callback object
     """
 
-    data: dict = hass.data[DOMAIN][config_entry.entry_id]
-    updater: LuciUpdater = data[UPDATER]
+    updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
     entities: list[MiWifiUpdate] = []
     for description in MIWIFI_UPDATES:
-        if (
-            description.key == ATTR_UPDATE_FIRMWARE
-            and len(updater.data.get(description.key, {})) == 0
-        ):
+        if description.key == ATTR_UPDATE_FIRMWARE and not updater.supports_update:
             continue
 
         entities.append(
@@ -117,10 +111,8 @@ async def async_setup_entry(
         async_add_entities(entities)
 
 
-class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
+class MiWifiUpdate(MiWifiEntity, UpdateEntity):
     """MiWifi update entry."""
-
-    _attr_attribution: str = ATTRIBUTION
 
     _update_data: dict[str, Any]
 
@@ -137,23 +129,10 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        CoordinatorEntity.__init__(self, coordinator=updater)
-
-        self.entity_description = description
-        self._updater = updater
-
-        self.entity_id = generate_entity_id(
-            ENTITY_ID_FORMAT,
-            updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
-            description.name,
-        )
+        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
 
         if description.key in MAP_FEATURE:
             self._attr_supported_features = MAP_FEATURE[description.key]
-
-        self._attr_name = description.name
-        self._attr_unique_id = unique_id
-        self._attr_device_info = updater.device_info
 
         self._update_data = updater.data.get(description.key, {})
 
@@ -173,18 +152,9 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
 
-        await CoordinatorEntity.async_added_to_hass(self)
+        await MiWifiEntity.async_added_to_hass(self)
 
         self._attr_entity_picture = self._update_picture()
-
-    @property
-    def available(self) -> bool:
-        """Is available
-
-        :return bool: Is available
-        """
-
-        return self._attr_available and self.coordinator.last_update_success
 
     @property
     def entity_picture(self) -> str | None:
@@ -211,16 +181,15 @@ class MiWifiUpdate(UpdateEntity, CoordinatorEntity):
 
         entity_picture: str | None = self._update_picture()
 
-        is_update = False
-        for attr in ATTR_CHANGES:
-            if self._update_data.get(attr, None) != _update_data.get(attr, None):
-                is_update = True
-
-                break
+        attr_changed: list = [
+            attr
+            for attr in ATTR_CHANGES
+            if self._update_data.get(attr, None) != _update_data.get(attr, None)
+        ]
 
         if (
             self._attr_available == is_available
-            and not is_update
+            and len(attr_changed) == 0
             and entity_picture == self._attr_entity_picture
         ):  # type: ignore
             return

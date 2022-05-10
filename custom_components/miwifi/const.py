@@ -43,6 +43,8 @@ SIGNAL_NEW_DEVICE: Final = f"{DOMAIN}-device-new"
 CONF_STAY_ONLINE: Final = "stay_online"
 CONF_IS_FORCE_LOAD: Final = "is_force_load"
 CONF_ACTIVITY_DAYS: Final = "activity_days"
+CONF_REQUEST: Final = "request"
+CONF_RESPONSE: Final = "response"
 CONF_URI: Final = "uri"
 CONF_BODY: Final = "body"
 
@@ -74,6 +76,14 @@ DEVICE_CLASS_MIWIFI_MODE: Final = "miwifi__mode"
 """Services"""
 SERVICE_CALC_PASSWD: Final = "calc_passwd"
 SERVICE_REQUEST: Final = "request"
+
+"""Events"""
+EVENT_LUCI: Final = f"{DOMAIN}_luci"
+EVENT_TYPE_RESPONSE: Final = "response"
+
+TRIGGER_TYPES: Final = [
+    EVENT_TYPE_RESPONSE
+]
 
 """Attributes"""
 ATTR_STATE: Final = "state"

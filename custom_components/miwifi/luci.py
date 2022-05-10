@@ -8,28 +8,27 @@ import json
 import logging
 import random
 import time
-import uuid
 import urllib.parse
-
+import uuid
 from datetime import datetime
 from typing import Any
-from httpx import AsyncClient, Response, HTTPError
 
 from homeassistant.util import slugify
+from httpx import AsyncClient, HTTPError, Response
 
 from .const import (
-    DEFAULT_TIMEOUT,
     CLIENT_ADDRESS,
-    CLIENT_URL,
-    CLIENT_USERNAME,
     CLIENT_LOGIN_TYPE,
     CLIENT_NONCE_TYPE,
     CLIENT_PUBLIC_KEY,
+    CLIENT_URL,
+    CLIENT_USERNAME,
+    DEFAULT_TIMEOUT,
+    DIAGNOSTIC_CONTENT,
     DIAGNOSTIC_DATE_TIME,
     DIAGNOSTIC_MESSAGE,
-    DIAGNOSTIC_CONTENT,
 )
-from .exceptions import LuciError, LuciConnectionError, LuciRequestError
+from .exceptions import LuciConnectionError, LuciError, LuciRequestError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -399,7 +398,7 @@ class LuciClient:
 
         as_hex: str = f"{uuid.getnode():012x}"
 
-        return ":".join(as_hex[i: i + 2] for i in range(0, 12, 2))
+        return ":".join(as_hex[i : i + 2] for i in range(0, 12, 2))
 
     def generate_nonce(self) -> str:
         """Generate fake nonce.

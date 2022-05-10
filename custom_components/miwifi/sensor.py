@@ -8,62 +8,51 @@ from typing import Any, Final
 
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,
-    SensorEntityDescription,
     SensorDeviceClass,
-    SensorStateClass,
     SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    PERCENTAGE,
-    DATA_MEGABYTES,
-    TEMP_CELSIUS,
-)
+from homeassistant.const import DATA_MEGABYTES, PERCENTAGE, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    DOMAIN,
-    UPDATER,
-    ATTRIBUTION,
-    DEVICE_CLASS_MIWIFI_MODE,
-    ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_STATE,
-    ATTR_WIFI_ADAPTER_LENGTH,
-    ATTR_BINARY_SENSOR_WAN_STATE,
-    ATTR_SENSOR_UPTIME,
-    ATTR_SENSOR_UPTIME_NAME,
-    ATTR_SENSOR_MEMORY_USAGE,
-    ATTR_SENSOR_MEMORY_USAGE_NAME,
-    ATTR_SENSOR_MEMORY_TOTAL,
-    ATTR_SENSOR_MEMORY_TOTAL_NAME,
-    ATTR_SENSOR_TEMPERATURE,
-    ATTR_SENSOR_TEMPERATURE_NAME,
-    ATTR_SENSOR_MODE,
-    ATTR_SENSOR_MODE_NAME,
     ATTR_SENSOR_AP_SIGNAL,
     ATTR_SENSOR_AP_SIGNAL_NAME,
+    ATTR_SENSOR_DEVICES,
+    ATTR_SENSOR_DEVICES_2_4,
+    ATTR_SENSOR_DEVICES_2_4_NAME,
+    ATTR_SENSOR_DEVICES_5_0,
+    ATTR_SENSOR_DEVICES_5_0_GAME,
+    ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
+    ATTR_SENSOR_DEVICES_5_0_NAME,
+    ATTR_SENSOR_DEVICES_GUEST,
+    ATTR_SENSOR_DEVICES_GUEST_NAME,
+    ATTR_SENSOR_DEVICES_LAN,
+    ATTR_SENSOR_DEVICES_LAN_NAME,
+    ATTR_SENSOR_DEVICES_NAME,
+    ATTR_SENSOR_MEMORY_TOTAL,
+    ATTR_SENSOR_MEMORY_TOTAL_NAME,
+    ATTR_SENSOR_MEMORY_USAGE,
+    ATTR_SENSOR_MEMORY_USAGE_NAME,
+    ATTR_SENSOR_MODE,
+    ATTR_SENSOR_MODE_NAME,
+    ATTR_SENSOR_TEMPERATURE,
+    ATTR_SENSOR_TEMPERATURE_NAME,
+    ATTR_SENSOR_UPTIME,
+    ATTR_SENSOR_UPTIME_NAME,
     ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
     ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME,
     ATTR_SENSOR_WAN_UPLOAD_SPEED,
     ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME,
-    ATTR_SENSOR_DEVICES,
-    ATTR_SENSOR_DEVICES_NAME,
-    ATTR_SENSOR_DEVICES_LAN,
-    ATTR_SENSOR_DEVICES_LAN_NAME,
-    ATTR_SENSOR_DEVICES_GUEST,
-    ATTR_SENSOR_DEVICES_GUEST_NAME,
-    ATTR_SENSOR_DEVICES_2_4,
-    ATTR_SENSOR_DEVICES_2_4_NAME,
-    ATTR_SENSOR_DEVICES_5_0,
-    ATTR_SENSOR_DEVICES_5_0_NAME,
-    ATTR_SENSOR_DEVICES_5_0_GAME,
-    ATTR_SENSOR_DEVICES_5_0_GAME_NAME,
+    ATTR_STATE,
+    DEVICE_CLASS_MIWIFI_MODE,
 )
-from .helper import generate_entity_id
-from .updater import LuciUpdater
+from .entity import MiWifiEntity
+from .updater import async_get_updater, LuciUpdater
 
 PARALLEL_UPDATES = 0
 
@@ -215,14 +204,13 @@ async def async_setup_entry(
     :param async_add_entities: AddEntitiesCallback: AddEntitiesCallback callback object
     """
 
-    data: dict = hass.data[DOMAIN][config_entry.entry_id]
-    updater: LuciUpdater = data[UPDATER]
+    updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
     entities: list[MiWifiSensor] = []
     for description in MIWIFI_SENSORS:
         if (
             description.key == ATTR_SENSOR_DEVICES_5_0_GAME
-            and updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) != 3
+            and not updater.supports_game
         ):
             continue
 
@@ -232,9 +220,7 @@ async def async_setup_entry(
         ):
             continue
 
-        if description.key in ONLY_WAN and not updater.data.get(
-            ATTR_BINARY_SENSOR_WAN_STATE, False
-        ):
+        if description.key in ONLY_WAN and not updater.supports_wan:
             continue
 
         entities.append(
@@ -248,10 +234,8 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiSensor(SensorEntity, CoordinatorEntity):
+class MiWifiSensor(MiWifiEntity, SensorEntity):
     """MiWifi binary sensor entry."""
-
-    _attr_attribution: str = ATTRIBUTION
 
     def __init__(
         self,
@@ -266,42 +250,13 @@ class MiWifiSensor(SensorEntity, CoordinatorEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        CoordinatorEntity.__init__(self, coordinator=updater)
-
-        self.entity_description = description
-        self._updater: LuciUpdater = updater
-
-        self.entity_id = generate_entity_id(
-            ENTITY_ID_FORMAT,
-            updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
-            description.name,
-        )
-
-        self._attr_name = description.name
-        self._attr_unique_id = unique_id
-        self._attr_available = updater.data.get(ATTR_STATE, False)
+        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
 
         state: Any = self._updater.data.get(description.key, None)
         if state is not None and isinstance(state, Enum):
             state = state.phrase  # type: ignore
 
         self._attr_native_value = state
-
-        self._attr_device_info = updater.device_info
-
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass."""
-
-        await CoordinatorEntity.async_added_to_hass(self)
-
-    @property
-    def available(self) -> bool:
-        """Is available
-
-        :return bool: Is available
-        """
-
-        return self._attr_available and self.coordinator.last_update_success
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""

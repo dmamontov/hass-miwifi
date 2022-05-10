@@ -5,25 +5,23 @@
 from __future__ import annotations
 
 import base64
-import logging
 import json
-from pytest_httpx import HTTPXMock
-from httpx import Request, HTTPError
-import pytest
+import logging
 
+import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.httpx_client import get_async_client
-
-from pytest_homeassistant_custom_component.common import load_fixture, get_fixture_path
+from httpx import HTTPError, Request
+from pytest_homeassistant_custom_component.common import get_fixture_path, load_fixture
+from pytest_httpx import HTTPXMock
 
 from custom_components.miwifi.exceptions import (
-    LuciError,
     LuciConnectionError,
+    LuciError,
     LuciRequestError,
 )
 from custom_components.miwifi.luci import LuciClient
-
-from tests.setup import get_url, MOCK_IP_ADDRESS
+from tests.setup import MOCK_IP_ADDRESS, get_url
 
 _LOGGER = logging.getLogger(__name__)
 

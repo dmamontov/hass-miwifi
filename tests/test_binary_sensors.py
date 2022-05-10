@@ -4,45 +4,40 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
-import logging
-from unittest.mock import AsyncMock, patch
 import json
+import logging
+from datetime import timedelta
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from homeassistant.components.binary_sensor import (
     ENTITY_ID_FORMAT as BINARY_SENSOR_ENTITY_ID_FORMAT,
 )
-from homeassistant.const import (
-    STATE_ON,
-    STATE_OFF,
-    STATE_UNAVAILABLE,
-)
+from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.util.dt import utcnow
-
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
-    load_fixture,
     async_fire_time_changed,
+    load_fixture,
 )
 
 from custom_components.miwifi.const import (
+    ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
+    ATTR_BINARY_SENSOR_WAN_STATE_NAME,
+    ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_STATE_NAME,
+    ATTRIBUTION,
+    DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     UPDATER,
-    DEFAULT_SCAN_INTERVAL,
-    ATTRIBUTION,
-    ATTR_STATE_NAME,
-    ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_BINARY_SENSOR_WAN_STATE_NAME,
-    ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
 )
 from custom_components.miwifi.exceptions import LuciRequestError
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
-
-from tests.setup import async_mock_luci_client, async_setup, MultipleSideEffect
+from tests.setup import MultipleSideEffect, async_mock_luci_client, async_setup
 
 _LOGGER = logging.getLogger(__name__)
 

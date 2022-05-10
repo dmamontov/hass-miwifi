@@ -4,12 +4,11 @@
 
 from __future__ import annotations
 
-from typing import Final
-import logging
 import json
+import logging
 import urllib.parse
+from typing import Final
 from unittest.mock import AsyncMock
-from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
 
 from homeassistant import setup
 from homeassistant.const import (
@@ -20,16 +19,17 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
 
 from custom_components.miwifi.const import (
-    DOMAIN,
-    UPDATER,
-    SIGNAL_NEW_DEVICE,
+    CONF_ACTIVITY_DAYS,
+    CONF_IS_FORCE_LOAD,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TIMEOUT,
-    CONF_IS_FORCE_LOAD,
-    CONF_ACTIVITY_DAYS,
+    DOMAIN,
     OPTION_IS_FROM_FLOW,
+    SIGNAL_NEW_DEVICE,
+    UPDATER,
 )
 from custom_components.miwifi.helper import get_config_value, get_store
 from custom_components.miwifi.updater import LuciUpdater

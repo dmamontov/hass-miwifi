@@ -7,44 +7,35 @@ from typing import Any, Final
 
 from homeassistant.components.switch import (
     ENTITY_ID_FORMAT,
-    SwitchEntityDescription,
     SwitchEntity,
+    SwitchEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    STATE_ON,
-    STATE_OFF,
-)
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    DOMAIN,
-    UPDATER,
-    ATTRIBUTION,
-    ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_STATE,
     ATTR_BINARY_SENSOR_DUAL_BAND,
-    ATTR_WIFI_ADAPTER_LENGTH,
+    ATTR_STATE,
     ATTR_SWITCH_WIFI_2_4,
     ATTR_SWITCH_WIFI_2_4_NAME,
-    ATTR_WIFI_2_4_DATA,
     ATTR_SWITCH_WIFI_5_0,
-    ATTR_SWITCH_WIFI_5_0_NAME,
-    ATTR_WIFI_5_0_DATA,
     ATTR_SWITCH_WIFI_5_0_GAME,
     ATTR_SWITCH_WIFI_5_0_GAME_NAME,
-    ATTR_WIFI_5_0_GAME_DATA,
+    ATTR_SWITCH_WIFI_5_0_NAME,
     ATTR_SWITCH_WIFI_GUEST,
     ATTR_SWITCH_WIFI_GUEST_NAME,
+    ATTR_WIFI_2_4_DATA,
+    ATTR_WIFI_5_0_DATA,
+    ATTR_WIFI_5_0_GAME_DATA,
     ATTR_WIFI_GUEST_DATA,
 )
+from .entity import MiWifiEntity
 from .enum import Wifi
 from .exceptions import LuciError
-from .helper import generate_entity_id
-from .updater import LuciUpdater
+from .updater import async_get_updater, LuciUpdater
 
 PARALLEL_UPDATES = 0
 
@@ -112,21 +103,14 @@ async def async_setup_entry(
     :param async_add_entities: AddEntitiesCallback: AddEntitiesCallback callback object
     """
 
-    data: dict = hass.data[DOMAIN][config_entry.entry_id]
-    updater: LuciUpdater = data[UPDATER]
+    updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
     entities: list[MiWifiSwitch] = []
     for description in MIWIFI_SWITCHES:
-        if (
-            description.key == ATTR_SWITCH_WIFI_5_0_GAME
-            and updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) != 3
-        ):
+        if description.key == ATTR_SWITCH_WIFI_5_0_GAME and not updater.supports_game:
             continue
 
-        if (
-            description.key == ATTR_SWITCH_WIFI_GUEST
-            and not updater.is_support_guest_wifi
-        ):
+        if description.key == ATTR_SWITCH_WIFI_GUEST and not updater.supports_guest:
             continue
 
         entities.append(
@@ -140,10 +124,8 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiSwitch(SwitchEntity, CoordinatorEntity):
+class MiWifiSwitch(MiWifiEntity, SwitchEntity):
     """MiWifi switch entry."""
-
-    _attr_attribution: str = ATTRIBUTION
 
     def __init__(
         self,
@@ -158,21 +140,7 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        CoordinatorEntity.__init__(self, coordinator=updater)
-
-        self.entity_description = description
-        self._updater: LuciUpdater = updater
-
-        self.entity_id = generate_entity_id(
-            ENTITY_ID_FORMAT,
-            updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
-            description.name,
-        )
-
-        self._attr_name = description.name
-        self._attr_unique_id = unique_id
-
-        self._attr_device_info = updater.device_info
+        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
 
         self._attr_is_on = updater.data.get(description.key, False)
         self._change_icon(self._attr_is_on)
@@ -182,11 +150,6 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity):
         self._wifi_data: dict = {}
         if description.key in DATA_MAP:
             self._wifi_data = updater.data.get(DATA_MAP[description.key], {})
-
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass."""
-
-        await CoordinatorEntity.async_added_to_hass(self)
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
@@ -201,17 +164,16 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity):
 
         is_available: bool = self._additional_prepare() and len(wifi_data) > 0
 
-        is_update_data: bool = False
-        for key, value in wifi_data.items():
-            if key not in self._wifi_data or value != self._wifi_data[key]:
-                is_update_data = True
-
-                break
+        data_changed: list = [
+            key
+            for key, value in wifi_data.items()
+            if key not in self._wifi_data or value != self._wifi_data[key]
+        ]
 
         if (
             self._attr_is_on == is_on
             and self._attr_available == is_available
-            and not is_update_data
+            and len(data_changed) == 0
         ):
             return
 
@@ -222,15 +184,6 @@ class MiWifiSwitch(SwitchEntity, CoordinatorEntity):
         self._change_icon(is_on)
 
         self.async_write_ha_state()
-
-    @property
-    def available(self) -> bool:
-        """Is available
-
-        :return bool: Is available
-        """
-
-        return self._attr_available and self.coordinator.last_update_success
 
     async def _wifi_2_4_on(self) -> None:
         """Wifi 2.4G on action"""

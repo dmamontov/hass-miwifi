@@ -6,11 +6,11 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 from functools import cached_property
-from typing import Final, Any
+from typing import Any, Final
 
-from homeassistant.const import CONF_IP_ADDRESS
-from homeassistant.core import HomeAssistant, CALLBACK_TYPE
 import homeassistant.components.persistent_notification as pn
+from homeassistant.const import CONF_IP_ADDRESS
+from homeassistant.core import callback, CALLBACK_TYPE, HomeAssistant
 from homeassistant.helpers import event
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -22,77 +22,71 @@ from homeassistant.util import utcnow
 from httpx import codes
 
 from .const import (
-    DOMAIN,
-    NAME,
-    UPDATER,
-    SIGNAL_NEW_DEVICE,
-    DEFAULT_RETRY,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_TIMEOUT,
-    DEFAULT_ACTIVITY_DAYS,
-    DEFAULT_NAME,
-    DEFAULT_MANUFACTURER,
-    DEFAULT_CALL_DELAY,
-    ATTR_STATE,
-    ATTR_MODEL,
-    ATTR_DEVICE_MODEL,
-    ATTR_DEVICE_MANUFACTURER,
+    ATTR_BINARY_SENSOR_DUAL_BAND,
+    ATTR_BINARY_SENSOR_WAN_STATE,
+    ATTR_CAMERA_IMAGE,
+    ATTR_DEVICE_HW_VERSION,
     ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_DEVICE_MANUFACTURER,
+    ATTR_DEVICE_MODEL,
     ATTR_DEVICE_NAME,
     ATTR_DEVICE_SW_VERSION,
-    ATTR_DEVICE_HW_VERSION,
-    ATTR_BINARY_SENSOR_WAN_STATE,
-    ATTR_BINARY_SENSOR_DUAL_BAND,
-    ATTR_SENSOR_UPTIME,
-    ATTR_SENSOR_MEMORY_USAGE,
-    ATTR_SENSOR_MEMORY_TOTAL,
-    ATTR_SENSOR_TEMPERATURE,
-    ATTR_SENSOR_MODE,
+    ATTR_LIGHT_LED,
+    ATTR_MODEL,
     ATTR_SENSOR_AP_SIGNAL,
-    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
-    ATTR_SENSOR_WAN_UPLOAD_SPEED,
     ATTR_SENSOR_DEVICES,
-    ATTR_SENSOR_DEVICES_LAN,
-    ATTR_SENSOR_DEVICES_GUEST,
     ATTR_SENSOR_DEVICES_2_4,
     ATTR_SENSOR_DEVICES_5_0,
     ATTR_SENSOR_DEVICES_5_0_GAME,
-    ATTR_CAMERA_IMAGE,
-    ATTR_LIGHT_LED,
-    ATTR_WIFI_DATA_FIELDS,
-    ATTR_WIFI_ADAPTER_LENGTH,
+    ATTR_SENSOR_DEVICES_GUEST,
+    ATTR_SENSOR_DEVICES_LAN,
+    ATTR_SENSOR_MEMORY_TOTAL,
+    ATTR_SENSOR_MEMORY_USAGE,
+    ATTR_SENSOR_MODE,
+    ATTR_SENSOR_TEMPERATURE,
+    ATTR_SENSOR_UPTIME,
+    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
+    ATTR_SENSOR_WAN_UPLOAD_SPEED,
+    ATTR_STATE,
+    ATTR_SWITCH_WIFI_5_0_GAME,
+    ATTR_TRACKER_CONNECTION,
+    ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_ENTRY_ID,
-    ATTR_TRACKER_UPDATER_ENTRY_ID,
+    ATTR_TRACKER_IP,
+    ATTR_TRACKER_IS_RESTORED,
+    ATTR_TRACKER_LAST_ACTIVITY,
     ATTR_TRACKER_MAC,
+    ATTR_TRACKER_NAME,
+    ATTR_TRACKER_ONLINE,
+    ATTR_TRACKER_OPTIONAL_MAC,
     ATTR_TRACKER_ROUTER_MAC_ADDRESS,
     ATTR_TRACKER_SIGNAL,
-    ATTR_TRACKER_NAME,
-    ATTR_TRACKER_CONNECTION,
-    ATTR_TRACKER_IP,
-    ATTR_TRACKER_ONLINE,
-    ATTR_TRACKER_LAST_ACTIVITY,
-    ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
-    ATTR_TRACKER_OPTIONAL_MAC,
-    ATTR_TRACKER_IS_RESTORED,
-    ATTR_UPDATE_FIRMWARE,
-    ATTR_UPDATE_TITLE,
+    ATTR_TRACKER_UPDATER_ENTRY_ID,
     ATTR_UPDATE_CURRENT_VERSION,
+    ATTR_UPDATE_DOWNLOAD_URL,
+    ATTR_UPDATE_FILE_HASH,
+    ATTR_UPDATE_FILE_SIZE,
+    ATTR_UPDATE_FIRMWARE,
     ATTR_UPDATE_LATEST_VERSION,
     ATTR_UPDATE_RELEASE_URL,
-    ATTR_UPDATE_DOWNLOAD_URL,
-    ATTR_UPDATE_FILE_SIZE,
-    ATTR_UPDATE_FILE_HASH,
+    ATTR_UPDATE_TITLE,
+    ATTR_WIFI_ADAPTER_LENGTH,
+    ATTR_WIFI_DATA_FIELDS,
+    DEFAULT_ACTIVITY_DAYS,
+    DEFAULT_CALL_DELAY,
+    DEFAULT_MANUFACTURER,
+    DEFAULT_NAME,
+    DEFAULT_RETRY,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TIMEOUT,
+    DOMAIN,
+    NAME,
+    SIGNAL_NEW_DEVICE,
+    UPDATER,
 )
-from .enum import (
-    Model,
-    Mode,
-    Connection,
-    IfName,
-    Wifi,
-    DeviceAction,
-)
-from .exceptions import LuciConnectionError, LuciRequestError, LuciError
+from .enum import Connection, DeviceAction, IfName, Mode, Model, Wifi
+from .exceptions import LuciConnectionError, LuciError, LuciRequestError
 from .luci import LuciClient
 from .self_check import async_self_check
 
@@ -160,7 +154,7 @@ class LuciUpdater(DataUpdateCoordinator):
     ip: str
     new_device_callback: CALLBACK_TYPE | None = None
     is_force_load: bool = False
-    is_support_guest_wifi: bool = True
+    supports_guest: bool = True
 
     _store: Store | None = None
 
@@ -332,6 +326,33 @@ class LuciUpdater(DataUpdateCoordinator):
         """
 
         return self.data.get(ATTR_SENSOR_MODE, Mode.DEFAULT).value > 0
+
+    @property
+    def supports_wan(self) -> bool:
+        """Is supports wan
+
+        :return bool
+        """
+
+        return self.data.get(ATTR_BINARY_SENSOR_WAN_STATE, False)
+
+    @property
+    def supports_game(self) -> bool:
+        """Is supports game mode
+
+        :return bool
+        """
+
+        return self.data.get(ATTR_SWITCH_WIFI_5_0_GAME, None) is not None
+
+    @property
+    def supports_update(self) -> bool:
+        """Is supports update
+
+        :return bool
+        """
+
+        return len(self.data.get(ATTR_UPDATE_FIRMWARE, {})) != 0
 
     @property
     def device_info(self):
@@ -602,8 +623,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         _adapters: list = response["info"]
 
-        if self.is_support_guest_wifi:
-            self.is_support_guest_wifi = False
+        if self.supports_guest:
+            self.supports_guest = False
 
             try:
                 response_diag = await self.luci.wifi_diag_detail_all()
@@ -618,7 +639,7 @@ class LuciUpdater(DataUpdateCoordinator):
                     ]
 
                 if _adapters_len < len(_adapters):
-                    self.is_support_guest_wifi = True
+                    self.supports_guest = True
             except LuciError:
                 pass
 
@@ -700,7 +721,7 @@ class LuciUpdater(DataUpdateCoordinator):
             integrations: dict[str, dict] = {}
 
             if self.is_repeater and self.is_force_load:
-                integrations = self.get_integrations()
+                integrations = async_get_integrations(self.hass)
 
             for device in response["list"]:
                 # fmt: off
@@ -750,7 +771,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
             return
 
-        integrations: dict[str, dict] = self.get_integrations()
+        integrations: dict[str, dict] = async_get_integrations(self.hass)
 
         mac_to_ip: dict[str, str] = {
             device[ATTR_TRACKER_MAC]: device["ip"][0]["ip"]
@@ -851,7 +872,7 @@ class LuciUpdater(DataUpdateCoordinator):
         if devices is None:
             return
 
-        integrations: dict = self.get_integrations()
+        integrations: dict = async_get_integrations(self.hass)
 
         for mac, device in devices.items():
             if mac in self.devices:
@@ -1160,21 +1181,6 @@ class LuciUpdater(DataUpdateCoordinator):
 
             del self.devices[mac]
 
-    def get_integrations(self) -> dict[str, dict]:
-        """Mapping integration for device tracker
-
-        :return dict[str, dict]: Mapping
-        """
-
-        return {
-            integration[CONF_IP_ADDRESS]: {
-                UPDATER: integration[UPDATER],
-                ATTR_TRACKER_ENTRY_ID: entry_id,
-            }
-            for entry_id, integration in self.hass.data[DOMAIN].items()
-            if isinstance(integration, dict)
-        }
-
     def reset_counter(self, is_force: bool = False, is_remove: bool = False) -> None:
         """Reset counter
 
@@ -1222,3 +1228,45 @@ class LuciUpdater(DataUpdateCoordinator):
             return
 
         await self._store.async_save(self.devices)
+
+
+@callback
+def async_get_integrations(hass: HomeAssistant) -> dict[str, dict]:
+    """Return integrations map.
+
+    :param hass: HomeAssistant
+    :return dict[str, dict]
+    """
+
+    return {
+        integration[CONF_IP_ADDRESS]: {
+            UPDATER: integration[UPDATER],
+            ATTR_TRACKER_ENTRY_ID: entry_id,
+        }
+        for entry_id, integration in hass.data[DOMAIN].items()
+        if isinstance(integration, dict)
+    }
+
+
+@callback
+def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
+    """Return LuciUpdater for ip address or entry id.
+
+    :param hass: HomeAssistant
+    :param identifier: str
+    :return LuciUpdater
+    """
+
+    if identifier in hass.data[DOMAIN] and UPDATER in hass.data[DOMAIN][identifier]:
+        return hass.data[DOMAIN][identifier][UPDATER]
+
+    integrations: list[LuciUpdater] = [
+        integration[UPDATER]
+        for integration in hass.data[DOMAIN].values()
+        if isinstance(integration, dict) and integration[CONF_IP_ADDRESS] == identifier
+    ]
+
+    if len(integrations) == 0:
+        raise ValueError(f"Integration with identifier: {identifier} not found.")
+
+    return integrations[0]

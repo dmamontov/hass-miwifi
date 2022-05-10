@@ -43,5 +43,10 @@
         }
       }
     }
+  },
+  "system_health": {
+    "info": {
+      "version": "Ausführung"
+    }
   }
 }

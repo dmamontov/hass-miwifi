@@ -6,20 +6,19 @@ from __future__ import annotations
 
 import logging
 from unittest.mock import AsyncMock, patch
-from pytest_httpx import HTTPXMock
-import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.components.diagnostics import async_redact_data
 
-from pytest_homeassistant_custom_component.common import load_fixture, MockConfigEntry
+import pytest
+from homeassistant.components.diagnostics import async_redact_data
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
+from pytest_httpx import HTTPXMock
 
 from custom_components.miwifi.const import DOMAIN, UPDATER
 from custom_components.miwifi.diagnostics import (
-    async_get_config_entry_diagnostics,
     TO_REDACT,
+    async_get_config_entry_diagnostics,
 )
 from custom_components.miwifi.updater import LuciUpdater
-
 from tests.setup import async_setup, get_url
 
 _LOGGER = logging.getLogger(__name__)
