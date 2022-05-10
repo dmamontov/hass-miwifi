@@ -367,7 +367,8 @@ class LuciUpdater(DataUpdateCoordinator):
                 (
                     CONNECTION_NETWORK_MAC,
                     self.data.get(ATTR_DEVICE_MAC_ADDRESS, self.ip),
-                )
+                ),
+                (CONF_IP_ADDRESS, self.ip),
             },
             name=self.data.get(ATTR_DEVICE_NAME, DEFAULT_NAME),
             manufacturer=self.data.get(ATTR_DEVICE_MANUFACTURER, DEFAULT_MANUFACTURER),

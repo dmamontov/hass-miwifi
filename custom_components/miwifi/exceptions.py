@@ -11,7 +11,3 @@ class LuciConnectionError(LuciError):
 
 class LuciRequestError(LuciError):
     """Luci request error"""
-
-
-class NotSupportedError(BaseException):
-    """Not supported error"""

@@ -14,7 +14,12 @@ from homeassistant.components.device_tracker import (
     ENTITY_ID_FORMAT as DEVICE_TRACKER_ENTITY_ID_FORMAT,
 )
 from homeassistant.components.device_tracker import SOURCE_TYPE_ROUTER
-from homeassistant.const import STATE_HOME, STATE_NOT_HOME, STATE_UNAVAILABLE
+from homeassistant.const import (
+    CONF_IP_ADDRESS,
+    STATE_HOME,
+    STATE_NOT_HOME,
+    STATE_UNAVAILABLE,
+)
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import device_registry as dr
 from homeassistant.util.dt import utcnow
@@ -1296,6 +1301,7 @@ async def test_init_with_optional_parent(hass: HomeAssistant) -> None:
     )
 
     assert device.connections == {
+        (CONF_IP_ADDRESS, "192.168.31.100"),
         (dr.CONNECTION_NETWORK_MAC, "00:00:00:00:00:04"),
         (dr.CONNECTION_NETWORK_MAC, "01:00:00:00:00:00"),
     }

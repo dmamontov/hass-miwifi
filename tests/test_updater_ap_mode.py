@@ -10,6 +10,7 @@ from typing import Final
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from httpx import codes
@@ -130,7 +131,8 @@ async def test_updater_ap_mode(hass: HomeAssistant) -> None:
 
     assert updater.device_info["identifiers"] == {(DOMAIN, "00:00:00:00:00:00")}
     assert updater.device_info["connections"] == {
-        (CONNECTION_NETWORK_MAC, "00:00:00:00:00:00")
+        (CONF_IP_ADDRESS, "192.168.31.1"),
+        (CONNECTION_NETWORK_MAC, "00:00:00:00:00:00"),
     }
     assert updater.device_info["name"] == "XIAOMI RA67"
     assert updater.device_info["manufacturer"] == "Xiaomi"
@@ -284,7 +286,8 @@ async def test_updater_ap_mode_force_load(hass: HomeAssistant) -> None:
 
     assert updater.device_info["identifiers"] == {(DOMAIN, "00:00:00:00:00:00")}
     assert updater.device_info["connections"] == {
-        (CONNECTION_NETWORK_MAC, "00:00:00:00:00:00")
+        (CONF_IP_ADDRESS, "192.168.31.1"),
+        (CONNECTION_NETWORK_MAC, "00:00:00:00:00:00"),
     }
     assert updater.device_info["name"] == "XIAOMI RA67"
     assert updater.device_info["manufacturer"] == "Xiaomi"

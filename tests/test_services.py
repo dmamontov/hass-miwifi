@@ -1,6 +1,6 @@
 """Tests for the miwifi component."""
 
-# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines,line-too-long
 
 from __future__ import annotations
 
@@ -9,8 +9,9 @@ import logging
 from unittest.mock import AsyncMock, patch
 
 import pytest
+import voluptuous as vol
 from homeassistant.components.automation import DOMAIN as AUTOMATION_DOMAIN
-from homeassistant.const import CONF_IP_ADDRESS
+from homeassistant.const import CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.setup import async_setup_component
@@ -34,7 +35,6 @@ from custom_components.miwifi.const import (
     SERVICE_REQUEST,
     UPDATER,
 )
-from custom_components.miwifi.exceptions import NotSupportedError
 from custom_components.miwifi.updater import LuciUpdater
 from tests.setup import MOCK_IP_ADDRESS, async_mock_luci_client, async_setup, get_url
 
@@ -113,17 +113,26 @@ async def test_calc_passwd(hass: HomeAssistant) -> None:
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
+        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        device_identifier: str = updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip)
+        device: dr.DeviceEntry | None = dr.async_get(hass).async_get_device(
+            set(),
+            {(dr.CONNECTION_NETWORK_MAC, device_identifier)},
+        )
+
+        assert device is not None
+
         assert await hass.services.async_call(
             DOMAIN,
             SERVICE_CALC_PASSWD,
-            {CONF_IP_ADDRESS: MOCK_IP_ADDRESS},
+            target={CONF_DEVICE_ID: [device.id]},
             blocking=True,
             limit=None,
         )
 
 
-async def test_calc_passwd_incorrect_ip(hass: HomeAssistant) -> None:
-    """Test calc passwd incorrect ip.
+async def test_calc_passwd_not_found_device(hass: HomeAssistant) -> None:
+    """Test calc passwd not found device.
 
     :param hass: HomeAssistant
     """
@@ -150,20 +159,20 @@ async def test_calc_passwd_incorrect_ip(hass: HomeAssistant) -> None:
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
-        with pytest.raises(ValueError) as error:
+        with pytest.raises(vol.Invalid) as error:
             await hass.services.async_call(
                 DOMAIN,
                 SERVICE_CALC_PASSWD,
-                {CONF_IP_ADDRESS: "127.0.0.1"},
+                target={CONF_DEVICE_ID: ["test"]},
                 blocking=True,
                 limit=None,
             )
 
-        assert str(error.value) == "Integration with identifier: 127.0.0.1 not found."
+        assert str(error.value) == "Device test not found."
 
 
-async def test_calc_passwd_unsupported(hass: HomeAssistant) -> None:
-    """Test calc passwd unsupported.
+async def test_calc_passwd_unsupported_device(hass: HomeAssistant) -> None:
+    """Test calc passwd unsupported device.
 
     :param hass: HomeAssistant
     """
@@ -171,8 +180,58 @@ async def test_calc_passwd_unsupported(hass: HomeAssistant) -> None:
     with patch(
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
-        "custom_components.miwifi.updater.async_dispatcher_send"
+        "custom_components.miwifi.async_start_discovery", return_value=None
     ), patch(
+        "custom_components.miwifi.device_tracker.socket.socket"
+    ) as mock_socket, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
+        mock_socket.return_value.recv.return_value = AsyncMock(return_value=None)
+
+        await async_mock_luci_client(mock_luci_client)
+
+        setup_data: list = await async_setup(hass)
+
+        config_entry: MockConfigEntry = setup_data[1]
+
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        device_identifier: str = "00:00:00:00:00:01"
+        registry: dr.DeviceRegistry = dr.async_get(hass)
+        device: dr.DeviceEntry | None = registry.async_get_device(
+            set(),
+            {(dr.CONNECTION_NETWORK_MAC, device_identifier)},
+        )
+
+        assert device is not None
+
+        with pytest.raises(vol.Invalid) as error:
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CALC_PASSWD,
+                target={CONF_DEVICE_ID: [device.id]},
+                blocking=True,
+                limit=None,
+            )
+
+        assert (
+            str(error.value)
+            == f"Device {device.id} does not support the called service. Choose a router with MiWifi support."
+        )
+
+
+async def test_calc_passwd_unsupported_device_with_integration(
+    hass: HomeAssistant,
+) -> None:
+    """Test calc passwd unsupported device.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
         "custom_components.miwifi.async_start_discovery", return_value=None
     ), patch(
         "custom_components.miwifi.device_tracker.socket.socket"
@@ -194,11 +253,20 @@ async def test_calc_passwd_unsupported(hass: HomeAssistant) -> None:
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
-        with pytest.raises(NotSupportedError) as error:
+        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        device_identifier: str = updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip)
+        device: dr.DeviceEntry | None = dr.async_get(hass).async_get_device(
+            set(),
+            {(dr.CONNECTION_NETWORK_MAC, device_identifier)},
+        )
+
+        assert device is not None
+
+        with pytest.raises(vol.Invalid) as error:
             await hass.services.async_call(
                 DOMAIN,
                 SERVICE_CALC_PASSWD,
-                {CONF_IP_ADDRESS: MOCK_IP_ADDRESS},
+                target={CONF_DEVICE_ID: [device.id]},
                 blocking=True,
                 limit=None,
             )
@@ -320,10 +388,10 @@ async def test_request(
             DOMAIN,
             SERVICE_REQUEST,
             {
-                CONF_IP_ADDRESS: MOCK_IP_ADDRESS,
                 CONF_URI: "misystem/led",
                 CONF_BODY: {"on": 1},
             },
+            target={CONF_DEVICE_ID: [device.id]},
             blocking=True,
             limit=None,
         )

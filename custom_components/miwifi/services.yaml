@@ -1,26 +1,17 @@
 calc_passwd:
   name: Calculate passwd
   description: Calculate default passwd.
-  fields:
-    ip_address:
-      name: IP address
-      description: IP address of the router.
-      required: true
-      example: "192.168.31.1"
-      selector:
-        text:
+  target:
+    device:
+      integration: miwifi
 
 request:
   name: Send request
   description: Send request to router.
+  target:
+    device:
+      integration: miwifi
   fields:
-    ip_address:
-      name: IP address
-      description: IP address of the router.
-      required: true
-      example: "192.168.31.1"
-      selector:
-        text:
     uri:
       name: Uri
       description: Request uri.

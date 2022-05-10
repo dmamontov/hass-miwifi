@@ -10,6 +10,7 @@ from typing import Final
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.storage import Store
@@ -54,7 +55,7 @@ from custom_components.miwifi.const import (
 from custom_components.miwifi.enum import Mode
 from custom_components.miwifi.exceptions import LuciError, LuciRequestError
 from custom_components.miwifi.luci import LuciClient
-from custom_components.miwifi.updater import LuciUpdater
+from custom_components.miwifi.updater import LuciUpdater, async_get_updater
 from tests.setup import MultipleSideEffect, async_mock_luci_client, async_setup
 
 MOCK_IP_ADDRESS: Final = "192.168.31.1"
@@ -112,7 +113,8 @@ async def test_updater(hass: HomeAssistant) -> None:
     assert not updater.is_repeater
     assert updater.device_info["identifiers"] == {(DOMAIN, MOCK_IP_ADDRESS)}
     assert updater.device_info["connections"] == {
-        (CONNECTION_NETWORK_MAC, MOCK_IP_ADDRESS)
+        (CONF_IP_ADDRESS, "192.168.31.1"),
+        (CONNECTION_NETWORK_MAC, MOCK_IP_ADDRESS),
     }
     assert updater.device_info["name"] == DEFAULT_NAME
     assert updater.device_info["manufacturer"] == DEFAULT_MANUFACTURER
@@ -847,3 +849,35 @@ async def test_updater_with_clean_store(hass: HomeAssistant) -> None:
         await updater.async_stop(clean_store=True)
 
         await hass.async_block_till_done()
+
+
+async def test_get_updater_by_ip_error(hass: HomeAssistant) -> None:
+    """Test updater by ip error.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.async_start_discovery", return_value=None
+    ), patch(
+        "custom_components.miwifi.device_tracker.socket.socket"
+    ) as mock_socket, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
+        mock_socket.return_value.recv.return_value = AsyncMock(return_value=None)
+
+        await async_mock_luci_client(mock_luci_client)
+
+        setup_data: list = await async_setup(hass)
+
+        config_entry: MockConfigEntry = setup_data[1]
+
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        with pytest.raises(ValueError) as error:
+            async_get_updater(hass, "test")
+
+        assert str(error.value) == "Integration with identifier: test not found."

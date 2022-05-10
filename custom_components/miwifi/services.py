@@ -8,7 +8,11 @@ from typing import Final
 
 import homeassistant.components.persistent_notification as pn
 import voluptuous as vol
-from homeassistant.const import CONF_IP_ADDRESS, CONF_TYPE, CONF_DEVICE_ID
+from homeassistant.const import (
+    CONF_DEVICE_ID,
+    CONF_IP_ADDRESS,
+    CONF_TYPE,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.typing import ServiceCallType
@@ -26,7 +30,6 @@ from .const import (
     SERVICE_CALC_PASSWD,
     SERVICE_REQUEST,
 )
-from .exceptions import NotSupportedError
 from .updater import async_get_updater, LuciUpdater
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,7 +38,16 @@ _LOGGER = logging.getLogger(__name__)
 class MiWifiServiceCall:
     """Parent class for all MiWifi service calls."""
 
-    schema = vol.Schema({vol.Required(CONF_IP_ADDRESS): str})
+    schema = vol.Schema(
+        {
+            vol.Required(CONF_DEVICE_ID): vol.All(
+                vol.Coerce(list),
+                vol.Length(
+                    min=1, max=1, msg="The service only supports one device per call."
+                ),
+            )
+        }
+    )
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize service call.
@@ -52,7 +64,20 @@ class MiWifiServiceCall:
         :return LuciUpdater
         """
 
-        return async_get_updater(self.hass, dict(service.data).get(CONF_IP_ADDRESS))
+        device_id: str = dict(service.data).pop(CONF_DEVICE_ID)[0]
+
+        device: dr.DeviceEntry | None = dr.async_get(self.hass).async_get(device_id)
+
+        if device is None:
+            raise vol.Invalid(f"Device {device_id} not found.")
+
+        for connection_type, identifier in device.connections:
+            if connection_type == CONF_IP_ADDRESS and len(identifier) > 0:
+                return async_get_updater(self.hass, identifier)
+
+        raise vol.Invalid(
+            f"Device {device_id} does not support the called service. Choose a router with MiWifi support."  # pylint: disable=line-too-long
+        )
 
     async def async_call_service(self, service: ServiceCallType) -> None:
         """Execute service call.
@@ -90,7 +115,7 @@ class MiWifiCalcPasswdServiceCall(MiWifiServiceCall):
 
             return
 
-        raise NotSupportedError(
+        raise vol.Invalid(
             f"Integration with ip address: {_updater.ip} does not support this service."
         )
 
