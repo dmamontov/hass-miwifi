@@ -1,81 +1,83 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
-from typing import Final
-import logging
-from unittest.mock import AsyncMock, patch
-import pytest
 import json
+import logging
+from typing import Final
+from unittest.mock import AsyncMock, patch
 
+import pytest
+from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from httpx import codes
-
 from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
 
 from custom_components.miwifi.const import (
-    DOMAIN,
-    DEFAULT_MANUFACTURER,
-    ATTR_STATE,
-    ATTR_MODEL,
-    ATTR_DEVICE_MODEL,
-    ATTR_DEVICE_MANUFACTURER,
+    ATTR_BINARY_SENSOR_DUAL_BAND,
+    ATTR_BINARY_SENSOR_WAN_STATE,
+    ATTR_CAMERA_IMAGE,
+    ATTR_DEVICE_HW_VERSION,
     ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_DEVICE_MANUFACTURER,
+    ATTR_DEVICE_MODEL,
     ATTR_DEVICE_NAME,
     ATTR_DEVICE_SW_VERSION,
-    ATTR_BINARY_SENSOR_WAN_STATE,
-    ATTR_BINARY_SENSOR_DUAL_BAND,
-    ATTR_SENSOR_UPTIME,
-    ATTR_SENSOR_MEMORY_USAGE,
-    ATTR_SENSOR_MEMORY_TOTAL,
-    ATTR_SENSOR_TEMPERATURE,
-    ATTR_SENSOR_MODE,
-    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
-    ATTR_SENSOR_WAN_UPLOAD_SPEED,
+    ATTR_LIGHT_LED,
+    ATTR_MODEL,
+    ATTR_SELECT_WIFI_2_4_CHANNEL,
+    ATTR_SELECT_WIFI_2_4_CHANNELS,
+    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
+    ATTR_SELECT_WIFI_5_0_CHANNEL,
+    ATTR_SELECT_WIFI_5_0_CHANNELS,
+    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
     ATTR_SENSOR_DEVICES,
-    ATTR_SENSOR_DEVICES_LAN,
-    ATTR_SENSOR_DEVICES_GUEST,
     ATTR_SENSOR_DEVICES_2_4,
     ATTR_SENSOR_DEVICES_5_0,
     ATTR_SENSOR_DEVICES_5_0_GAME,
-    ATTR_CAMERA_IMAGE,
-    ATTR_LIGHT_LED,
-    ATTR_WIFI_ADAPTER_LENGTH,
-    ATTR_UPDATE_FIRMWARE,
-    ATTR_UPDATE_TITLE,
-    ATTR_UPDATE_CURRENT_VERSION,
-    ATTR_UPDATE_LATEST_VERSION,
+    ATTR_SENSOR_DEVICES_GUEST,
+    ATTR_SENSOR_DEVICES_LAN,
+    ATTR_SENSOR_MEMORY_TOTAL,
+    ATTR_SENSOR_MEMORY_USAGE,
+    ATTR_SENSOR_MODE,
+    ATTR_SENSOR_TEMPERATURE,
+    ATTR_SENSOR_UPTIME,
+    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
+    ATTR_SENSOR_WAN_UPLOAD_SPEED,
+    ATTR_STATE,
     ATTR_SWITCH_WIFI_2_4,
-    ATTR_WIFI_2_4_DATA,
     ATTR_SWITCH_WIFI_5_0,
-    ATTR_WIFI_5_0_DATA,
     ATTR_SWITCH_WIFI_GUEST,
-    ATTR_WIFI_GUEST_DATA,
-    ATTR_SELECT_WIFI_2_4_CHANNEL,
-    ATTR_SELECT_WIFI_2_4_CHANNELS,
-    ATTR_SELECT_WIFI_5_0_CHANNEL,
-    ATTR_SELECT_WIFI_5_0_CHANNELS,
-    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
-    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
+    ATTR_TRACKER_CONNECTION,
+    ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_ENTRY_ID,
-    ATTR_TRACKER_UPDATER_ENTRY_ID,
+    ATTR_TRACKER_IP,
+    ATTR_TRACKER_LAST_ACTIVITY,
     ATTR_TRACKER_MAC,
+    ATTR_TRACKER_NAME,
+    ATTR_TRACKER_ONLINE,
+    ATTR_TRACKER_OPTIONAL_MAC,
     ATTR_TRACKER_ROUTER_MAC_ADDRESS,
     ATTR_TRACKER_SIGNAL,
-    ATTR_TRACKER_NAME,
-    ATTR_TRACKER_CONNECTION,
-    ATTR_TRACKER_IP,
-    ATTR_TRACKER_ONLINE,
-    ATTR_TRACKER_LAST_ACTIVITY,
-    ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
-    ATTR_TRACKER_OPTIONAL_MAC,
+    ATTR_TRACKER_UPDATER_ENTRY_ID,
+    ATTR_UPDATE_CURRENT_VERSION,
+    ATTR_UPDATE_FIRMWARE,
+    ATTR_UPDATE_LATEST_VERSION,
+    ATTR_UPDATE_TITLE,
+    ATTR_WIFI_2_4_DATA,
+    ATTR_WIFI_5_0_DATA,
+    ATTR_WIFI_ADAPTER_LENGTH,
+    ATTR_WIFI_GUEST_DATA,
+    DEFAULT_MANUFACTURER,
+    DOMAIN,
 )
-from custom_components.miwifi.enum import Model, Mode, Connection
+from custom_components.miwifi.enum import Connection, Mode, Model
 from custom_components.miwifi.updater import LuciUpdater
-
-from tests.setup import async_mock_luci_client, async_setup, MultipleSideEffect
+from tests.setup import MultipleSideEffect, async_mock_luci_client, async_setup
 
 MOCK_IP_ADDRESS: Final = "192.168.31.1"
 MOCK_PASSWORD: Final = "**REDACTED**"
@@ -90,7 +92,9 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
-async def test_updater_mesh_mode(hass: HomeAssistant) -> None:
+async def test_updater_mesh_mode(
+    hass: HomeAssistant,
+) -> None:
     """Test updater.
 
     :param hass: HomeAssistant
@@ -100,7 +104,9 @@ async def test_updater_mesh_mode(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send:
+    ) as mock_async_dispatcher_send, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.device_list = AsyncMock(
@@ -127,18 +133,21 @@ async def test_updater_mesh_mode(hass: HomeAssistant) -> None:
 
     assert updater.device_info["identifiers"] == {(DOMAIN, "00:00:00:00:00:00")}
     assert updater.device_info["connections"] == {
-        (CONNECTION_NETWORK_MAC, "00:00:00:00:00:00")
+        (CONF_IP_ADDRESS, "192.168.31.1"),
+        (CONNECTION_NETWORK_MAC, "00:00:00:00:00:00"),
     }
     assert updater.device_info["name"] == "XIAOMI RA67"
     assert updater.device_info["manufacturer"] == "Xiaomi"
     assert updater.device_info["model"] == "xiaomi.router.ra67"
     assert updater.device_info["sw_version"] == "3.0.34 (CN)"
+    assert updater.device_info["hw_version"] == "29543/F0SW88385"
     assert updater.device_info["configuration_url"] == f"http://{MOCK_IP_ADDRESS}/"
 
     assert updater.data[ATTR_DEVICE_MODEL] == "xiaomi.router.ra67"
     assert updater.data[ATTR_DEVICE_MANUFACTURER] == DEFAULT_MANUFACTURER
     assert updater.data[ATTR_DEVICE_NAME] == "XIAOMI RA67"
     assert updater.data[ATTR_DEVICE_SW_VERSION] == "3.0.34 (CN)"
+    assert updater.data[ATTR_DEVICE_HW_VERSION] == "29543/F0SW88385"
     assert updater.data[ATTR_MODEL] == Model.RA67
     assert updater.data[ATTR_CAMERA_IMAGE] == load_fixture("image_data.txt")
     assert updater.data[ATTR_DEVICE_MAC_ADDRESS] == "00:00:00:00:00:00"
@@ -229,13 +238,18 @@ async def test_updater_mesh_mode(hass: HomeAssistant) -> None:
     assert ATTR_SENSOR_DEVICES_5_0_GAME not in updater.data
     assert updater.data[ATTR_STATE]
 
-    assert updater._signals == {"00:00:00:00:00:01": 100, "00:00:00:00:00:02": 100}
+    assert updater._signals == {
+        "00:00:00:00:00:01": 100,
+        "00:00:00:00:00:02": 100,
+    }
 
     assert len(mock_async_dispatcher_send.mock_calls) == 0
     assert len(mock_luci_client.mock_calls) == 17
 
 
-async def test_updater_mesh_mode_force_load(hass: HomeAssistant) -> None:
+async def test_updater_mesh_mode_force_load(
+    hass: HomeAssistant,
+) -> None:
     """Test updater in force load.
 
     :param hass: HomeAssistant
@@ -245,7 +259,9 @@ async def test_updater_mesh_mode_force_load(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send:
+    ) as mock_async_dispatcher_send, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.device_list = AsyncMock(
@@ -278,18 +294,21 @@ async def test_updater_mesh_mode_force_load(hass: HomeAssistant) -> None:
 
     assert updater.device_info["identifiers"] == {(DOMAIN, "00:00:00:00:00:00")}
     assert updater.device_info["connections"] == {
-        (CONNECTION_NETWORK_MAC, "00:00:00:00:00:00")
+        (CONF_IP_ADDRESS, "192.168.31.1"),
+        (CONNECTION_NETWORK_MAC, "00:00:00:00:00:00"),
     }
     assert updater.device_info["name"] == "XIAOMI RA67"
     assert updater.device_info["manufacturer"] == "Xiaomi"
     assert updater.device_info["model"] == "xiaomi.router.ra67"
     assert updater.device_info["sw_version"] == "3.0.34 (CN)"
+    assert updater.device_info["hw_version"] == "29543/F0SW88385"
     assert updater.device_info["configuration_url"] == f"http://{MOCK_IP_ADDRESS}/"
 
     assert updater.data[ATTR_DEVICE_MODEL] == "xiaomi.router.ra67"
     assert updater.data[ATTR_DEVICE_MANUFACTURER] == DEFAULT_MANUFACTURER
     assert updater.data[ATTR_DEVICE_NAME] == "XIAOMI RA67"
     assert updater.data[ATTR_DEVICE_SW_VERSION] == "3.0.34 (CN)"
+    assert updater.data[ATTR_DEVICE_HW_VERSION] == "29543/F0SW88385"
     assert updater.data[ATTR_MODEL] == Model.RA67
     assert updater.data[ATTR_CAMERA_IMAGE] == load_fixture("image_data.txt")
     assert updater.data[ATTR_DEVICE_MAC_ADDRESS] == "00:00:00:00:00:00"
@@ -379,7 +398,10 @@ async def test_updater_mesh_mode_force_load(hass: HomeAssistant) -> None:
     assert updater.data[ATTR_SENSOR_DEVICES_5_0_GAME] == 0
     assert updater.data[ATTR_STATE]
 
-    assert updater._signals == {"00:00:00:00:00:01": 100, "00:00:00:00:00:02": 100}
+    assert updater._signals == {
+        "00:00:00:00:00:01": 100,
+        "00:00:00:00:00:02": 100,
+    }
 
     assert updater.devices == {
         "00:00:00:00:00:01": {
@@ -432,7 +454,9 @@ async def test_updater_mesh_mode_move(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client_first, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send_first:
+    ) as mock_async_dispatcher_send_first, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_first)
 
         mock_luci_client_first.return_value.device_list = AsyncMock(
@@ -461,14 +485,16 @@ async def test_updater_mesh_mode_move(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client_second, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send_second:
+    ) as mock_async_dispatcher_send_second, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_second)
 
         mock_luci_client_second.return_value.device_list = AsyncMock(
             return_value=json.loads(load_fixture("device_list_parent_data.json"))
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -598,7 +624,9 @@ async def test_updater_mesh_mode_move(hass: HomeAssistant) -> None:
     }
 
 
-async def test_updater_mesh_mode_revert_move(hass: HomeAssistant) -> None:
+async def test_updater_mesh_mode_revert_move(
+    hass: HomeAssistant,
+) -> None:
     """Test updater.
 
     :param hass: HomeAssistant
@@ -608,7 +636,9 @@ async def test_updater_mesh_mode_revert_move(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client_first, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send_first:
+    ) as mock_async_dispatcher_send_first, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_first)
 
         mock_luci_client_first.return_value.device_list = AsyncMock(
@@ -637,7 +667,9 @@ async def test_updater_mesh_mode_revert_move(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client_second, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send_second:
+    ) as mock_async_dispatcher_send_second, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_second)
 
         def first_device_list() -> dict:
@@ -650,7 +682,7 @@ async def test_updater_mesh_mode_revert_move(hass: HomeAssistant) -> None:
             side_effect=MultipleSideEffect(first_device_list, second_device_list)
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -896,7 +928,9 @@ async def test_updater_mesh_mode_revert_move(hass: HomeAssistant) -> None:
     }
 
 
-async def test_updater_mesh_mode_revert_move_force_mode(hass: HomeAssistant) -> None:
+async def test_updater_mesh_mode_revert_move_force_mode(
+    hass: HomeAssistant,
+) -> None:
     """Test updater.
 
     :param hass: HomeAssistant
@@ -906,7 +940,9 @@ async def test_updater_mesh_mode_revert_move_force_mode(hass: HomeAssistant) -> 
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client_first, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send_first:
+    ) as mock_async_dispatcher_send_first, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_first)
 
         mock_luci_client_first.return_value.device_list = AsyncMock(
@@ -936,14 +972,16 @@ async def test_updater_mesh_mode_revert_move_force_mode(hass: HomeAssistant) -> 
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client_second, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send_second:
+    ) as mock_async_dispatcher_send_second, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_second)
 
         mock_luci_client_second.return_value.device_list = AsyncMock(
             return_value=json.loads(load_fixture("device_list_parent_data.json"))
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -1203,7 +1241,9 @@ async def test_updater_mesh_mode_move_force_mode(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client_first, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send_first:
+    ) as mock_async_dispatcher_send_first, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_first)
 
         mock_luci_client_first.return_value.device_list = AsyncMock(
@@ -1235,14 +1275,16 @@ async def test_updater_mesh_mode_move_force_mode(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client_second, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send_second:
+    ) as mock_async_dispatcher_send_second, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_second)
 
         mock_luci_client_second.return_value.device_list = AsyncMock(
             return_value=json.loads(load_fixture("device_list_parent_data.json"))
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -1370,7 +1412,9 @@ async def test_updater_mesh_mode_restore(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client_first, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send_first:
+    ) as mock_async_dispatcher_send_first, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_first)
 
         mock_luci_client_first.return_value.device_list = AsyncMock(
@@ -1401,7 +1445,9 @@ async def test_updater_mesh_mode_restore(hass: HomeAssistant) -> None:
         "custom_components.miwifi.updater.async_dispatcher_send"
     ) as mock_async_dispatcher_send_second, patch(
         "custom_components.miwifi.helper.Store"
-    ) as mock_store_second:
+    ) as mock_store_second, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_second)
 
         mock_store_second.return_value.async_load = AsyncMock(
@@ -1417,7 +1463,7 @@ async def test_updater_mesh_mode_restore(hass: HomeAssistant) -> None:
             return_value=json.loads(load_fixture("device_list_parent_data.json"))
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -1587,7 +1633,9 @@ async def test_updater_mesh_mode_restore_force_mode(hass: HomeAssistant) -> None
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client_first, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send_first:
+    ) as mock_async_dispatcher_send_first, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_first)
 
         mock_luci_client_first.return_value.device_list = AsyncMock(
@@ -1622,7 +1670,9 @@ async def test_updater_mesh_mode_restore_force_mode(hass: HomeAssistant) -> None
         "custom_components.miwifi.updater.async_dispatcher_send"
     ) as mock_async_dispatcher_send_second, patch(
         "custom_components.miwifi.helper.Store"
-    ) as mock_store_second:
+    ) as mock_store_second, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client_second)
 
         mock_store_second.return_value.async_load = AsyncMock(
@@ -1638,7 +1688,7 @@ async def test_updater_mesh_mode_restore_force_mode(hass: HomeAssistant) -> None
             return_value=json.loads(load_fixture("device_list_parent_data.json"))
         )
 
-        setup_data: list = await async_setup(hass)
+        setup_data = await async_setup(hass)
 
         updater_second: LuciUpdater = setup_data[0]
         config_entry_second: MockConfigEntry = setup_data[1]
@@ -1761,7 +1811,9 @@ async def test_updater_ap_mode_force_load_incorrect_type(hass: HomeAssistant) ->
         "custom_components.miwifi.updater.LuciClient"
     ) as mock_luci_client, patch(
         "custom_components.miwifi.updater.async_dispatcher_send"
-    ) as mock_async_dispatcher_send:
+    ) as mock_async_dispatcher_send, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
         await async_mock_luci_client(mock_luci_client)
 
         mock_luci_client.return_value.device_list = AsyncMock(
@@ -1799,7 +1851,10 @@ async def test_updater_ap_mode_force_load_incorrect_type(hass: HomeAssistant) ->
     assert updater.data[ATTR_SENSOR_DEVICES_5_0_GAME] == 0
     assert updater.data[ATTR_STATE]
 
-    assert updater._signals == {"00:00:00:00:00:01": 100, "00:00:00:00:00:02": 100}
+    assert updater._signals == {
+        "00:00:00:00:00:01": 100,
+        "00:00:00:00:00:02": 100,
+    }
 
     assert updater.devices == {
         "00:00:00:00:00:01": {

@@ -8,6 +8,7 @@ from homeassistant.const import Platform
 
 # fmt: off
 DOMAIN: Final = "miwifi"
+NAME: Final = "MiWifi"
 ATTRIBUTION: Final = "Data provided by MiWifi"
 
 PLATFORMS: Final = [
@@ -34,19 +35,24 @@ DIAGNOSTIC_CONTENT: Final = "content"
 """Helper const"""
 UPDATER: Final = "updater"
 UPDATE_LISTENER: Final = "update_listener"
-RELOAD_ENTRY: Final = "reload_entry"
 OPTION_IS_FROM_FLOW: Final = "is_from_flow"
 STORAGE_VERSION: Final = 1
 SIGNAL_NEW_DEVICE: Final = f"{DOMAIN}-device-new"
 
 """Custom conf"""
+CONF_STAY_ONLINE: Final = "stay_online"
 CONF_IS_FORCE_LOAD: Final = "is_force_load"
 CONF_ACTIVITY_DAYS: Final = "activity_days"
+CONF_REQUEST: Final = "request"
+CONF_RESPONSE: Final = "response"
+CONF_URI: Final = "uri"
+CONF_BODY: Final = "body"
 
 """Default settings"""
 DEFAULT_RETRY: Final = 10
 DEFAULT_SCAN_INTERVAL: Final = 30
 DEFAULT_TIMEOUT: Final = 20
+DEFAULT_STAY_ONLINE: Final = 0
 DEFAULT_ACTIVITY_DAYS: Final = 30
 DEFAULT_CALL_DELAY: Final = 1
 DEFAULT_SLEEP: Final = 3
@@ -62,6 +68,23 @@ CLIENT_LOGIN_TYPE: Final = 2
 CLIENT_NONCE_TYPE: Final = 0
 CLIENT_PUBLIC_KEY: Final = "a2ffa5c9be07488bbb04a3a47d3c5f6a"
 
+"""Device classes"""
+DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH: Final = "miwifi__signal_strength"
+DEVICE_CLASS_MIWIFI_DEVICE_TRACKER: Final = "miwifi__device_tracker"
+DEVICE_CLASS_MIWIFI_MODE: Final = "miwifi__mode"
+
+"""Services"""
+SERVICE_CALC_PASSWD: Final = "calc_passwd"
+SERVICE_REQUEST: Final = "request"
+
+"""Events"""
+EVENT_LUCI: Final = f"{DOMAIN}_luci"
+EVENT_TYPE_RESPONSE: Final = "response"
+
+TRIGGER_TYPES: Final = [
+    EVENT_TYPE_RESPONSE
+]
+
 """Attributes"""
 ATTR_STATE: Final = "state"
 ATTR_STATE_NAME: Final = "State"
@@ -73,6 +96,7 @@ ATTR_DEVICE_MAC_ADDRESS: Final = "device_mac_address"
 ATTR_DEVICE_NAME: Final = "device_name"
 ATTR_DEVICE_MANUFACTURER: Final = "device_manufacturer"
 ATTR_DEVICE_SW_VERSION: Final = "device_sw_version"
+ATTR_DEVICE_HW_VERSION: Final = "device_hw_version"
 
 ATTR_WIFI_NAME: Final = "Wifi"
 ATTR_WIFI_DATA_FIELDS: Final = {
@@ -219,6 +243,7 @@ ATTR_TRACKER_DOWN_SPEED: Final = "down_speed"
 ATTR_TRACKER_UP_SPEED: Final = "up_speed"
 ATTR_TRACKER_LAST_ACTIVITY: Final = "last_activity"
 ATTR_TRACKER_OPTIONAL_MAC: Final = "optional_mac"
+ATTR_TRACKER_IS_RESTORED: Final = "is_restored"
 
 """Update attributes"""
 ATTR_UPDATE_FIRMWARE: Final = "firmware"

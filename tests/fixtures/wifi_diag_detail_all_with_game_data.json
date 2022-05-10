@@ -1,0 +1,93 @@
+{
+  "bsd": 0,
+  "info": [
+    {
+      "ifname": "wl1",
+      "channelInfo": {
+        "bandwidth": "20",
+        "bandList": [
+          "20",
+          "40"
+        ],
+        "channel": 2
+      },
+      "encryption": "psk2",
+      "iftype": 1,
+      "bandwidth": "20",
+      "status": "1",
+      "mode": "Master",
+      "bsd": "1",
+      "ssid": "**REDACTED**",
+      "device": "wifi1.network1",
+      "ax": "1",
+      "hidden": "0",
+      "password": "**REDACTED**",
+      "channel": "2",
+      "txpwr": "max",
+      "txbf": "3",
+      "signal": -99
+    },
+    {
+      "ifname": "wl0",
+      "channelInfo": {
+        "bandwidth": "0",
+        "bandList": [
+          "20",
+          "40"
+        ],
+        "channel": 149
+      },
+      "encryption": "psk2",
+      "iftype": 2,
+      "bandwidth": "0",
+      "status": "1",
+      "mode": "Master",
+      "bsd": "1",
+      "ssid": "**REDACTED**",
+      "device": "wifi0.network1",
+      "ax": "1",
+      "hidden": "0",
+      "password": "**REDACTED**",
+      "channel": "0",
+      "txpwr": "max",
+      "txbf": "3",
+      "signal": -95
+    },
+    {
+      "ifname": "wl2",
+      "channelInfo": {
+        "bandwidth": "0",
+        "bandList": [
+          "20",
+          "40"
+        ],
+        "channel": 48
+      },
+      "encryption": "psk2",
+      "iftype": 2,
+      "bandwidth": "0",
+      "status": "1",
+      "mode": "Master",
+      "bsd": "1",
+      "ssid": "**REDACTED**",
+      "device": "wifi0.network1",
+      "ax": "1",
+      "hidden": "0",
+      "password": "**REDACTED**",
+      "channel": "0",
+      "txpwr": "max",
+      "txbf": "3",
+      "signal": -95
+    },
+    {
+      "password": "**REDACTED**",
+      "ifname": "wl14",
+      "ssid": "**REDACTED**",
+      "encryption": "none",
+      "status": 0,
+      "iftype": 3,
+      "enabled": "1"
+    }
+  ],
+  "code": 0
+}

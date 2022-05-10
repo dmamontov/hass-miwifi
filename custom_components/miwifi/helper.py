@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import time
 from datetime import datetime
 from typing import Any
 
@@ -14,7 +15,7 @@ from homeassistant.loader import async_get_integration
 from homeassistant.util import slugify
 from httpx import codes
 
-from .const import DOMAIN, STORAGE_VERSION, DEFAULT_TIMEOUT, MANUFACTURERS
+from .const import DEFAULT_TIMEOUT, DOMAIN, MANUFACTURERS, STORAGE_VERSION
 from .updater import LuciUpdater
 
 
@@ -73,6 +74,18 @@ async def async_user_documentation_url(hass: HomeAssistant) -> str:
     return f"{integration.documentation}"
 
 
+async def async_get_version(hass: HomeAssistant) -> str:
+    """Get the documentation url for creating a local user.
+
+    :param hass: HomeAssistant: Home Assistant object
+    :return str: Documentation URL
+    """
+
+    integration = await async_get_integration(hass, DOMAIN)
+
+    return f"{integration.version}"
+
+
 def generate_entity_id(entity_id_format: str, mac: str, name: str | None = None) -> str:
     """Generate Entity ID
 
@@ -98,14 +111,16 @@ def get_store(hass: HomeAssistant, ip: str) -> Store:  # pylint: disable=invalid
     return Store(hass, STORAGE_VERSION, f"{DOMAIN}/{ip}.json", encoder=JSONEncoder)
 
 
-def parse_last_activity(last_activity: str) -> datetime:
+def parse_last_activity(last_activity: str) -> int:
     """Parse last activity string
 
     :param last_activity: str: Last activity
-    :return datetime: Last activity in datetime
+    :return int: Last activity in datetime
     """
 
-    return datetime.strptime(last_activity, "%Y-%m-%dT%H:%M:%S")
+    return int(
+        time.mktime(datetime.strptime(last_activity, "%Y-%m-%dT%H:%M:%S").timetuple())
+    )
 
 
 def pretty_size(speed: float) -> str:
@@ -126,15 +141,12 @@ def pretty_size(speed: float) -> str:
     return f"{round(speed / _p, 2)} {_unit[_i]}"
 
 
-def detect_manufacturer(mac: str | None) -> str | None:
+def detect_manufacturer(mac: str) -> str | None:
     """Get manufacturer by mac address
 
-    :param mac: str | None: Mac address
+    :param mac: str: Mac address
     :return str | None: Manufacturer
     """
-
-    if mac is None:
-        return None
 
     identifier: str = mac.replace(":", "").upper()[0:6]
 

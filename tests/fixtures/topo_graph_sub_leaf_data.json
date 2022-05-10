@@ -1,0 +1,82 @@
+{
+  "show": 1,
+  "graph": {
+    "ssid": "**REDACTED**",
+    "color": 101,
+    "ip": "192.168.31.1",
+    "locale": "Home",
+    "name": "MAIN",
+    "channel": "release",
+    "hardware": "R3600",
+    "mode": 0,
+    "leafs": [
+      {
+        "ssid": "**REDACTED**",
+        "color": 100,
+        "ip": "192.168.31.62",
+        "locale": "Bedroom",
+        "name": "AP",
+        "channel": "release",
+        "hardware": "R2100",
+        "mode": 1,
+        "version": "",
+        "leafs": [
+          {
+            "ssid": "**REDACTED**",
+            "color": 100,
+            "ip": "192.168.31.162",
+            "locale": "Hall",
+            "name": "AP",
+            "channel": "release",
+            "hardware": "RA62",
+            "mode": 1,
+            "version": ""
+          },
+          {
+            "ssid": "",
+            "color": 100,
+            "ip": "",
+            "locale": "",
+            "name": "Incorrect",
+            "channel": "",
+            "hardware": "",
+            "mode": 1,
+            "version": ""
+          },
+          {
+            "ssid": "",
+            "color": 100,
+            "locale": "",
+            "name": "Incorrect 2",
+            "channel": "",
+            "hardware": "",
+            "mode": 1,
+            "version": ""
+          },
+          {
+            "ssid": "",
+            "color": 100,
+            "ip": "",
+            "locale": "",
+            "name": "Incorrect 3",
+            "channel": "",
+            "mode": 1,
+            "version": ""
+          },
+          {
+            "ssid": "",
+            "color": 100,
+            "ip": "192.168.31.199",
+            "locale": "",
+            "name": "Incorrect 4",
+            "channel": "",
+            "hardware": "",
+            "mode": 1,
+            "version": ""
+          }
+        ]
+      }
+    ]
+  },
+  "code": 0
+}

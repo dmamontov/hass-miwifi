@@ -6,11 +6,11 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 from functools import cached_property
-from typing import Final, Any
+from typing import Any, Final
 
-from homeassistant.const import CONF_IP_ADDRESS
-from homeassistant.core import HomeAssistant, CALLBACK_TYPE
 import homeassistant.components.persistent_notification as pn
+from homeassistant.const import CONF_IP_ADDRESS
+from homeassistant.core import callback, CALLBACK_TYPE, HomeAssistant
 from homeassistant.helpers import event
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -22,78 +22,75 @@ from homeassistant.util import utcnow
 from httpx import codes
 
 from .const import (
-    DOMAIN,
-    UPDATER,
-    SIGNAL_NEW_DEVICE,
-    DEFAULT_RETRY,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_TIMEOUT,
-    DEFAULT_ACTIVITY_DAYS,
-    DEFAULT_NAME,
-    DEFAULT_MANUFACTURER,
-    DEFAULT_CALL_DELAY,
-    ATTR_STATE,
-    ATTR_MODEL,
-    ATTR_DEVICE_MODEL,
-    ATTR_DEVICE_MANUFACTURER,
+    ATTR_BINARY_SENSOR_DUAL_BAND,
+    ATTR_BINARY_SENSOR_WAN_STATE,
+    ATTR_CAMERA_IMAGE,
+    ATTR_DEVICE_HW_VERSION,
     ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_DEVICE_MANUFACTURER,
+    ATTR_DEVICE_MODEL,
     ATTR_DEVICE_NAME,
     ATTR_DEVICE_SW_VERSION,
-    ATTR_BINARY_SENSOR_WAN_STATE,
-    ATTR_BINARY_SENSOR_DUAL_BAND,
-    ATTR_SENSOR_UPTIME,
-    ATTR_SENSOR_MEMORY_USAGE,
-    ATTR_SENSOR_MEMORY_TOTAL,
-    ATTR_SENSOR_TEMPERATURE,
-    ATTR_SENSOR_MODE,
+    ATTR_LIGHT_LED,
+    ATTR_MODEL,
     ATTR_SENSOR_AP_SIGNAL,
-    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
-    ATTR_SENSOR_WAN_UPLOAD_SPEED,
     ATTR_SENSOR_DEVICES,
-    ATTR_SENSOR_DEVICES_LAN,
-    ATTR_SENSOR_DEVICES_GUEST,
     ATTR_SENSOR_DEVICES_2_4,
     ATTR_SENSOR_DEVICES_5_0,
     ATTR_SENSOR_DEVICES_5_0_GAME,
-    ATTR_CAMERA_IMAGE,
-    ATTR_LIGHT_LED,
-    ATTR_WIFI_DATA_FIELDS,
-    ATTR_WIFI_ADAPTER_LENGTH,
+    ATTR_SENSOR_DEVICES_GUEST,
+    ATTR_SENSOR_DEVICES_LAN,
+    ATTR_SENSOR_MEMORY_TOTAL,
+    ATTR_SENSOR_MEMORY_USAGE,
+    ATTR_SENSOR_MODE,
+    ATTR_SENSOR_TEMPERATURE,
+    ATTR_SENSOR_UPTIME,
+    ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
+    ATTR_SENSOR_WAN_UPLOAD_SPEED,
+    ATTR_STATE,
+    ATTR_SWITCH_WIFI_5_0_GAME,
+    ATTR_TRACKER_CONNECTION,
+    ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_ENTRY_ID,
-    ATTR_TRACKER_UPDATER_ENTRY_ID,
+    ATTR_TRACKER_IP,
+    ATTR_TRACKER_IS_RESTORED,
+    ATTR_TRACKER_LAST_ACTIVITY,
     ATTR_TRACKER_MAC,
+    ATTR_TRACKER_NAME,
+    ATTR_TRACKER_ONLINE,
+    ATTR_TRACKER_OPTIONAL_MAC,
     ATTR_TRACKER_ROUTER_MAC_ADDRESS,
     ATTR_TRACKER_SIGNAL,
-    ATTR_TRACKER_NAME,
-    ATTR_TRACKER_CONNECTION,
-    ATTR_TRACKER_IP,
-    ATTR_TRACKER_ONLINE,
-    ATTR_TRACKER_LAST_ACTIVITY,
-    ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
-    ATTR_TRACKER_OPTIONAL_MAC,
-    ATTR_UPDATE_FIRMWARE,
-    ATTR_UPDATE_TITLE,
+    ATTR_TRACKER_UPDATER_ENTRY_ID,
     ATTR_UPDATE_CURRENT_VERSION,
+    ATTR_UPDATE_DOWNLOAD_URL,
+    ATTR_UPDATE_FILE_HASH,
+    ATTR_UPDATE_FILE_SIZE,
+    ATTR_UPDATE_FIRMWARE,
     ATTR_UPDATE_LATEST_VERSION,
     ATTR_UPDATE_RELEASE_URL,
-    ATTR_UPDATE_DOWNLOAD_URL,
-    ATTR_UPDATE_FILE_SIZE,
-    ATTR_UPDATE_FILE_HASH,
+    ATTR_UPDATE_TITLE,
+    ATTR_WIFI_ADAPTER_LENGTH,
+    ATTR_WIFI_DATA_FIELDS,
+    DEFAULT_ACTIVITY_DAYS,
+    DEFAULT_CALL_DELAY,
+    DEFAULT_MANUFACTURER,
+    DEFAULT_NAME,
+    DEFAULT_RETRY,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TIMEOUT,
+    DOMAIN,
+    NAME,
+    SIGNAL_NEW_DEVICE,
+    UPDATER,
 )
-from .enum import (
-    Model,
-    Mode,
-    Connection,
-    IfName,
-    Wifi,
-    DeviceAction,
-)
-from .exceptions import LuciConnectionException, LuciTokenException, LuciException
+from .enum import Connection, DeviceAction, IfName, Mode, Model, Wifi
+from .exceptions import LuciConnectionError, LuciError, LuciRequestError
 from .luci import LuciClient
 from .self_check import async_self_check
 
-PREPARE_METHODS: Final = [
+PREPARE_METHODS: Final = (
     "init",
     "status",
     "rom_update",
@@ -107,7 +104,7 @@ PREPARE_METHODS: Final = [
     "device_restore",
     "ap",
     "new_status",
-]
+)
 
 NEW_STATUS_MAP: Final = {
     "2g": ATTR_SENSOR_DEVICES_2_4,
@@ -115,14 +112,14 @@ NEW_STATUS_MAP: Final = {
     "game": ATTR_SENSOR_DEVICES_5_0_GAME,
 }
 
-REPEATER_SKIP_ATTRS: Final = [
+REPEATER_SKIP_ATTRS: Final = (
     ATTR_TRACKER_NAME,
     ATTR_TRACKER_IP,
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
     ATTR_TRACKER_ONLINE,
     ATTR_TRACKER_OPTIONAL_MAC,
-]
+)
 
 UNSUPPORTED: Final = {
     "new_status": [
@@ -157,7 +154,7 @@ class LuciUpdater(DataUpdateCoordinator):
     ip: str
     new_device_callback: CALLBACK_TYPE | None = None
     is_force_load: bool = False
-    is_support_guest_wifi: bool = True
+    supports_guest: bool = True
 
     _store: Store | None = None
 
@@ -166,7 +163,6 @@ class LuciUpdater(DataUpdateCoordinator):
     _activity_days: int
     _is_only_login: bool = False
     _is_reauthorization: bool = True
-    _is_first_update: bool = True
 
     def __init__(
         self,
@@ -213,7 +209,7 @@ class LuciUpdater(DataUpdateCoordinator):
             super().__init__(
                 hass,
                 _LOGGER,
-                name="MiWifi updater",
+                name=f"{NAME} updater",
                 update_interval=self._update_interval,
                 update_method=self.update,
             )
@@ -222,14 +218,22 @@ class LuciUpdater(DataUpdateCoordinator):
         self.devices: dict[str, dict[str, Any]] = {}
         self._signals: dict[str, int] = {}
         self._moved_devices: list = []
+        self._is_first_update: bool = True
 
-    async def async_stop(self) -> None:
-        """Stop updater"""
+    async def async_stop(self, clean_store: bool = False) -> None:
+        """Stop updater
+
+        :param clean_store: bool
+        """
 
         if self.new_device_callback is not None:
             self.new_device_callback()  # pylint: disable=not-callable
 
-        await self._async_save_devices()
+        if clean_store and self._store is not None:
+            await self._store.async_remove()
+        else:
+            await self._async_save_devices()
+
         await self.luci.logout()
 
     @cached_property
@@ -251,7 +255,7 @@ class LuciUpdater(DataUpdateCoordinator):
         self.code = codes.OK
 
         _is_before_reauthorization: bool = self._is_reauthorization
-        _err: LuciException | None = None
+        _err: LuciError | None = None
 
         try:
             if self._is_reauthorization or self._is_only_login or self._is_first_update:
@@ -264,12 +268,12 @@ class LuciUpdater(DataUpdateCoordinator):
             for method in PREPARE_METHODS:
                 if not self._is_only_login or method == "init":
                     await self._async_prepare(method, self.data)
-        except LuciConnectionException as _e:
+        except LuciConnectionError as _e:
             _err = _e
 
             self._is_reauthorization = False
             self.code = codes.NOT_FOUND
-        except LuciTokenException as _e:
+        except LuciRequestError as _e:
             _err = _e
 
             self._is_reauthorization = True
@@ -324,6 +328,33 @@ class LuciUpdater(DataUpdateCoordinator):
         return self.data.get(ATTR_SENSOR_MODE, Mode.DEFAULT).value > 0
 
     @property
+    def supports_wan(self) -> bool:
+        """Is supports wan
+
+        :return bool
+        """
+
+        return self.data.get(ATTR_BINARY_SENSOR_WAN_STATE, False)
+
+    @property
+    def supports_game(self) -> bool:
+        """Is supports game mode
+
+        :return bool
+        """
+
+        return self.data.get(ATTR_SWITCH_WIFI_5_0_GAME, None) is not None
+
+    @property
+    def supports_update(self) -> bool:
+        """Is supports update
+
+        :return bool
+        """
+
+        return len(self.data.get(ATTR_UPDATE_FIRMWARE, {})) != 0
+
+    @property
     def device_info(self):
         """Device info.
 
@@ -336,12 +367,14 @@ class LuciUpdater(DataUpdateCoordinator):
                 (
                     CONNECTION_NETWORK_MAC,
                     self.data.get(ATTR_DEVICE_MAC_ADDRESS, self.ip),
-                )
+                ),
+                (CONF_IP_ADDRESS, self.ip),
             },
             name=self.data.get(ATTR_DEVICE_NAME, DEFAULT_NAME),
             manufacturer=self.data.get(ATTR_DEVICE_MANUFACTURER, DEFAULT_MANUFACTURER),
             model=self.data.get(ATTR_DEVICE_MODEL, None),
             sw_version=self.data.get(ATTR_DEVICE_SW_VERSION, None),
+            hw_version=self.data.get(ATTR_DEVICE_HW_VERSION, None),
             configuration_url=f"http://{self.ip}/",
         )
 
@@ -413,7 +446,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 await async_self_check(self.hass, self.luci, response["hardware"])
 
                 if not self._is_only_login:
-                    raise LuciException(f"Router {self.ip} not supported") from _e
+                    raise LuciError(f"Router {self.ip} not supported") from _e
 
                 self.code = codes.CONFLICT
 
@@ -423,10 +456,10 @@ class LuciUpdater(DataUpdateCoordinator):
 
             return
 
-        pn.async_create(self.hass, f"Router {self.ip} not supported", "MiWifi")
+        pn.async_create(self.hass, f"Router {self.ip} not supported", NAME)
 
         if not self._is_only_login:
-            raise LuciException(f"Router {self.ip} not supported")
+            raise LuciError(f"Router {self.ip} not supported")
 
         self.code = codes.CONFLICT
 
@@ -441,6 +474,8 @@ class LuciUpdater(DataUpdateCoordinator):
         if "hardware" in response and isinstance(response["hardware"], dict):
             if "mac" in response["hardware"]:
                 data[ATTR_DEVICE_MAC_ADDRESS] = response["hardware"]["mac"]
+            if "sn" in response["hardware"]:
+                data[ATTR_DEVICE_HW_VERSION] = response["hardware"]["sn"]
             if "version" in response["hardware"]:
                 data[ATTR_UPDATE_CURRENT_VERSION] = response["hardware"]["version"]
 
@@ -493,7 +528,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         try:
             response: dict = await self.luci.rom_update()
-        except LuciException:
+        except LuciError:
             response = {}
 
         if (
@@ -589,23 +624,25 @@ class LuciUpdater(DataUpdateCoordinator):
 
         _adapters: list = response["info"]
 
-        if self.is_support_guest_wifi:
+        if self.supports_guest:
+            self.supports_guest = False
+
             try:
                 response_diag = await self.luci.wifi_diag_detail_all()
+                _adapters_len: int = len(_adapters)
 
-                if "info" in response_diag and len(response_diag["info"]) > len(
-                    _adapters
-                ):
+                if "info" in response_diag:
                     _adapters += [
                         _adapter
                         for _adapter in response_diag["info"]
                         if "ifname" in _adapter
                         and _adapter["ifname"] == IfName.WL14.value
                     ]
-                else:
-                    self.is_support_guest_wifi = False
-            except LuciException:
-                self.is_support_guest_wifi = False
+
+                if _adapters_len < len(_adapters):
+                    self.supports_guest = True
+            except LuciError:
+                pass
 
         length: int = 0
 
@@ -685,7 +722,7 @@ class LuciUpdater(DataUpdateCoordinator):
             integrations: dict[str, dict] = {}
 
             if self.is_repeater and self.is_force_load:
-                integrations = self.get_integrations()
+                integrations = async_get_integrations(self.hass)
 
             for device in response["list"]:
                 # fmt: off
@@ -726,25 +763,16 @@ class LuciUpdater(DataUpdateCoordinator):
 
         if "list" not in response or len(response["list"]) == 0:
             if len(self._signals) > 0 and not self.is_repeater:
-                data[ATTR_SENSOR_MODE] = Mode.MESH
+                self.reset_counter(is_remove=True)
 
-                for attr in [
-                    ATTR_SENSOR_DEVICES,
-                    ATTR_SENSOR_DEVICES_LAN,
-                    ATTR_SENSOR_DEVICES_GUEST,
-                    ATTR_SENSOR_DEVICES_2_4,
-                    ATTR_SENSOR_DEVICES_5_0,
-                    ATTR_SENSOR_DEVICES_5_0_GAME,
-                ]:
-                    if attr in data:
-                        del data[attr]
+                data[ATTR_SENSOR_MODE] = Mode.MESH
 
                 if self.is_force_load:
                     await self._async_prepare_devices(data)
 
             return
 
-        integrations: dict[str, dict] = self.get_integrations()
+        integrations: dict[str, dict] = async_get_integrations(self.hass)
 
         mac_to_ip: dict[str, str] = {
             device[ATTR_TRACKER_MAC]: device["ip"][0]["ip"]
@@ -753,6 +781,8 @@ class LuciUpdater(DataUpdateCoordinator):
         }
 
         add_to: dict = {}
+
+        self.reset_counter(is_force=True)
 
         for device in response["list"]:
             action: DeviceAction = DeviceAction.ADD
@@ -821,7 +851,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         for _ip, devices in add_to.items():
             if not integrations[_ip][UPDATER].is_force_load:
-                integrations[_ip][UPDATER].reset_counter(True)
+                integrations[_ip][UPDATER].reset_counter(is_force=True)
 
             for device in devices.values():
                 if ATTR_TRACKER_MAC in device[0]:
@@ -843,7 +873,7 @@ class LuciUpdater(DataUpdateCoordinator):
         if devices is None:
             return
 
-        integrations: dict = self.get_integrations()
+        integrations: dict = async_get_integrations(self.hass)
 
         for mac, device in devices.items():
             if mac in self.devices:
@@ -908,7 +938,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
             self.devices[mac] = device
 
-            async_dispatcher_send(self.hass, SIGNAL_NEW_DEVICE, device)
+            async_dispatcher_send(
+                self.hass, SIGNAL_NEW_DEVICE, device | {ATTR_TRACKER_IS_RESTORED: True}
+            )
 
             _LOGGER.debug("Restore device: %s, %s", mac, device)
 
@@ -1150,46 +1182,28 @@ class LuciUpdater(DataUpdateCoordinator):
 
             del self.devices[mac]
 
-    def get_integrations(self) -> dict[str, dict]:
-        """Mapping integration for device tracker
-
-        :return dict[str, dict]: Mapping
-        """
-
-        return {
-            integration[CONF_IP_ADDRESS]: {
-                UPDATER: integration[UPDATER],
-                ATTR_TRACKER_ENTRY_ID: entry_id,
-            }
-            for entry_id, integration in self.hass.data[DOMAIN].items()
-            if isinstance(integration, dict)
-        }
-
-    def reset_counter(self, is_force: bool = False) -> None:
+    def reset_counter(self, is_force: bool = False, is_remove: bool = False) -> None:
         """Reset counter
 
         :param is_force: bool: Force reset
+        :param is_remove: bool: Force remove
         """
 
         if self.is_repeater and not self.is_force_load and not is_force:
             return
 
-        self.data[ATTR_SENSOR_DEVICES] = 0
-        self.data[ATTR_SENSOR_DEVICES_LAN] = 0
-        self.data[ATTR_SENSOR_DEVICES_GUEST] = 0
-        self.data[ATTR_SENSOR_DEVICES_2_4] = 0
-        self.data[ATTR_SENSOR_DEVICES_5_0] = 0
-        self.data[ATTR_SENSOR_DEVICES_5_0_GAME] = 0
-
-    async def async_remove_device(self, mac: str) -> None:
-        """Async remove device
-
-        :param mac: str
-        """
-
-        for integration in self.get_integrations().values():
-            if mac in integration[UPDATER].devices:
-                del integration[UPDATER].devices[mac]
+        for attr in [
+            ATTR_SENSOR_DEVICES,
+            ATTR_SENSOR_DEVICES_LAN,
+            ATTR_SENSOR_DEVICES_GUEST,
+            ATTR_SENSOR_DEVICES_2_4,
+            ATTR_SENSOR_DEVICES_5_0,
+            ATTR_SENSOR_DEVICES_5_0_GAME,
+        ]:
+            if attr in self.data and is_remove:
+                del self.data[attr]
+            elif not is_remove:
+                self.data[attr] = 0
 
     async def _async_load_devices(self) -> dict | None:
         """Async load devices from Store"""
@@ -1215,3 +1229,45 @@ class LuciUpdater(DataUpdateCoordinator):
             return
 
         await self._store.async_save(self.devices)
+
+
+@callback
+def async_get_integrations(hass: HomeAssistant) -> dict[str, dict]:
+    """Return integrations map.
+
+    :param hass: HomeAssistant
+    :return dict[str, dict]
+    """
+
+    return {
+        integration[CONF_IP_ADDRESS]: {
+            UPDATER: integration[UPDATER],
+            ATTR_TRACKER_ENTRY_ID: entry_id,
+        }
+        for entry_id, integration in hass.data[DOMAIN].items()
+        if isinstance(integration, dict)
+    }
+
+
+@callback
+def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
+    """Return LuciUpdater for ip address or entry id.
+
+    :param hass: HomeAssistant
+    :param identifier: str
+    :return LuciUpdater
+    """
+
+    if identifier in hass.data[DOMAIN] and UPDATER in hass.data[DOMAIN][identifier]:
+        return hass.data[DOMAIN][identifier][UPDATER]
+
+    integrations: list[LuciUpdater] = [
+        integration[UPDATER]
+        for integration in hass.data[DOMAIN].values()
+        if isinstance(integration, dict) and integration[CONF_IP_ADDRESS] == identifier
+    ]
+
+    if len(integrations) == 0:
+        raise ValueError(f"Integration with identifier: {identifier} not found.")
+
+    return integrations[0]

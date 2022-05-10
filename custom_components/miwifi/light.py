@@ -3,36 +3,29 @@
 from __future__ import annotations
 
 import logging
-from typing import Final, Any
+from typing import Any, Final
 
 from homeassistant.components.light import (
     ENTITY_ID_FORMAT,
-    LightEntityDescription,
     LightEntity,
+    LightEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    STATE_ON,
-    STATE_OFF,
-)
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    DOMAIN,
-    UPDATER,
-    ATTRIBUTION,
-    ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_STATE,
     ATTR_LIGHT_LED,
     ATTR_LIGHT_LED_NAME,
+    ATTR_STATE,
 )
-from .exceptions import LuciException
-from .helper import generate_entity_id
-from .updater import LuciUpdater
+from .entity import MiWifiEntity
+from .exceptions import LuciError
+from .updater import async_get_updater, LuciUpdater
+
+PARALLEL_UPDATES = 0
 
 ICONS: Final = {
     f"{ATTR_LIGHT_LED}_{STATE_ON}": "mdi:led-on",
@@ -64,13 +57,7 @@ async def async_setup_entry(
     :param async_add_entities: AddEntitiesCallback: AddEntitiesCallback callback object
     """
 
-    data: dict = hass.data[DOMAIN][config_entry.entry_id]
-    updater: LuciUpdater = data[UPDATER]
-
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize light.")
-
-        return
+    updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
     entities: list[MiWifiLight] = [
         MiWifiLight(
@@ -83,10 +70,8 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
+class MiWifiLight(MiWifiEntity, LightEntity):
     """MiWifi light entry."""
-
-    _attr_attribution: str = ATTRIBUTION
 
     def __init__(
         self,
@@ -101,50 +86,10 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        CoordinatorEntity.__init__(self, coordinator=updater)
-        RestoreEntity.__init__(self)
-
-        self.entity_description = description
-        self._updater = updater
-
-        self.entity_id = generate_entity_id(
-            ENTITY_ID_FORMAT,
-            updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
-            description.name,
-        )
-
-        self._attr_name = description.name
-        self._attr_unique_id = unique_id
-        self._attr_available = updater.data.get(ATTR_STATE, False)
-
-        self._attr_device_info = updater.device_info
+        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
 
         self._attr_is_on = updater.data.get(description.key, False)
         self._change_icon(self._attr_is_on)
-
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass."""
-
-        await RestoreEntity.async_added_to_hass(self)
-        await CoordinatorEntity.async_added_to_hass(self)
-
-        state = await self.async_get_last_state()
-        if not state:
-            return
-
-        self._attr_is_on = state.state == STATE_ON
-        self._change_icon(self._attr_is_on)
-
-        self.async_write_ha_state()
-
-    @property
-    def available(self) -> bool:
-        """Is available
-
-        :return bool: Is available
-        """
-
-        return self._attr_available and self.coordinator.last_update_success
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
@@ -168,7 +113,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
 
         try:
             await self._updater.luci.led(1)
-        except LuciException:
+        except LuciError:
             pass
 
     async def _led_off(self) -> None:
@@ -176,7 +121,7 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
 
         try:
             await self._updater.luci.led(0)
-        except LuciException:
+        except LuciError:
             pass
 
     async def async_turn_on(self, **kwargs: Any) -> None:
@@ -226,8 +171,8 @@ class MiWifiLight(LightEntity, CoordinatorEntity, RestoreEntity):
         :param is_on: bool
         """
 
-        # fmt: off
-        icon_name: str = f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
-        # fmt: on
+        icon_name: str = (
+            f"{self.entity_description.key}_{STATE_ON if is_on else STATE_OFF}"
+        )
         if icon_name in ICONS:
             self._attr_icon = ICONS[icon_name]

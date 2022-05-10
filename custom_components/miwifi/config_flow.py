@@ -20,17 +20,19 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from httpx import codes
 
 from .const import (
-    DOMAIN,
-    UPDATER,
-    CONF_IS_FORCE_LOAD,
     CONF_ACTIVITY_DAYS,
-    OPTION_IS_FROM_FLOW,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_TIMEOUT,
+    CONF_IS_FORCE_LOAD,
+    CONF_STAY_ONLINE,
     DEFAULT_ACTIVITY_DAYS,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_STAY_ONLINE,
+    DEFAULT_TIMEOUT,
+    DOMAIN,
+    OPTION_IS_FROM_FLOW,
+    UPDATER,
 )
 from .discovery import async_start_discovery
-from .helper import get_config_value, async_verify_access, async_user_documentation_url
+from .helper import async_user_documentation_url, async_verify_access, get_config_value
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -124,6 +126,9 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                     vol.Required(CONF_IP_ADDRESS): str,
                     vol.Required(CONF_PASSWORD): str,
                     vol.Required(
+                        CONF_STAY_ONLINE, default=DEFAULT_STAY_ONLINE
+                    ): cv.positive_int,
+                    vol.Required(
                         CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
                     vol.Required(
@@ -198,6 +203,9 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                     vol.Required(CONF_IP_ADDRESS, default=_ip): str,
                     vol.Required(CONF_PASSWORD): str,
                     vol.Required(
+                        CONF_STAY_ONLINE, default=DEFAULT_STAY_ONLINE
+                    ): cv.positive_int,
+                    vol.Required(
                         CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
                     vol.Required(
@@ -271,6 +279,12 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 CONF_PASSWORD,
                 default=get_config_value(self._config_entry, CONF_PASSWORD, ""),
             ): str,
+            vol.Required(
+                CONF_STAY_ONLINE,
+                default=get_config_value(
+                    self._config_entry, CONF_STAY_ONLINE, DEFAULT_STAY_ONLINE
+                ),
+            ): cv.positive_int,
             vol.Required(
                 CONF_SCAN_INTERVAL,
                 default=get_config_value(

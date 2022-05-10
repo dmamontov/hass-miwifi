@@ -7,30 +7,22 @@ from typing import Final
 
 from homeassistant.components.select import (
     ENTITY_ID_FORMAT,
-    SelectEntityDescription,
     SelectEntity,
+    SelectEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    DOMAIN,
-    UPDATER,
-    ATTRIBUTION,
-    ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_STATE,
-    ATTR_WIFI_2_4_DATA,
-    ATTR_WIFI_5_0_DATA,
-    ATTR_WIFI_5_0_GAME_DATA,
-    ATTR_WIFI_ADAPTER_LENGTH,
+    ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
     ATTR_SELECT_WIFI_2_4_CHANNEL,
-    ATTR_SELECT_WIFI_2_4_CHANNELS,
     ATTR_SELECT_WIFI_2_4_CHANNEL_NAME,
     ATTR_SELECT_WIFI_2_4_CHANNEL_OPTIONS,
+    ATTR_SELECT_WIFI_2_4_CHANNELS,
+    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
+    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME,
     ATTR_SELECT_WIFI_5_0_CHANNEL,
     ATTR_SELECT_WIFI_5_0_CHANNEL_NAME,
     ATTR_SELECT_WIFI_5_0_CHANNEL_OPTIONS,
@@ -39,18 +31,23 @@ from .const import (
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_NAME,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_OPTIONS,
     ATTR_SELECT_WIFI_5_0_GAME_CHANNELS,
-    ATTR_SELECT_SIGNAL_STRENGTH_OPTIONS,
-    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
-    ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME,
-    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
-    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME,
     ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
     ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME,
+    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
+    ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME,
+    ATTR_STATE,
+    ATTR_WIFI_2_4_DATA,
+    ATTR_WIFI_5_0_DATA,
+    ATTR_WIFI_5_0_GAME_DATA,
+    ATTR_WIFI_ADAPTER_LENGTH,
+    DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
 )
+from .entity import MiWifiEntity
 from .enum import Wifi
-from .exceptions import LuciException
-from .helper import generate_entity_id
-from .updater import LuciUpdater
+from .exceptions import LuciError
+from .updater import async_get_updater, LuciUpdater
+
+PARALLEL_UPDATES = 0
 
 CHANNELS_MAP: Final = {
     ATTR_SELECT_WIFI_2_4_CHANNEL: ATTR_SELECT_WIFI_2_4_CHANNELS,
@@ -114,6 +111,7 @@ MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
         key=ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
         name=ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME,
         icon=ICONS[f"{ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH}_max"],
+        device_class=DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
     ),
@@ -121,6 +119,7 @@ MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
         key=ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
         name=ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME,
         icon=ICONS[f"{ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH}_max"],
+        device_class=DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
     ),
@@ -128,6 +127,7 @@ MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
         key=ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
         name=ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME,
         icon=ICONS[f"{ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH}_max"],
+        device_class=DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
     ),
@@ -148,13 +148,7 @@ async def async_setup_entry(
     :param async_add_entities: AddEntitiesCallback: AddEntitiesCallback callback object
     """
 
-    data: dict = hass.data[DOMAIN][config_entry.entry_id]
-    updater: LuciUpdater = data[UPDATER]
-
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize select.")
-
-        return
+    updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
     entities: list[MiWifiSelect] = []
     for description in MIWIFI_SELECTS:
@@ -164,7 +158,7 @@ async def async_setup_entry(
                 ATTR_SELECT_WIFI_5_0_GAME_CHANNEL,
                 ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
             ]
-            and updater.data.get(ATTR_WIFI_ADAPTER_LENGTH, 2) != 3
+            and not updater.supports_game
         ):
             continue
 
@@ -179,10 +173,8 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
+class MiWifiSelect(MiWifiEntity, SelectEntity):
     """MiWifi select entry."""
-
-    _attr_attribution: str = ATTRIBUTION
 
     def __init__(
         self,
@@ -197,22 +189,7 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        CoordinatorEntity.__init__(self, coordinator=updater)
-        RestoreEntity.__init__(self)
-
-        self.entity_description = description
-        self._updater: LuciUpdater = updater
-
-        self.entity_id = generate_entity_id(
-            ENTITY_ID_FORMAT,
-            updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
-            description.name,
-        )
-
-        self._attr_name = description.name
-        self._attr_unique_id = unique_id
-
-        self._attr_device_info = updater.device_info
+        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
 
         self._attr_current_option = updater.data.get(description.key, None)
         self._change_icon(self._attr_current_option)
@@ -234,69 +211,41 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
             else:
                 self._attr_options = OPTIONS_MAP[description.key]
 
+        self._wifi_data: dict = {}
         if description.key in DATA_MAP:
             self._wifi_data = updater.data.get(DATA_MAP[description.key], {})
-        else:
-            self._wifi_data = {}
 
-        # fmt: off
-        self._attr_available = updater.data.get(ATTR_STATE, False) \
-            and len(self._attr_options) > 0
-        # fmt: on
-
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass."""
-
-        await RestoreEntity.async_added_to_hass(self)
-        await CoordinatorEntity.async_added_to_hass(self)
-
-        state = await self.async_get_last_state()
-        if not state:
-            return
-
-        self._attr_current_option = state.state
-        self._change_icon(self._attr_current_option)
-
-        self.async_write_ha_state()
-
-    @property
-    def available(self) -> bool:
-        """Is available
-
-        :return bool: Is available
-        """
-
-        return self._attr_available and self.coordinator.last_update_success
+        self._attr_available: bool = (
+            updater.data.get(ATTR_STATE, False) and len(self._attr_options) > 0
+        )
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
         current_option: str = self._updater.data.get(self.entity_description.key, False)
 
+        wifi_data: dict = {}
         if self.entity_description.key in DATA_MAP:
-            wifi_data: dict = self._updater.data.get(
+            wifi_data = self._updater.data.get(
                 DATA_MAP[self.entity_description.key], {}
             )
-        else:
-            wifi_data = {}
 
-        # fmt: off
-        is_available: bool = self._updater.data.get(ATTR_STATE, False) \
-            and len(self._attr_options) > 0 \
+        is_available: bool = (
+            self._updater.data.get(ATTR_STATE, False)
+            and len(self._attr_options) > 0
             and len(wifi_data) > 0
-        # fmt: on
+        )
 
-        is_update_data: bool = False
-        for key, value in wifi_data.items():
-            if key not in self._wifi_data or value != self._wifi_data[key]:
-                is_update_data = True
-
-                break
+        data_changed: list = [
+            key
+            for key, value in wifi_data.items()
+            if key not in self._wifi_data or value != self._wifi_data[key]
+        ]
 
         if (
             self._attr_current_option == current_option
             and self._attr_available == is_available
-            and not is_update_data
+            and len(data_changed) == 0
         ):
             return
 
@@ -379,7 +328,7 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         try:
             await self._updater.luci.set_wifi(new_data)
             self._wifi_data = new_data
-        except LuciException as _e:
+        except LuciError as _e:
             _LOGGER.debug("WiFi update error: %r", _e)
 
     async def async_select_option(self, option: str) -> None:
@@ -388,15 +337,13 @@ class MiWifiSelect(SelectEntity, CoordinatorEntity, RestoreEntity):
         :param option: str: Option
         """
 
-        if option not in self._attr_options:
-            return
-
         action = getattr(self, f"_{self.entity_description.key}_change")
 
         if action:
             await action(option)
 
             self._updater.data[self.entity_description.key] = option
+            self._attr_current_option = option
             self._change_icon(option)
 
             self.async_write_ha_state()

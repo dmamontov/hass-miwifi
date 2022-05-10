@@ -30,8 +30,7 @@
   "hardware": {
     "mac": "00:00:00:00:00:00",
     "platform": "RA67",
-    "channel": "release",
-    "sn": "29543/F0SW88385"
+    "channel": "release"
   },
   "upTime": "29186.96",
   "cpu": {

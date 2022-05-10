@@ -7,13 +7,14 @@ on:
     - cron: '0 */6 * * *'
 
 jobs:
-  py-lint:
+  py-lint-test:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v2
       - uses: dmamontov/hass-py-lint@main
         with:
           hass-version: "dev"
-          path: "custom_components/miwifi"
+          path: "custom_components/miwifi tests"
+          use-pytest: true
           extra-pylint-options: "--disable=unused-argument"
           use-hass-branch: true

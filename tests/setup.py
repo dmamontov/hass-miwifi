@@ -1,12 +1,14 @@
 """Tests for the miwifi component."""
 
+# pylint: disable=no-member,too-many-statements,protected-access,too-many-lines
+
 from __future__ import annotations
 
-from typing import Final
-import logging
 import json
+import logging
+import urllib.parse
+from typing import Final
 from unittest.mock import AsyncMock
-from pytest_homeassistant_custom_component.common import load_fixture
 
 from homeassistant import setup
 from homeassistant.const import (
@@ -17,19 +19,17 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
 
 from custom_components.miwifi.const import (
-    DOMAIN,
-    UPDATER,
-    RELOAD_ENTRY,
-    SIGNAL_NEW_DEVICE,
+    CONF_ACTIVITY_DAYS,
+    CONF_IS_FORCE_LOAD,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TIMEOUT,
-    DEFAULT_ACTIVITY_DAYS,
-    CONF_IS_FORCE_LOAD,
-    CONF_ACTIVITY_DAYS,
+    DOMAIN,
+    OPTION_IS_FROM_FLOW,
+    SIGNAL_NEW_DEVICE,
+    UPDATER,
 )
 from custom_components.miwifi.helper import get_config_value, get_store
 from custom_components.miwifi.updater import LuciUpdater
@@ -48,22 +48,29 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup(
     hass: HomeAssistant,
-    ip: str = MOCK_IP_ADDRESS,
+    _ip: str = MOCK_IP_ADDRESS,
     without_store: bool = False,
     activity_days: int = 0,
+    is_force: bool = False,
 ) -> list:
     """Setup.
 
     :param hass: HomeAssistant
-    :param ip: str
+    :param _ip: str
     :param without_store: bool
     :param activity_days: int
+    :param is_force: bool
     """
 
     config_entry = MockConfigEntry(
         domain=DOMAIN,
-        data=OPTIONS_FLOW_DATA | {CONF_IP_ADDRESS: ip},
-        options={},
+        data=OPTIONS_FLOW_DATA
+        | {
+            CONF_IP_ADDRESS: _ip,
+            CONF_IS_FORCE_LOAD: is_force,
+            CONF_ACTIVITY_DAYS: activity_days,
+        },
+        options={OPTION_IS_FROM_FLOW: True},
     )
     config_entry.add_to_hass(hass)
 
@@ -71,13 +78,13 @@ async def async_setup(
 
     updater: LuciUpdater = LuciUpdater(
         hass,
-        ip,
+        _ip,
         get_config_value(config_entry, CONF_PASSWORD),
         get_config_value(config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         get_config_value(config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT),
-        get_config_value(config_entry, CONF_IS_FORCE_LOAD, False),
+        get_config_value(config_entry, CONF_IS_FORCE_LOAD, is_force),
         activity_days,
-        get_store(hass, ip) if not without_store else None,
+        get_store(hass, _ip) if not without_store else None,
         entry_id=config_entry.entry_id,
     )
 
@@ -96,9 +103,8 @@ async def async_setup(
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][config_entry.entry_id] = {
-        CONF_IP_ADDRESS: ip,
+        CONF_IP_ADDRESS: _ip,
         UPDATER: updater,
-        RELOAD_ENTRY: False,
     }
 
     return [updater, config_entry]
@@ -151,6 +157,9 @@ async def async_mock_luci_client(mock_luci_client) -> None:
         if index == 2:
             return json.loads(load_fixture("avaliable_channels_5g_data.json"))
 
+        if index == 3:
+            return json.loads(load_fixture("avaliable_channels_5g_game_data.json"))
+
         return json.loads(load_fixture("avaliable_channels_2g_data.json"))
 
     mock_luci_client.return_value.avaliable_channels = AsyncMock(
@@ -162,17 +171,42 @@ async def async_mock_luci_client(mock_luci_client) -> None:
     mock_luci_client.return_value.wifi_ap_signal = AsyncMock(
         return_value=json.loads(load_fixture("wifi_ap_signal_data.json"))
     )
+    mock_luci_client.return_value.topo_graph = AsyncMock(
+        return_value=json.loads(load_fixture("topo_graph_data.json"))
+    )
 
 
-class MultipleSideEffect:
+def get_url(
+    path: str,
+    query_params: dict | None = None,
+    use_stok: bool = True,
+) -> str:
+    """Generate url
+
+    :param path: str
+    :param query_params: dict | None
+    :param use_stok:  bool
+    :return: str
+    """
+
+    if query_params is not None and len(query_params) > 0:
+        path += f"?{urllib.parse.urlencode(query_params, doseq=True)}"
+
+    _stok: str = ";stok=**REDACTED**/" if use_stok else ""
+
+    return f"http://{MOCK_IP_ADDRESS}/cgi-bin/luci/{_stok}api/{path}"
+
+
+class MultipleSideEffect:  # pylint: disable=too-few-public-methods
     """Multiple side effect"""
 
     def __init__(self, *fns):
         """init"""
 
-        self.fs = iter(fns)
+        self.funcs = iter(fns)
 
     def __call__(self, *args, **kwargs):
         """call"""
-        f = next(self.fs)
-        return f(*args, **kwargs)
+
+        func = next(self.funcs)
+        return func(*args, **kwargs)

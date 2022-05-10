@@ -8,28 +8,27 @@ import json
 import logging
 import random
 import time
-import uuid
 import urllib.parse
-
+import uuid
 from datetime import datetime
 from typing import Any
-from httpx import AsyncClient, Response, HTTPError
 
 from homeassistant.util import slugify
+from httpx import AsyncClient, HTTPError, Response
 
 from .const import (
-    DEFAULT_TIMEOUT,
     CLIENT_ADDRESS,
-    CLIENT_URL,
-    CLIENT_USERNAME,
     CLIENT_LOGIN_TYPE,
     CLIENT_NONCE_TYPE,
     CLIENT_PUBLIC_KEY,
+    CLIENT_URL,
+    CLIENT_USERNAME,
+    DEFAULT_TIMEOUT,
+    DIAGNOSTIC_CONTENT,
     DIAGNOSTIC_DATE_TIME,
     DIAGNOSTIC_MESSAGE,
-    DIAGNOSTIC_CONTENT,
 )
-from .exceptions import LuciException, LuciConnectionException, LuciTokenException
+from .exceptions import LuciConnectionError, LuciError, LuciRequestError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,12 +104,12 @@ class LuciClient:
         except (HTTPError, ValueError, TypeError) as _e:
             self._debug("Connection error", _url, _e, _method)
 
-            raise LuciConnectionException("Connection error") from _e
+            raise LuciConnectionError("Connection error") from _e
 
         if response.status_code != 200 or "token" not in _data:
             self._debug("Failed to get token", _url, _data, _method)
 
-            raise LuciTokenException("Failed to get token")
+            raise LuciRequestError("Failed to get token")
 
         self._token = _data["token"]
 
@@ -149,6 +148,9 @@ class LuciClient:
         :return dict: dict with api data.
         """
 
+        if use_stok and self._token is None:
+            raise LuciRequestError("Token not found")
+
         if query_params is not None and len(query_params) > 0:
             path += f"?{urllib.parse.urlencode(query_params, doseq=True)}"
 
@@ -165,15 +167,21 @@ class LuciClient:
         except (HTTPError, ValueError, TypeError, json.JSONDecodeError) as _e:
             self._debug("Connection error", _url, _e, path)
 
-            raise LuciConnectionException("Connection error") from _e
+            raise LuciConnectionError("Connection error") from _e
 
         if "code" not in _data or _data["code"] > 0:
+            _code: int = -1 if "code" not in _data else int(_data["code"])
+
             self._debug("Invalid error code received", _url, _data, path)
 
             if "code" in _data and errors is not None and _data["code"] in errors:
-                raise LuciException(errors[_data["code"]])
+                raise LuciError(errors[_data["code"]])
 
-            raise LuciTokenException("Invalid error code received")
+            raise LuciRequestError(
+                _data["msg"]
+                if "msg" in _data
+                else f"Invalid error code received: {_code}"
+            )
 
         return _data
 
@@ -216,14 +224,6 @@ class LuciClient:
         """
 
         return await self.get("xqnetwork/mode")
-
-    async def wifi_status(self) -> dict:
-        """xqnetwork/wifi_status method.
-
-        :return dict: dict with api data.
-        """
-
-        return await self.get("xqnetwork/wifi_status")
 
     async def wifi_ap_signal(self) -> dict:
         """xqnetwork/wifiap_signal method.

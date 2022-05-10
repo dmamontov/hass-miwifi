@@ -1,13 +1,13 @@
 """Luci API client exceptions."""
 
 
-class LuciException(BaseException):
+class LuciError(BaseException):
     """Luci error"""
 
 
-class LuciConnectionException(LuciException):
+class LuciConnectionError(LuciError):
     """Luci connection error"""
 
 
-class LuciTokenException(LuciException):
-    """Luci token error"""
+class LuciRequestError(LuciError):
+    """Luci request error"""

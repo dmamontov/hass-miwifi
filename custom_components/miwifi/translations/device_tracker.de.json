@@ -1,0 +1,8 @@
+{
+  "state": {
+    "miwifi__device_tracker": {
+      "home": "Verbunden",
+      "not_home": "Getrennt"
+    }
+  }
+}

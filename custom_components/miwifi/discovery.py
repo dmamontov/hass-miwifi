@@ -14,13 +14,13 @@ from homeassistant.helpers.httpx_client import get_async_client
 from httpx import AsyncClient
 
 from .const import (
-    DOMAIN,
     CLIENT_ADDRESS,
     CLIENT_ADDRESS_IP,
     DISCOVERY,
     DISCOVERY_INTERVAL,
+    DOMAIN,
 )
-from .exceptions import LuciException
+from .exceptions import LuciError
 from .luci import LuciClient
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ async def async_discover_devices(client: AsyncClient) -> list:
             response = await LuciClient(client, address).topo_graph()
 
             break
-        except LuciException:
+        except LuciError:
             continue
 
     if (
@@ -129,7 +129,7 @@ def parse_leafs(devices: list, leafs: list) -> list:
 
         devices.append(leaf["ip"].strip())
 
-        if "leafs" in leaf:
+        if "leafs" in leaf and len(leaf["leafs"]) > 0:
             devices = parse_leafs(devices, leaf["leafs"])
 
     return devices

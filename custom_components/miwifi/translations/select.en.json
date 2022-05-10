@@ -1,0 +1,9 @@
+{
+  "state": {
+    "miwifi__signal_strength": {
+      "min": "Energy saving",
+      "mid": "Standard",
+      "max": "Through the wall"
+    }
+  }
+}

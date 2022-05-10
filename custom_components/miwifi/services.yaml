@@ -1,0 +1,29 @@
+calc_passwd:
+  name: Calculate passwd
+  description: Calculate default passwd.
+  target:
+    device:
+      integration: miwifi
+
+request:
+  name: Send request
+  description: Send request to router.
+  target:
+    device:
+      integration: miwifi
+  fields:
+    uri:
+      name: Uri
+      description: Request uri.
+      required: true
+      example: "misystem/led"
+      selector:
+        text:
+    body:
+      name: Body
+      description: Request body.
+      required: false
+      example: |
+        on: 1
+      selector:
+        object:

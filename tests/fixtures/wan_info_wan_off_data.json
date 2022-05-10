@@ -1,0 +1,29 @@
+{
+  "info": {
+    "mac": "9C:9D:7E:30:95:F0",
+    "mtu": "1500",
+    "details": {
+      "wanType": "static",
+      "ifname": "eth4",
+      "ipaddr": "192.168.15.2",
+      "gateway": "192.168.15.1",
+      "netmask": "255.255.255.0",
+      "dns": [
+        "192.168.15.1",
+        "8.8.8.8"
+      ]
+    },
+    "gateWay": "**REDACTED**",
+    "dnsAddrs1": "8.8.8.8",
+    "status": 1,
+    "uptime": 0,
+    "dnsAddrs": "192.168.15.1",
+    "ipv6_info": {
+      "wanType": "off"
+    },
+    "ipv6_show": 1,
+    "link": 1,
+    "ipv4": "**REDACTED**"
+  },
+  "code": 0
+}

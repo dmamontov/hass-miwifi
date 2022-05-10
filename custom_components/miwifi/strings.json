@@ -1,0 +1,51 @@
+{
+  "config": {
+    "error": {
+      "ip_address.not_matched": "Invalid IP",
+      "password.not_matched": "Invalid password",
+      "connection": "Failed to establish connection",
+      "router.not.supported": "The router is not supported. Detailed information has been sent to the notification center."
+    },
+    "step": {
+      "discovery_confirm": {
+        "title": "MiWiFi settings",
+        "description": "Enter the IP address and password from your MiWiFi router",
+        "data": {
+          "ip_address": "[%key:common::config_flow::data::ip_address%]",
+          "password": "[%key:common::config_flow::data::password%]",
+          "stay_online": "Minimum stay online in seconds",
+          "scan_interval": "Scan interval in seconds [PRO]",
+          "timeout": "Timeout of requests in seconds [PRO]"
+        }
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "ip_address.not_matched": "Invalid IP",
+      "password.not_matched": "Invalid password",
+      "connection": "Failed to establish connection",
+      "router.not.supported": "The router is not supported. Detailed information has been sent to the notification center."
+    },
+    "step": {
+      "init": {
+        "title": "MiWiFi settings",
+        "description": "Enter the IP address and password from your MiWiFi router",
+        "data": {
+          "ip_address": "[%key:common::config_flow::data::ip_address%]",
+          "password": "[%key:common::config_flow::data::password%]",
+          "stay_online": "Minimum stay online in seconds",
+          "scan_interval": "Scan interval in seconds [PRO]",
+          "activity_days": "Allowed number of days to wait after the last activity [PRO]",
+          "timeout": "Timeout of requests in seconds [PRO]",
+          "is_force_load": "Forced booting of devices in repeater mode [PRO]"
+        }
+      }
+    }
+  },
+  "system_health": {
+    "info": {
+      "version": "Version"
+    }
+  }
+}

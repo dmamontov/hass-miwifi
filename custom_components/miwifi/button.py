@@ -6,28 +6,25 @@ import logging
 
 from homeassistant.components.button import (
     ENTITY_ID_FORMAT,
-    ButtonEntityDescription,
-    ButtonEntity,
     ButtonDeviceClass,
+    ButtonEntity,
+    ButtonEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    DOMAIN,
-    UPDATER,
-    ATTRIBUTION,
-    ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_STATE,
     ATTR_BUTTON_REBOOT,
     ATTR_BUTTON_REBOOT_NAME,
+    ATTR_STATE,
 )
-from .exceptions import LuciException
-from .helper import generate_entity_id
-from .updater import LuciUpdater
+from .entity import MiWifiEntity
+from .exceptions import LuciError
+from .updater import async_get_updater, LuciUpdater
+
+PARALLEL_UPDATES = 0
 
 MIWIFI_BUTTONS: tuple[ButtonEntityDescription, ...] = (
     ButtonEntityDescription(
@@ -54,13 +51,7 @@ async def async_setup_entry(
     :param async_add_entities: AddEntitiesCallback: Async add callback
     """
 
-    data: dict = hass.data[DOMAIN][config_entry.entry_id]
-    updater: LuciUpdater = data[UPDATER]
-
-    if not updater.last_update_success:
-        _LOGGER.error("Failed to initialize button.")
-
-        return
+    updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
     entities: list[MiWifiButton] = [
         MiWifiButton(
@@ -73,10 +64,8 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class MiWifiButton(ButtonEntity, CoordinatorEntity):
+class MiWifiButton(MiWifiEntity, ButtonEntity):
     """MiWifi button entry."""
-
-    _attr_attribution: str = ATTRIBUTION
 
     def __init__(
         self,
@@ -91,31 +80,7 @@ class MiWifiButton(ButtonEntity, CoordinatorEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        CoordinatorEntity.__init__(self, coordinator=updater)
-
-        self.entity_description = description
-        self._updater: LuciUpdater = updater
-
-        self.entity_id = generate_entity_id(
-            ENTITY_ID_FORMAT,
-            updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
-            description.name,
-        )
-
-        self._attr_name = description.name
-        self._attr_unique_id = unique_id
-        self._attr_available = updater.data.get(ATTR_STATE, False)
-
-        self._attr_device_info = updater.device_info
-
-    @property
-    def available(self) -> bool:
-        """Is available
-
-        :return bool: Is available
-        """
-
-        return self._attr_available and self.coordinator.last_update_success
+        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
@@ -134,8 +99,8 @@ class MiWifiButton(ButtonEntity, CoordinatorEntity):
 
         try:
             await self._updater.luci.reboot()
-        except LuciException as _e:
-            _LOGGER.debug("WiFi reboot error: %r", _e)
+        except LuciError as _e:
+            _LOGGER.debug("Reboot error: %r", _e)
 
     async def async_press(self) -> None:
         """Async press action."""

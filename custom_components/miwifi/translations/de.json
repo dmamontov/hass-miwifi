@@ -14,6 +14,7 @@
         "data": {
           "ip_address": "IP Adresse",
           "password": "Passwort",
+          "stay_online": "Mindestaufenthalt in Sekunden online",
           "scan_interval": "Scanintervall in Sekunden [PRO]",
           "timeout": "Timeout von Anfragen in Sekunden [PRO]"
         }
@@ -34,12 +35,18 @@
         "data": {
           "ip_address": "IP Adresse",
           "password": "Passwort",
+          "stay_online": "Mindestaufenthalt in Sekunden online",
           "scan_interval": "Scanintervall in Sekunden [PRO]",
           "activity_days": "Anzahl an Tagen, die nach der letzten Aktivität gewartet werden soll [PRO]",
           "timeout": "Timeout von Anfragen in Sekunden [PRO]",
           "is_force_load": "Erzwungenes Booten von Geräten im Repeater-Modus [PRO]"
         }
       }
+    }
+  },
+  "system_health": {
+    "info": {
+      "version": "Ausführung"
     }
   }
 }

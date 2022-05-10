@@ -3,100 +3,39 @@
 [![CodeQL](https://img.shields.io/badge/CODEQL-Passing-30C854.svg?style=for-the-badge)](https://github.com/dmamontov/hass-miwifi/actions?query=CodeQL)
 [![Telegram](https://img.shields.io/badge/Telegram-channel-34ABDF.svg?style=for-the-badge)](https://t.me/hass_miwifi)
 
-Component for tracking devices and managing routers based on [MiWiFi](http://miwifi.com/) from [Home Assistant](https://www.home-assistant.io/).
+The component allows you to monitor devices and manage routers based on [MiWiFi](http://miwifi.com/) from [Home Assistant](https://www.home-assistant.io/).
 
-## Table of Contents
-- [FAQ](#faq)
-- [Conflicts](#conflicts)
-- [Install](#install)
-- [Config](#config)
-  - [Advanced config](#advanced-config)
-- [Performance table](#performance-table)
-- [Supported routers](#supported-routers)
-  - [API check list](#api-check-list)
-  - [Summary](#summary)
-- [Diagnostics](#diagnostics)
+❗ Supports routers with original or original patched MiWifi firmware
 
-## FAQ
-**Q. Do I need to get telnet or ssh?**
-
-**A.** Not. integration works through Luci-API
-
-**Q. How often are states updated?**
-
-**A.** The default is every 30 seconds, but this setting can be configured. It is not recommended to set less than 10 seconds.
-
-**Q. Does the integration support routers connected in `repeater mode` or `access point mode`?**
-
-**A.** Yes, the integration supports devices connected in `repeater mode` or `access point mode`. But to get the number of devices and their tracking, you will also need to connect and configure the parent router.
-
-**Q. Can I use the router in `repeater mode` or `access point mode` without a parent MiWiFi device?**
-
-**A.** It is possible with the `is_force_load` option enabled. But there is a limitation. You will not see IP, uptime, and connection type, but the name will be the mac-address.
-
-**Q. Does Mesh support routers?**
-
-**A.** Yes, they are supported.
-
-**Q. Is a reboot required after changing the [PRO] settings?**
-
-**A.** Not required, but desirable.
-
-**Q. How to convert device `signal` to text representation?**
-
-**A.** `signal >= 80` = Excellent, `80 > signal >= 30` = good, `30 > signal` = bad
-
-## Conflicts
-The following component conflicts are currently known:
-* **xiaomi** (device_tracker)
-  * **Cause**: Due to the fact that they use the same API, logout occurs after each scan 
-  * **Solution**: I recommend turning it off for this router
-
-* **nmap** (device_tracker)
-   * **Cause**: Because nmap uses the old integration and finds your devices, it simply overwrites their attributes
-   * **Solution**: Exclude router netmask from scanning
-
-* **pihole**
-    * **Cause**: Devices stop being tracked
-    * **Solution**: Disable the pihole app
-    * **PS**: Perhaps you can customize, if someone configures write, I will add instructions
-
-## Install
-The easiest way to install the `MiWiFi` integration is with [HACS](https://hacs.xyz/). First install [HACS](https://hacs.xyz/) if you don’t have it yet. After installation you can find this integration in the [HACS](https://hacs.xyz/) store under integrations.
-
-Alternatively, you can install it manually. Just copy and paste the content of the hass-miwifi/custom_components folder in your config/custom_components directory. As example, you will get the sensor.py file in the following path: /config/custom_components/miwifi/sensor.py. The disadvantage of a manual installation is that you won’t be notified about updates.
-
-## Config
-**Via GUI**
-
-`Settings` > `Integrations` > `Plus` > `MiWiFi`
-
-For authorization, use the ip of your router and its password
-
-❗ Via YAML (legacy way) not supported
-
-### Advanced config
-#### Automatically remove devices
-The component supports automatic deletion of monitored devices after a specified number of days (Default: 30 days) after the last activity. If you specify 0, then automatic deletion will be disabled.
-
-**Via GUI (Recommended)**
-
-`Settings` > `Integrations` > `Your integration MiWiFi` > `Settings`
-
-## Performance table
-![](table.png)
-
-1. Install [Auto-entities](https://github.com/thomasloven/lovelace-auto-entities) from HACS
-2. Install [Flex Table](https://github.com/custom-cards/flex-table-card) from HACS
-3. Add new Lovelace tab with **Panel Mode**
-4. Add new Lovelace card:
-   - [example](https://gist.github.com/dmamontov/d977cd01c861d1f5e66327af22fd084b)
-   - [example (force mode)](https://gist.github.com/dmamontov/95990dfd155c6ef92e0e7f46762bfcc2)
+## More info
+- [Install](https://github.com/dmamontov/hass-miwifi/wiki/Install)
+- [Config](https://github.com/dmamontov/hass-miwifi/wiki/Config)
+  - [Advanced config](https://github.com/dmamontov/hass-miwifi/wiki/Config#advanced-config)
+    - [Automatically remove devices](https://github.com/dmamontov/hass-miwifi/wiki/Config#automatically-remove-devices)
+- [Supported routers](https://github.com/dmamontov/hass-miwifi/wiki/Supported-routers)
+  - [Check list](https://github.com/dmamontov/hass-miwifi/wiki/Supported-routers#check-list)
+    - [Required](https://github.com/dmamontov/hass-miwifi/wiki/Supported-routers#required)
+    - [Additional](https://github.com/dmamontov/hass-miwifi/wiki/Supported-routers#additional)
+    - [Action](https://github.com/dmamontov/hass-miwifi/wiki/Supported-routers#action)
+  - [Summary](https://github.com/dmamontov/hass-miwifi/wiki/Supported-routers#summary)
+- [Conflicts](https://github.com/dmamontov/hass-miwifi/wiki/Conflicts)
+- [Entities](https://github.com/dmamontov/hass-miwifi/wiki/Entities)
+- [Services](https://github.com/dmamontov/hass-miwifi/wiki/Services)
+  - [Calculate passwd](https://github.com/dmamontov/hass-miwifi/wiki/Services#calculate-passwd)
+  - [Send request](https://github.com/dmamontov/hass-miwifi/wiki/Services#send-request)
+- [Events](https://github.com/dmamontov/hass-miwifi/wiki/Events)
+  - [Luci response](https://github.com/dmamontov/hass-miwifi/wiki/Events#luci-response)
+- [Performance table](https://github.com/dmamontov/hass-miwifi/wiki/Performance-table)
+- [Example automation](https://github.com/dmamontov/hass-miwifi/wiki/Example-automation)
+  - [Device blocking](https://github.com/dmamontov/hass-miwifi/wiki/Example-automation#device-blocking)
+- [Diagnostics](https://github.com/dmamontov/hass-miwifi/wiki/Diagnostics)
+- [FAQ](https://github.com/dmamontov/hass-miwifi/wiki/FAQ)
 
 ## Supported routers
-Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 
-### API check list
+Many more Xiaomi and Redmi routers supported by MiWiFi
+
+### Check list
 
 ##### Required
 - `xqsystem/login` - Authorization.
@@ -170,26 +109,3 @@ Many more Xiaomi and Redmi routers supported by MiWiFi (OpenWRT - Luci API)
 | ![](images/R1C.png)      | **Mi Router Mini**                     | R1CM   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R2D.png)      | **Mi Router R2D**                      | R2D    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R1D.png)      | **Mi Router R1D**                      | R1D    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
-
-## Diagnostics
-You will need to obtain diagnostic data to search for a problem or before creating an issue.
-
-### Via GUI:
-
-How to obtain diagnostic data can be found on the website HASS: [Diagnostic Documentation](https://www.home-assistant.io/integrations/diagnostics/)
-
-### Via Logger:
-
-❗ Check the data that you publish in the issue, they may contain secret data.
-
-Set component to debug mode and reload HASS:
-
-```yaml
-logger:
-  default: error
-  logs:
-    ...
-    custom_components.miwifi: debug
-```
-
-Then wait a bit and you can watch the logs, they will need information
