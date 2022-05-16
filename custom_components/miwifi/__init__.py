@@ -17,6 +17,7 @@ from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
 
 from .const import (
+    CONF_ENCRYPTION_ALGORITHM,
     CONF_ACTIVITY_DAYS,
     CONF_IS_FORCE_LOAD,
     DEFAULT_ACTIVITY_DAYS,
@@ -31,6 +32,7 @@ from .const import (
     UPDATER,
 )
 from .discovery import async_start_discovery
+from .enum import EncryptionAlgorithm
 from .helper import get_config_value, get_store
 from .services import SERVICES
 from .updater import LuciUpdater
@@ -59,6 +61,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass,
         _ip,
         get_config_value(entry, CONF_PASSWORD),
+        get_config_value(entry, CONF_ENCRYPTION_ALGORITHM, EncryptionAlgorithm.SHA1),
         get_config_value(entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         get_config_value(entry, CONF_TIMEOUT, DEFAULT_TIMEOUT),
         get_config_value(entry, CONF_IS_FORCE_LOAD, False),

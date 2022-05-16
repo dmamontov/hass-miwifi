@@ -85,7 +85,15 @@ from .const import (
     SIGNAL_NEW_DEVICE,
     UPDATER,
 )
-from .enum import Connection, DeviceAction, IfName, Mode, Model, Wifi
+from .enum import (
+    Connection,
+    DeviceAction,
+    EncryptionAlgorithm,
+    IfName,
+    Mode,
+    Model,
+    Wifi,
+)
 from .exceptions import LuciConnectionError, LuciError, LuciRequestError
 from .luci import LuciClient
 from .self_check import async_self_check
@@ -169,6 +177,7 @@ class LuciUpdater(DataUpdateCoordinator):
         hass: HomeAssistant,
         ip: str,
         password: str,
+        encryption: str = EncryptionAlgorithm.SHA1,
         scan_interval: int = DEFAULT_SCAN_INTERVAL,
         timeout: int = DEFAULT_TIMEOUT,
         is_force_load: bool = False,
@@ -183,6 +192,7 @@ class LuciUpdater(DataUpdateCoordinator):
         :param hass: HomeAssistant: Home Assistant object
         :param ip: str: device ip address
         :param password: str: device password
+        :param encryption: str: password encryption algorithm
         :param scan_interval: int: Update interval
         :param timeout: int: Query execution timeout
         :param is_force_load: bool: Force boot devices when using repeater and mesh mode
@@ -192,7 +202,13 @@ class LuciUpdater(DataUpdateCoordinator):
         :param entry_id: str | None: Entry ID
         """
 
-        self.luci = LuciClient(get_async_client(hass, False), ip, password, timeout)
+        self.luci = LuciClient(
+            get_async_client(hass, False),
+            ip,
+            password,
+            EncryptionAlgorithm(encryption),
+            timeout,
+        )
 
         self.ip = ip  # pylint: disable=invalid-name
         self.is_force_load = is_force_load

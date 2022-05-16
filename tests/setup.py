@@ -23,6 +23,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry, load_f
 
 from custom_components.miwifi.const import (
     CONF_ACTIVITY_DAYS,
+    CONF_ENCRYPTION_ALGORITHM,
     CONF_IS_FORCE_LOAD,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TIMEOUT,
@@ -31,6 +32,7 @@ from custom_components.miwifi.const import (
     SIGNAL_NEW_DEVICE,
     UPDATER,
 )
+from custom_components.miwifi.enum import EncryptionAlgorithm
 from custom_components.miwifi.helper import get_config_value, get_store
 from custom_components.miwifi.updater import LuciUpdater
 
@@ -80,6 +82,9 @@ async def async_setup(
         hass,
         _ip,
         get_config_value(config_entry, CONF_PASSWORD),
+        get_config_value(
+            config_entry, CONF_ENCRYPTION_ALGORITHM, EncryptionAlgorithm.SHA1
+        ),
         get_config_value(config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         get_config_value(config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT),
         get_config_value(config_entry, CONF_IS_FORCE_LOAD, is_force),

@@ -28,12 +28,13 @@ from .const import (
     DIAGNOSTIC_DATE_TIME,
     DIAGNOSTIC_MESSAGE,
 )
+from .enum import EncryptionAlgorithm
 from .exceptions import LuciConnectionError, LuciError, LuciRequestError
 
 _LOGGER = logging.getLogger(__name__)
 
 
-# pylint: disable=too-many-public-methods
+# pylint: disable=too-many-public-methods,too-many-arguments
 class LuciClient:
     """Luci API Client."""
 
@@ -41,6 +42,7 @@ class LuciClient:
 
     _client: AsyncClient
     _password: str | None = None
+    _encryption: str = EncryptionAlgorithm.SHA1
     _timeout: int = DEFAULT_TIMEOUT
 
     _token: str | None = None
@@ -51,6 +53,7 @@ class LuciClient:
         client: AsyncClient,
         ip: str = CLIENT_ADDRESS,  # pylint: disable=invalid-name
         password: str | None = None,
+        encryption: str = EncryptionAlgorithm.SHA1,
         timeout: int = DEFAULT_TIMEOUT,
     ) -> None:
         """Initialize API client.
@@ -58,6 +61,7 @@ class LuciClient:
         :param client: AsyncClient: AsyncClient object
         :param ip: str: device ip address
         :param password: str: device password
+        :param encryption: str: password encryption algorithm
         :param timeout: int: Query execution timeout
         """
 
@@ -67,6 +71,7 @@ class LuciClient:
         self._client = client
         self.ip = ip  # pylint: disable=invalid-name
         self._password = password
+        self._encryption = encryption
         self._timeout = timeout
 
         self._url = CLIENT_URL.format(ip=ip)
@@ -83,18 +88,20 @@ class LuciClient:
         _nonce: str = self.generate_nonce()
         _url: str = f"{self._url}/api/{_method}"
 
+        _request_data: dict = {
+            "username": CLIENT_USERNAME,
+            "logtype": str(CLIENT_LOGIN_TYPE),
+            "password": self.generate_password_hash(_nonce, str(self._password)),
+            "nonce": _nonce,
+        }
+
         try:
+            self._debug("Start request", _url, json.dumps(_request_data), _method, True)
+
             async with self._client as client:
                 response: Response = await client.post(
                     _url,
-                    data={
-                        "username": CLIENT_USERNAME,
-                        "logtype": str(CLIENT_LOGIN_TYPE),
-                        "password": self.generate_password_hash(
-                            _nonce, str(self._password)
-                        ),
-                        "nonce": _nonce,
-                    },
+                    data=_request_data,
                     timeout=self._timeout,
                 )
 
@@ -379,13 +386,15 @@ class LuciClient:
 
         return None
 
-    @staticmethod
-    def sha1(key: str) -> str:
-        """Generate sha1 by key.
+    def sha(self, key: str) -> str:
+        """Generate sha by key.
 
         :param key: str: the key from which to get the hash
-        :return str: sha1 from key.
+        :return str: sha from key.
         """
+
+        if self._encryption == EncryptionAlgorithm.SHA256:
+            return hashlib.sha256(key.encode()).hexdigest()
 
         return hashlib.sha1(key.encode()).hexdigest()
 
@@ -415,21 +424,27 @@ class LuciClient:
 
         :param nonce: str: nonce
         :param password: str: password
-        :return str: sha1 from password and nonce.
+        :return str: sha from password and nonce.
         """
 
-        return self.sha1(nonce + self.sha1(password + CLIENT_PUBLIC_KEY))
+        return self.sha(nonce + self.sha(password + CLIENT_PUBLIC_KEY))
 
-    def _debug(self, message: str, url: str, content: Any, path: str) -> None:
+    def _debug(
+        self, message: str, url: str, content: Any, path: str, is_only_log: bool = False
+    ) -> None:
         """Debug log
 
         :param message: str: Message
         :param url: str: URL
         :param content: Any: Content
         :param path: str: Path
+        :param is_only_log: bool: Is only log
         """
 
         _LOGGER.debug("%s (%s): %s", message, url, str(content))
+
+        if is_only_log:
+            return
 
         _content: dict | str = {}
 

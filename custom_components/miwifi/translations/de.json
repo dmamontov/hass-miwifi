@@ -3,7 +3,7 @@
   "config": {
     "error": {
       "ip_address.not_matched": "Ungültige IP Adresse",
-      "password.not_matched": "Ungültiges Passwort",
+      "password.not_matched": "Falsches Passwort oder Verschlüsselungsalgorithmus",
       "connection": "Fehler bei der Herstellung einer Verbindung",
       "router.not.supported": "Der Router wird nicht unterstützt. Detaillierte Informationen wurden an das Benachrichtigungszentrum gesendet."
     },
@@ -14,6 +14,7 @@
         "data": {
           "ip_address": "IP Adresse",
           "password": "Passwort",
+          "encryption_algorithm": "Passwort Verschlüsselungsalgorithmus",
           "stay_online": "Mindestaufenthalt in Sekunden online",
           "scan_interval": "Scanintervall in Sekunden [PRO]",
           "timeout": "Timeout von Anfragen in Sekunden [PRO]"
@@ -24,7 +25,7 @@
   "options": {
     "error": {
       "ip_address.not_matched": "Ungültige IP Adresse",
-      "password.not_matched": "Ungültiges Passwort",
+      "password.not_matched": "Falsches Passwort oder Verschlüsselungsalgorithmus",
       "connection": "Fehler bei der Herstellung einer Verbindung",
       "router.not.supported": "Der Router wird nicht unterstützt. Detaillierte Informationen wurden an das Benachrichtigungszentrum gesendet."
     },
@@ -35,6 +36,7 @@
         "data": {
           "ip_address": "IP Adresse",
           "password": "Passwort",
+          "encryption_algorithm": "Passwort Verschlüsselungsalgorithmus",
           "stay_online": "Mindestaufenthalt in Sekunden online",
           "scan_interval": "Scanintervall in Sekunden [PRO]",
           "activity_days": "Anzahl an Tagen, die nach der letzten Aktivität gewartet werden soll [PRO]",

@@ -23,6 +23,7 @@ from .const import (
     CONF_ACTIVITY_DAYS,
     CONF_IS_FORCE_LOAD,
     CONF_STAY_ONLINE,
+    CONF_ENCRYPTION_ALGORITHM,
     DEFAULT_ACTIVITY_DAYS,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_STAY_ONLINE,
@@ -32,6 +33,7 @@ from .const import (
     UPDATER,
 )
 from .discovery import async_start_discovery
+from .enum import EncryptionAlgorithm
 from .helper import async_user_documentation_url, async_verify_access, get_config_value
 
 _LOGGER = logging.getLogger(__name__)
@@ -126,6 +128,15 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                     vol.Required(CONF_IP_ADDRESS): str,
                     vol.Required(CONF_PASSWORD): str,
                     vol.Required(
+                        CONF_ENCRYPTION_ALGORITHM,
+                        default=EncryptionAlgorithm.SHA1,
+                    ): vol.In(
+                        [
+                            EncryptionAlgorithm.SHA1,
+                            EncryptionAlgorithm.SHA256,
+                        ]
+                    ),
+                    vol.Required(
                         CONF_STAY_ONLINE, default=DEFAULT_STAY_ONLINE
                     ): cv.positive_int,
                     vol.Required(
@@ -160,6 +171,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                 self.hass,
                 user_input[CONF_IP_ADDRESS],
                 user_input[CONF_PASSWORD],
+                user_input[CONF_ENCRYPTION_ALGORITHM],
                 user_input[CONF_TIMEOUT],
             )
 
@@ -203,6 +215,15 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                     vol.Required(CONF_IP_ADDRESS, default=_ip): str,
                     vol.Required(CONF_PASSWORD): str,
                     vol.Required(
+                        CONF_ENCRYPTION_ALGORITHM,
+                        default=EncryptionAlgorithm.SHA1,
+                    ): vol.In(
+                        [
+                            EncryptionAlgorithm.SHA1,
+                            EncryptionAlgorithm.SHA256,
+                        ]
+                    ),
+                    vol.Required(
                         CONF_STAY_ONLINE, default=DEFAULT_STAY_ONLINE
                     ): cv.positive_int,
                     vol.Required(
@@ -243,6 +264,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 self.hass,
                 user_input[CONF_IP_ADDRESS],
                 user_input[CONF_PASSWORD],
+                user_input[CONF_ENCRYPTION_ALGORITHM],
                 user_input[CONF_TIMEOUT],
             )
 
@@ -279,6 +301,19 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 CONF_PASSWORD,
                 default=get_config_value(self._config_entry, CONF_PASSWORD, ""),
             ): str,
+            vol.Required(
+                CONF_ENCRYPTION_ALGORITHM,
+                default=get_config_value(
+                    self._config_entry,
+                    CONF_ENCRYPTION_ALGORITHM,
+                    EncryptionAlgorithm.SHA1,
+                ),
+            ): vol.In(
+                [
+                    EncryptionAlgorithm.SHA1,
+                    EncryptionAlgorithm.SHA256,
+                ]
+            ),
             vol.Required(
                 CONF_STAY_ONLINE,
                 default=get_config_value(

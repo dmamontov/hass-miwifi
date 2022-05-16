@@ -41,19 +41,26 @@ async def async_verify_access(
     hass: HomeAssistant,
     ip: str,  # pylint: disable=invalid-name
     password: str,
+    encryption: str,
     timeout: int = DEFAULT_TIMEOUT,
 ) -> codes:
     """Verify ip and password.
 
     :param hass: HomeAssistant: Home Assistant object
     :param ip: str: device ip address
+    :param encryption: str: password encryption
     :param password: str: device password
     :param timeout: int: Timeout
     :return int: last update success
     """
 
     updater = LuciUpdater(
-        hass=hass, ip=ip, password=password, timeout=timeout, is_only_login=True
+        hass=hass,
+        ip=ip,
+        password=password,
+        encryption=encryption,
+        timeout=timeout,
+        is_only_login=True,
     )
 
     await updater.async_request_refresh()
