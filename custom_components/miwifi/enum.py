@@ -175,7 +175,7 @@ class DeviceAction(IntEnum):
 class EncryptionAlgorithm(StrEnum):
     """EncryptionAlgorithm enum"""
 
-    SHA1 = "sha"
+    SHA1 = "sha1"
     SHA256 = "sha256"
 
 
