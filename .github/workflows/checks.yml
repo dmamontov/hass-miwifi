@@ -30,11 +30,11 @@ jobs:
         language: [ 'python' ]
     steps:
       - uses: actions/checkout@v2
-      - uses: github/codeql-action/init@v1
+      - uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
-      - uses: github/codeql-action/autobuild@v1
-      - uses: github/codeql-action/analyze@v1
+      - uses: github/codeql-action/autobuild@v2
+      - uses: github/codeql-action/analyze@v2
 
   hassfest:
     runs-on: "ubuntu-latest"

@@ -15,6 +15,7 @@ from httpx import HTTPError, Request
 from pytest_homeassistant_custom_component.common import get_fixture_path, load_fixture
 from pytest_httpx import HTTPXMock
 
+from custom_components.miwifi.enum import EncryptionAlgorithm
 from custom_components.miwifi.exceptions import (
     LuciConnectionError,
     LuciError,
@@ -143,6 +144,28 @@ async def test_get(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
 
     client: LuciClient = LuciClient(
         get_async_client(hass, False), f"{MOCK_IP_ADDRESS}/", "test"
+    )
+
+    await client.login()
+    assert await client.get("misystem/miwifi") == {"code": 0}
+
+    request: Request | None = httpx_mock.get_request(method="GET")
+    assert request is not None
+    assert request.url == get_url("misystem/miwifi")
+    assert request.method == "GET"
+
+
+async def test_get_sha256(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
+    """get test"""
+
+    httpx_mock.add_response(text=load_fixture("login_data.json"), method="POST")
+    httpx_mock.add_response(text='{"code": 0}', method="GET")
+
+    client: LuciClient = LuciClient(
+        get_async_client(hass, False),
+        f"{MOCK_IP_ADDRESS}/",
+        "test",
+        EncryptionAlgorithm.SHA256,
     )
 
     await client.login()

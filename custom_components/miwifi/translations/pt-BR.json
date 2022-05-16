@@ -3,7 +3,7 @@
   "config": {
     "error": {
       "ip_address.not_matched": "IP inválido",
-      "password.not_matched": "Senha inválida",
+      "password.not_matched": "Senha ou algoritmo de criptografia incorreto",
       "connection": "Falha ao estabelecer conexão",
       "router.not.supported": "O roteador não é suportado. Informações detalhadas foram enviadas para o centro de notificação."
     },
@@ -14,6 +14,7 @@
         "data": {
           "ip_address": "Endereço IP",
           "password": "Senha",
+          "encryption_algorithm": "Algoritmo de criptografia de senha",
           "stay_online": "Estadia mínima online em segundos",
           "scan_interval": "Intervalo de varredura em segundos [PRO]",
           "timeout": "Tempo limite de solicitações em segundos [PRO]"
@@ -27,7 +28,7 @@
     },
     "error": {
       "ip_address.not_matched": "IP inválido",
-      "password.not_matched": "Senha inválida",
+      "password.not_matched": "Senha ou algoritmo de criptografia incorreto",
       "connection": "Falha ao estabelecer conexão",
       "router.not.supported": "O roteador não é suportado. Informações detalhadas foram enviadas para o centro de notificação."
     },
@@ -38,6 +39,7 @@
         "data": {
           "ip_address": "Endereço IP",
           "password": "Senha",
+          "encryption_algorithm": "Algoritmo de criptografia de senha",
           "stay_online": "Estadia mínima online em segundos",
           "scan_interval": "Intervalo de varredura em segundos [PRO]",
           "activity_days": "Número permitido de dias de espera após a última atividade [PRO]",

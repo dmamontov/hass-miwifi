@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum, IntEnum
+from homeassistant.backports.enum import StrEnum
 
 from .const import (
     ATTR_SWITCH_WIFI_2_4,
@@ -169,6 +170,13 @@ class DeviceAction(IntEnum):
     ADD = 0, "Add"
     MOVE = 1, "Move"
     SKIP = 2, "Skip"
+
+
+class EncryptionAlgorithm(StrEnum):
+    """EncryptionAlgorithm enum"""
+
+    SHA1 = "sha1"
+    SHA256 = "sha256"
 
 
 class Model(str, Enum):
