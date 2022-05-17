@@ -30,11 +30,11 @@ from .const import (
     DEFAULT_TIMEOUT,
     DOMAIN,
     OPTION_IS_FROM_FLOW,
-    UPDATER,
 )
 from .discovery import async_start_discovery
 from .enum import EncryptionAlgorithm
 from .helper import async_user_documentation_url, async_verify_access, get_config_value
+from .updater import async_get_updater, LuciUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -259,6 +259,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         """
 
         errors: dict[str, str] = {}
+
         if user_input is not None:
             code: codes = await async_verify_access(
                 self.hass,
@@ -271,6 +272,8 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
             _LOGGER.debug("Verify access code: %s", code)
 
             if codes.is_success(code):
+                await self.async_update_unique_id(user_input[CONF_IP_ADDRESS])
+
                 return self.async_create_entry(
                     title=user_input[CONF_IP_ADDRESS], data=user_input
                 )
@@ -284,6 +287,26 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="init", data_schema=self._get_options_schema(), errors=errors
+        )
+
+    async def async_update_unique_id(self, unique_id: str) -> None:  # pragma: no cover
+        """Async update unique_id
+
+        :param unique_id:
+        """
+
+        if self._config_entry.unique_id == unique_id:
+            return
+
+        for flow in self.hass.config_entries.flow.async_progress(True):
+            if (
+                flow["flow_id"] != self.flow_id
+                and flow["context"].get("unique_id") == unique_id
+            ):
+                self.hass.config_entries.flow.async_abort(flow["flow_id"])
+
+        self.hass.config_entries.async_update_entry(
+            self._config_entry, unique_id=unique_id
         )
 
     def _get_options_schema(self) -> vol.Schema:
@@ -340,13 +363,19 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
         }
 
-        if (
-            DOMAIN not in self.hass.data
-            or self._config_entry.entry_id not in self.hass.data[DOMAIN]
-            or UPDATER not in self.hass.data[DOMAIN][self._config_entry.entry_id]
-            or self.hass.data[DOMAIN][self._config_entry.entry_id][UPDATER].is_repeater
-        ):
-            schema |= {
+        try:
+            updater: LuciUpdater = async_get_updater(
+                self.hass, self._config_entry.entry_id
+            )
+
+            if not updater.is_repeater:  # pragma: no cover
+                return vol.Schema(schema)
+        except ValueError:
+            pass
+
+        return vol.Schema(
+            schema
+            | {
                 vol.Optional(
                     CONF_IS_FORCE_LOAD,
                     default=get_config_value(
@@ -354,5 +383,4 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                     ),
                 ): cv.boolean,
             }
-
-        return vol.Schema(schema)
+        )
