@@ -1,0 +1,54 @@
+{
+  "title": "MiWifi",
+  "config": {
+    "error": {
+      "ip_address.not_matched": "Geçersiz IP",
+      "password.not_matched": "Yanlış parola veya şifreleme algoritması",
+      "connection": "Bağlantı kurulamadı",
+      "router.not.supported": "Yönlendirici desteklenmiyor. Detaylı bilgi bildirim merkezine gönderilmiştir."
+    },
+    "step": {
+      "discovery_confirm": {
+        "title": "MiWiFi Ayarları",
+        "description": "MiWiFi yönlendiricinizin IP adresini ve parolasını girin",
+        "data": {
+          "ip_address": "IP adresi",
+          "password": "Parola",
+          "encryption_algorithm": "Şifreleme algoritması",
+          "stay_online": "En az çevrimiçi kalma süresi (saniye)",
+          "scan_interval": "Tarama aralığı (saniye) [PRO]",
+          "timeout": "İstek zaman aşımı (saniye) [PRO]"
+        }
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "ip_address.not_matched": "Geçersiz IP",
+      "password.not_matched": "Yanlış parola veya şifreleme algoritması",
+      "connection": "Bağlantı kurulamadı",
+      "router.not.supported": "Yönlendirici desteklenmiyor. Detaylı bilgi bildirim merkezine gönderilmiştir."
+    },
+    "step": {
+      "init": {
+        "title": "MiWiFi Ayarları",
+        "description": "MiWiFi yönlendiricinizin IP adresini ve parolasını girin",
+        "data": {
+          "ip_address": "IP adresi",
+          "password": "Parola",
+          "encryption_algorithm": "Şifreleme algoritması",
+          "stay_online": "En az çevrimiçi kalma süresi (saniye)",
+          "scan_interval": "Tarama aralığı (saniye) [PRO]",
+          "activity_days": "Son aktiviteden sonra beklenmesi gereken süre (gün) [PRO]",
+          "timeout": "İstek zaman aşımı (saniye) [PRO]",
+          "is_force_load": "Cihazların tekrarlayıcı modunda zorunlu olarak başlatılması [PRO]"
+        }
+      }
+    }
+  },
+  "system_health": {
+    "info": {
+      "version": "Sürüm"
+    }
+  }
+}

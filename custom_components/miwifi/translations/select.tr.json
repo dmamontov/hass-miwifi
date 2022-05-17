@@ -1,0 +1,9 @@
+{
+  "state": {
+    "miwifi__signal_strength": {
+      "min": "Enerji tasarrufu",
+      "mid": "Standart",
+      "max": "En güçlü"
+    }
+  }
+}

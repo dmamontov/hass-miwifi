@@ -1,0 +1,10 @@
+{
+  "state": {
+    "miwifi__mode": {
+      "default": "Varsayılan",
+      "repeater": "Tekrarlayıcı",
+      "access_point": "Erişim Noktası",
+      "mesh": "Mesh (Ağ)"
+    }
+  }
+}
