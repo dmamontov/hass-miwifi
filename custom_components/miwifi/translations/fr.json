@@ -1,0 +1,54 @@
+{
+  "title": "MiWifi",
+  "config": {
+    "error": {
+      "ip_address.not_matched": "IP invalide",
+      "password.not_matched": "Mauvais mot de passe ou algorithme de cryptage",
+      "connection": "Impossible d'établir la connexion",
+      "router.not.supported": "Le routeur n'est pas pris en charge. Des informations détaillées ont été envoyées au centre de notification."
+    },
+    "step": {
+      "discovery_confirm": {
+        "title": "Paramètres MiWiFi",
+        "description": "Entrez l'adresse IP et le mot de passe de votre routeur MiWiFi",
+        "data": {
+          "ip_address": "Adresse IP",
+          "password": "Mot de passe",
+          "encryption_algorithm": "Algorithme de cryptage du mot de passe",
+          "stay_online": "Reste en ligne minimum en secondes",
+          "scan_interval": "Intervalle d'analyse en secondes [PRO]",
+          "timeout": "Délai d'expiration des requêtes en secondes [PRO]"
+        }
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "ip_address.not_matched": "IP invalide",
+      "password.not_matched": "Mauvais mot de passe ou algorithme de cryptage",
+      "connection": "Impossible d'établir la connexion",
+      "router.not.supported": "Le routeur n'est pas pris en charge. Des informations détaillées ont été envoyées au centre de notification."
+    },
+    "step": {
+      "init": {
+        "title": "Paramètres MiWiFi",
+        "description": "Entrez l'adresse IP et le mot de passe de votre routeur MiWiFi",
+        "data": {
+          "ip_address": "Adresse IP",
+          "password": "Mot de passe",
+          "encryption_algorithm": "Algorithme de cryptage du mot de passe",
+          "stay_online": "Reste en ligne minimum en secondes",
+          "scan_interval": "Intervalle d'analyse en secondes [PRO]",
+          "activity_days": "Nombre de jours d'attente autorisés après la dernière activité [PRO]",
+          "timeout": "Délai d'expiration des requêtes en secondes [PRO]",
+          "is_force_load": "Démarrage forcé des appareils en mode répéteur [PRO]"
+        }
+      }
+    }
+  },
+  "system_health": {
+    "info": {
+      "version": "Version"
+    }
+  }
+}
