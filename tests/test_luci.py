@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import base64
 import json
 import logging
 
@@ -724,43 +723,6 @@ async def test_flash_permission(hass: HomeAssistant, httpx_mock: HTTPXMock) -> N
     assert request is not None
     assert request.url == get_url("xqsystem/flash_permission")
     assert request.method == "GET"
-
-
-async def test_image(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
-    """image test"""
-
-    httpx_mock.add_response(
-        content=_get_image_fixture("router_r3600_101.png"), method="GET"
-    )
-
-    client: LuciClient = LuciClient(
-        get_async_client(hass, False), f"{MOCK_IP_ADDRESS}/", "test"
-    )
-
-    _url: str = (
-        f"http://{MOCK_IP_ADDRESS}/xiaoqiang/web/img/icons/router_r3600_100_on.png"
-    )
-
-    assert await client.image("R3600") == base64.b64encode(
-        _get_image_fixture("router_r3600_101.png")
-    )
-
-    request: Request | None = httpx_mock.get_request(method="GET")
-    assert request is not None
-    assert request.url == _url
-    assert request.method == "GET"
-
-
-async def test_image_error(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
-    """image test"""
-
-    httpx_mock.add_exception(exception=HTTPError("error"), method="GET")  # type: ignore
-
-    client: LuciClient = LuciClient(
-        get_async_client(hass, False), f"{MOCK_IP_ADDRESS}/", "test"
-    )
-
-    assert await client.image("R3600") is None
 
 
 def _get_image_fixture(path: str) -> bytes:

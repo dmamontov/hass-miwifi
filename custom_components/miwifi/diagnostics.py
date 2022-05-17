@@ -15,7 +15,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 
-from .const import ATTR_CAMERA_IMAGE
 from .updater import async_get_updater
 
 TO_REDACT: Final = {
@@ -24,7 +23,6 @@ TO_REDACT: Final = {
     CONF_URL,
     CONF_TOKEN,
     CONF_ID,
-    ATTR_CAMERA_IMAGE,
     "routerId",
     "gateWay",
     "hostname",

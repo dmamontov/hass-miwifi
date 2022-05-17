@@ -125,9 +125,6 @@ async def async_mock_luci_client(mock_luci_client) -> None:
     mock_luci_client.return_value.init_info = AsyncMock(
         return_value=json.loads(load_fixture("init_info_data.json"))
     )
-    mock_luci_client.return_value.image = AsyncMock(
-        return_value=load_fixture("image_data.txt")
-    )
     mock_luci_client.return_value.status = AsyncMock(
         return_value=json.loads(load_fixture("status_data.json"))
     )

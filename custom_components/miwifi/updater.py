@@ -24,7 +24,6 @@ from httpx import codes
 from .const import (
     ATTR_BINARY_SENSOR_DUAL_BAND,
     ATTR_BINARY_SENSOR_WAN_STATE,
-    ATTR_CAMERA_IMAGE,
     ATTR_DEVICE_HW_VERSION,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_DEVICE_MANUFACTURER,
@@ -465,10 +464,6 @@ class LuciUpdater(DataUpdateCoordinator):
                     raise LuciError(f"Router {self.ip} not supported") from _e
 
                 self.code = codes.CONFLICT
-
-                return
-
-            data[ATTR_CAMERA_IMAGE] = await self.luci.image(response["hardware"])
 
             return
 

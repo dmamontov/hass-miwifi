@@ -4,7 +4,6 @@
   "domains": [
     "binary_sensor",
     "button",
-    "camera",
     "device_tracker",
     "light",
     "select",

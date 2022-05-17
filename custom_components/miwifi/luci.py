@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
 import logging
@@ -13,7 +12,6 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from homeassistant.util import slugify
 from httpx import AsyncClient, HTTPError, Response
 
 from .const import (
@@ -362,29 +360,6 @@ class LuciClient:
         """
 
         return await self.get("xqsystem/flash_permission")
-
-    async def image(self, hardware: str) -> bytes | None:
-        """router image  method.
-
-        :return dict: dict with api data.
-        """
-
-        hardware = slugify(hardware.lower())
-        _path: str = f"icons/router_{hardware}_100_on.png"
-        _url: str = f"http://{self.ip}/xiaoqiang/web/img/{_path}"
-
-        try:
-            async with self._client as client:
-                response: Response = await client.get(_url, timeout=self._timeout)
-
-            self._debug("Successful request image", _url, response.status_code, _path)
-
-            if len(response.content) > 0:
-                return base64.b64encode(response.content)
-        except HTTPError as _e:
-            self._debug("Error request image", _url, _e, _path)
-
-        return None
 
     def sha(self, key: str) -> str:
         """Generate sha by key.

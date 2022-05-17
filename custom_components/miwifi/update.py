@@ -6,7 +6,6 @@ import asyncio
 import logging
 from typing import Any, Final
 
-from homeassistant.components.camera import ENTITY_ID_FORMAT as CAMERA_ENTITY_ID_FORMAT
 from homeassistant.components.update import (
     ATTR_IN_PROGRESS,
     ENTITY_ID_FORMAT,
@@ -22,8 +21,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    ATTR_CAMERA_IMAGE_NAME,
-    ATTR_DEVICE_MAC_ADDRESS,
+    ATTR_MODEL,
     ATTR_STATE,
     ATTR_UPDATE_CURRENT_VERSION,
     ATTR_UPDATE_DOWNLOAD_URL,
@@ -34,11 +32,11 @@ from .const import (
     ATTR_UPDATE_LATEST_VERSION,
     ATTR_UPDATE_RELEASE_URL,
     ATTR_UPDATE_TITLE,
-    DOMAIN,
+    REPOSITORY,
 )
 from .entity import MiWifiEntity
+from .enum import Model
 from .exceptions import LuciError
-from .helper import generate_entity_id
 from .updater import async_get_updater, LuciUpdater
 
 PARALLEL_UPDATES = 0
@@ -154,16 +152,13 @@ class MiWifiUpdate(MiWifiEntity, UpdateEntity):
 
         await MiWifiEntity.async_added_to_hass(self)
 
-        self._attr_entity_picture = self._update_picture()
-
     @property
     def entity_picture(self) -> str | None:
         """Return the entity picture to use in the frontend."""
 
-        if self._attr_entity_picture is not None:
-            return self._attr_entity_picture
+        model: Model = self._updater.data.get(ATTR_MODEL, Model.NOT_KNOWN)
 
-        return f"https://brands.home-assistant.io/_/{DOMAIN}/icon.png"
+        return f"https://raw.githubusercontent.com/{REPOSITORY}/main/images/{model.name}.png"
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""
@@ -179,8 +174,6 @@ class MiWifiUpdate(MiWifiEntity, UpdateEntity):
             self._updater.data.get(ATTR_STATE, False) and len(_update_data) > 0
         )
 
-        entity_picture: str | None = self._update_picture()
-
         attr_changed: list = [
             attr
             for attr in ATTR_CHANGES
@@ -188,14 +181,11 @@ class MiWifiUpdate(MiWifiEntity, UpdateEntity):
         ]
 
         if (
-            self._attr_available == is_available
-            and len(attr_changed) == 0
-            and entity_picture == self._attr_entity_picture
+            self._attr_available == is_available and len(attr_changed) == 0
         ):  # type: ignore
             return
 
         self._attr_available = is_available
-        self._attr_entity_picture = entity_picture
         self._update_data = _update_data
 
         self._attr_title = self._update_data.get(ATTR_UPDATE_TITLE, None)
@@ -263,19 +253,3 @@ class MiWifiUpdate(MiWifiEntity, UpdateEntity):
         """
 
         return MAP_NOTES[self.entity_description.key]
-
-    def _update_picture(self) -> str | None:
-        """Update entity picture"""
-
-        _camera_state = self.hass.states.get(
-            generate_entity_id(
-                CAMERA_ENTITY_ID_FORMAT,
-                self._updater.data.get(ATTR_DEVICE_MAC_ADDRESS, self._updater.ip),
-                ATTR_CAMERA_IMAGE_NAME,
-            )
-        )
-
-        if not _camera_state:
-            return None
-
-        return _camera_state.attributes.get("entity_picture", None)
