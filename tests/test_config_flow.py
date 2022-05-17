@@ -83,9 +83,6 @@ async def test_user(hass: HomeAssistant) -> None:
         mock_luci_client.return_value.init_info = AsyncMock(
             return_value=json.loads(load_fixture("init_info_data.json"))
         )
-        mock_luci_client.return_value.image = AsyncMock(
-            return_value=load_fixture("image_data.txt")
-        )
 
         result_configure = await hass.config_entries.flow.async_configure(
             result_init["flow_id"],
@@ -334,9 +331,6 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         )
         mock_luci_client.return_value.init_info = AsyncMock(
             return_value=json.loads(load_fixture("init_info_data.json"))
-        )
-        mock_luci_client.return_value.image = AsyncMock(
-            return_value=load_fixture("image_data.txt")
         )
 
         await hass.config_entries.async_setup(config_entry.entry_id)

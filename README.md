@@ -78,7 +78,7 @@ Many more Xiaomi and Redmi routers supported by MiWiFi
 | ![](images/RA70.png)     | **Xiaomi Router AX9000**               | RA70   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RA72.png)     | **Xiaomi Router AX6000**               | RA72   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RB06.png)     | **Redmi Router AX6000**                | RB06   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
-| ![](images/RA80.png)     | **Xiaomi Mesh System AX3000**          | RA82   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
+| ![](images/RA82.png)     | **Xiaomi Mesh System AX3000**          | RA82   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RA80.png)     | **Xiaomi Router AX3000**               | RA80   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RB03.png)     | **Redmi Router AX6S**                  | RB03   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RB01.png)     | **Xiaomi Router AX3200**               | RB01   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
@@ -87,8 +87,8 @@ Many more Xiaomi and Redmi routers supported by MiWiFi
 | ![](images/RA69.png)     | **Redmi Router AX6**                   | RA69   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RA67.png)     | **Redmi Router AX5**                   | RA67   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RA50.png)     | **Redmi Router AX5**                   | RA50   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
-| ![](images/AX1800.png)   | **Mi Router AX1800**                   | RM1800 | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
-| ![](images/AX3600.png)   | **Xiaomi AIoT Router AX3600**          | R3600  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
+| ![](images/RM1800.png)   | **Mi Router AX1800**                   | RM1800 | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
+| ![](images/R3600.png)    | **Xiaomi AIoT Router AX3600**          | R3600  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RM2100.png)   | **Redmi Router AC2100**                | RM2100 | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R2100.png)    | **Mi Router AC2100**                   | R2100  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R1350.png)    | **Mi Router 4 Pro**                    | R1350  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
@@ -99,12 +99,12 @@ Many more Xiaomi and Redmi routers supported by MiWiFi
 | ![](images/R4CM.png)     | **Mi Router 4C**                       | R4CM   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R4.png)       | **Mi Router 4**                        | R4     | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R4C.png)      | **Mi Router 4Q**                       | R4C    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
-| ![](images/R3L.png)      | **Mi Router 3A**                       | R3A    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
+| ![](images/R3A.png)      | **Mi Router 3A**                       | R3A    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R3L.png)      | **Mi Router 3C**                       | R3L    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R3D.png)      | **Mi Router HD**                       | R3D    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R3P.png)      | **Mi Router Pro**                      | R3P    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R3.png)       | **Mi Router 3**                        | R3     | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
-| ![](images/R3.png)       | **Mi Router 3G**                       | R3G    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
+| ![](images/R3G.png)      | **Mi Router 3G**                       | R3G    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R1CL.png)     | **Mi Router Lite**                     | R1CL   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R1C.png)      | **Mi Router Mini**                     | R1CM   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/R2D.png)      | **Mi Router R2D**                      | R2D    | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> | <sub>🟢🟢🟢🟢🟢</sub> |

@@ -19,7 +19,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry, load_f
 from custom_components.miwifi.const import (
     ATTR_BINARY_SENSOR_DUAL_BAND,
     ATTR_BINARY_SENSOR_WAN_STATE,
-    ATTR_CAMERA_IMAGE,
     ATTR_DEVICE_HW_VERSION,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_DEVICE_MANUFACTURER,
@@ -149,7 +148,6 @@ async def test_updater_mesh_mode(
     assert updater.data[ATTR_DEVICE_SW_VERSION] == "3.0.34 (CN)"
     assert updater.data[ATTR_DEVICE_HW_VERSION] == "29543/F0SW88385"
     assert updater.data[ATTR_MODEL] == Model.RA67
-    assert updater.data[ATTR_CAMERA_IMAGE] == load_fixture("image_data.txt")
     assert updater.data[ATTR_DEVICE_MAC_ADDRESS] == "00:00:00:00:00:00"
     assert updater.data[ATTR_UPDATE_CURRENT_VERSION] == "3.0.34"
     assert updater.data[ATTR_SENSOR_UPTIME] == "8:06:26"
@@ -244,7 +242,7 @@ async def test_updater_mesh_mode(
     }
 
     assert len(mock_async_dispatcher_send.mock_calls) == 0
-    assert len(mock_luci_client.mock_calls) == 17
+    assert len(mock_luci_client.mock_calls) == 16
 
 
 async def test_updater_mesh_mode_force_load(
@@ -310,7 +308,6 @@ async def test_updater_mesh_mode_force_load(
     assert updater.data[ATTR_DEVICE_SW_VERSION] == "3.0.34 (CN)"
     assert updater.data[ATTR_DEVICE_HW_VERSION] == "29543/F0SW88385"
     assert updater.data[ATTR_MODEL] == Model.RA67
-    assert updater.data[ATTR_CAMERA_IMAGE] == load_fixture("image_data.txt")
     assert updater.data[ATTR_DEVICE_MAC_ADDRESS] == "00:00:00:00:00:00"
     assert updater.data[ATTR_UPDATE_CURRENT_VERSION] == "3.0.34"
     assert updater.data[ATTR_SENSOR_UPTIME] == "8:06:26"
@@ -441,7 +438,7 @@ async def test_updater_mesh_mode_force_load(
     }
 
     assert len(mock_async_dispatcher_send.mock_calls) == 2
-    assert len(mock_luci_client.mock_calls) == 27
+    assert len(mock_luci_client.mock_calls) == 26
 
 
 async def test_updater_mesh_mode_move(hass: HomeAssistant) -> None:
@@ -1894,4 +1891,4 @@ async def test_updater_ap_mode_force_load_incorrect_type(hass: HomeAssistant) ->
     }
 
     assert len(mock_async_dispatcher_send.mock_calls) == 2
-    assert len(mock_luci_client.mock_calls) == 27
+    assert len(mock_luci_client.mock_calls) == 26

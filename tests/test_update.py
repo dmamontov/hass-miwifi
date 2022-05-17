@@ -10,7 +10,6 @@ from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.components.camera import ENTITY_ID_FORMAT as CAMERA_ENTITY_ID_FORMAT
 from homeassistant.components.update import DOMAIN as UPDATE_DOMAIN
 from homeassistant.components.update import ENTITY_ID_FORMAT as UPDATE_ENTITY_ID_FORMAT
 from homeassistant.components.update import (
@@ -31,7 +30,6 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.miwifi.const import (
-    ATTR_CAMERA_IMAGE_NAME,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_STATE,
     ATTR_UPDATE_FIRMWARE,
@@ -39,6 +37,7 @@ from custom_components.miwifi.const import (
     ATTRIBUTION,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    REPOSITORY,
     UPDATER,
 )
 from custom_components.miwifi.exceptions import LuciRequestError
@@ -186,69 +185,9 @@ async def test_update(hass: HomeAssistant) -> None:
         assert entry is not None
         assert entry.entity_category == EntityCategory.CONFIG
 
-        camera_unique_id: str = _generate_id(
-            ATTR_CAMERA_IMAGE_NAME, updater, CAMERA_ENTITY_ID_FORMAT
-        )
-
         assert (
             state.attributes["entity_picture"]
-            == hass.states.get(camera_unique_id).attributes["entity_picture"]
-        )
-
-
-async def test_update_incorrect_camera(hass: HomeAssistant) -> None:
-    """Test update.
-
-    :param hass: HomeAssistant
-    """
-
-    with patch(
-        "custom_components.miwifi.updater.LuciClient"
-    ) as mock_luci_client, patch(
-        "custom_components.miwifi.updater.async_dispatcher_send"
-    ), patch(
-        "custom_components.miwifi.async_start_discovery", return_value=None
-    ), patch(
-        "custom_components.miwifi.update.asyncio.sleep", return_value=None
-    ), patch(
-        "custom_components.miwifi.device_tracker.socket.socket"
-    ) as mock_socket:
-        mock_socket.return_value.recv.return_value = AsyncMock(return_value=None)
-
-        await async_mock_luci_client(mock_luci_client)
-
-        mock_luci_client.return_value.image = AsyncMock(return_value=None)
-
-        setup_data: list = await async_setup(hass)
-
-        config_entry: MockConfigEntry = setup_data[1]
-
-        assert await hass.config_entries.async_setup(config_entry.entry_id)
-        await hass.async_block_till_done()
-
-        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
-        registry = er.async_get(hass)
-
-        assert updater.last_update_success
-
-        unique_id: str = _generate_id(ATTR_UPDATE_FIRMWARE_NAME, updater)
-        state: State = hass.states.get(unique_id)
-        entry: er.RegistryEntry | None = registry.async_get(unique_id)
-
-        assert state.state == STATE_OFF
-        assert state.attributes["installed_version"] == "3.0.34"
-        assert state.attributes["latest_version"] == "3.0.34"
-        assert not state.attributes["in_progress"]
-        assert state.attributes["release_url"] is None
-        assert state.attributes["title"] == "Xiaomi RA67 (XIAOMI RA67)"
-        assert state.attributes["attribution"] == ATTRIBUTION
-        assert state.attributes["device_class"] == UpdateDeviceClass.FIRMWARE
-        assert state.attributes["friendly_name"] == ATTR_UPDATE_FIRMWARE_NAME
-        assert entry is not None
-        assert entry.entity_category == EntityCategory.CONFIG
-        assert (
-            state.attributes["entity_picture"]
-            == f"https://brands.home-assistant.io/_/{DOMAIN}/icon.png"
+            == f"https://raw.githubusercontent.com/{REPOSITORY}/main/images/RA67.png"
         )
 
 
@@ -320,13 +259,9 @@ async def test_need_update(hass: HomeAssistant) -> None:
         assert entry is not None
         assert entry.entity_category == EntityCategory.CONFIG
 
-        camera_unique_id: str = _generate_id(
-            ATTR_CAMERA_IMAGE_NAME, updater, CAMERA_ENTITY_ID_FORMAT
-        )
-
         assert (
             state.attributes["entity_picture"]
-            == hass.states.get(camera_unique_id).attributes["entity_picture"]
+            == f"https://raw.githubusercontent.com/{REPOSITORY}/main/images/RA67.png"
         )
 
 
@@ -449,7 +384,7 @@ async def test_install(hass: HomeAssistant) -> None:
             limit=None,
         )
 
-        assert len(mock_asyncio_sleep.mock_calls) == 740
+        assert len(mock_asyncio_sleep.mock_calls) == 739
 
 
 async def test_install_flash_error(hass: HomeAssistant) -> None:
@@ -521,7 +456,7 @@ async def test_install_flash_error(hass: HomeAssistant) -> None:
             limit=None,
         )
 
-        assert len(mock_asyncio_sleep.mock_calls) == 19
+        assert len(mock_asyncio_sleep.mock_calls) == 18
 
 
 async def test_install_error(hass: HomeAssistant) -> None:

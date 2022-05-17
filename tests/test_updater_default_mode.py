@@ -19,7 +19,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry, load_f
 from custom_components.miwifi.const import (
     ATTR_BINARY_SENSOR_DUAL_BAND,
     ATTR_BINARY_SENSOR_WAN_STATE,
-    ATTR_CAMERA_IMAGE,
     ATTR_DEVICE_HW_VERSION,
     ATTR_DEVICE_MAC_ADDRESS,
     ATTR_DEVICE_MANUFACTURER,
@@ -146,7 +145,6 @@ async def test_updater_default_mode(
     assert updater.data[ATTR_DEVICE_SW_VERSION] == "3.0.34 (CN)"
     assert updater.data[ATTR_DEVICE_HW_VERSION] == "29543/F0SW88385"
     assert updater.data[ATTR_MODEL] == Model.RA67
-    assert updater.data[ATTR_CAMERA_IMAGE] == load_fixture("image_data.txt")
     assert updater.data[ATTR_DEVICE_MAC_ADDRESS] == "00:00:00:00:00:00"
     assert updater.data[ATTR_UPDATE_CURRENT_VERSION] == "3.0.34"
     assert updater.data[ATTR_SENSOR_UPTIME] == "8:06:26"
@@ -293,7 +291,7 @@ async def test_updater_default_mode(
     }
 
     assert len(mock_async_dispatcher_send.mock_calls) == 3
-    assert len(mock_luci_client.mock_calls) == 17
+    assert len(mock_luci_client.mock_calls) == 16
 
 
 async def test_updater_restore_data(hass: HomeAssistant) -> None:
@@ -407,7 +405,7 @@ async def test_updater_restore_data(hass: HomeAssistant) -> None:
 
     assert len(mock_async_dispatcher_send.mock_calls) == 4
     assert len(mock_store.mock_calls) == 3
-    assert len(mock_luci_client.mock_calls) == 17
+    assert len(mock_luci_client.mock_calls) == 16
 
 
 async def test_updater_incorrect_connection_restore_data(hass: HomeAssistant) -> None:
@@ -523,7 +521,7 @@ async def test_updater_incorrect_connection_restore_data(hass: HomeAssistant) ->
 
     assert len(mock_async_dispatcher_send.mock_calls) == 4
     assert len(mock_store.mock_calls) == 3
-    assert len(mock_luci_client.mock_calls) == 17
+    assert len(mock_luci_client.mock_calls) == 16
 
 
 async def test_updater_incorrect_mac_default_mode(hass: HomeAssistant) -> None:
@@ -614,7 +612,7 @@ async def test_updater_incorrect_mac_default_mode(hass: HomeAssistant) -> None:
     }
 
     assert len(mock_async_dispatcher_send.mock_calls) == 2
-    assert len(mock_luci_client.mock_calls) == 17
+    assert len(mock_luci_client.mock_calls) == 16
 
 
 async def test_updater_default_mode_auto_remove(hass: HomeAssistant) -> None:

@@ -10,6 +10,7 @@ from homeassistant.const import Platform
 DOMAIN: Final = "miwifi"
 NAME: Final = "MiWifi"
 ATTRIBUTION: Final = "Data provided by MiWifi"
+REPOSITORY: Final = f"dmamontov/hass-{DOMAIN}"
 
 PLATFORMS: Final = [
     Platform.BINARY_SENSOR,
@@ -19,7 +20,6 @@ PLATFORMS: Final = [
     Platform.SWITCH,
     Platform.SELECT,
     Platform.DEVICE_TRACKER,
-    Platform.CAMERA,
     Platform.UPDATE,
 ]
 
@@ -224,10 +224,6 @@ ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME: Final = f"{ATTR_WIFI_NAME} 5G signal 
 
 ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH: Final = "wifi_5_0_game_signal_strength"
 ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME: Final = f"{ATTR_WIFI_NAME} 5G game signal strength"
-
-"""Camera attributes"""
-ATTR_CAMERA_IMAGE: Final = "image"
-ATTR_CAMERA_IMAGE_NAME: Final = "Image"
 
 """Device tracker attributes"""
 ATTR_TRACKER_ENTRY_ID: Final = "entry_id"
