@@ -12,7 +12,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from httpx import AsyncClient, HTTPError, Response
+from httpx import AsyncClient, ConnectError, HTTPError, Response, TransportError
 
 from .const import (
     CLIENT_ADDRESS,
@@ -106,7 +106,7 @@ class LuciClient:
             self._debug("Successful request", _url, response.content, _method)
 
             _data: dict = json.loads(response.content)
-        except (HTTPError, ValueError, TypeError) as _e:
+        except (HTTPError, ConnectError, TransportError, ValueError, TypeError) as _e:
             self._debug("Connection error", _url, _e, _method)
 
             raise LuciConnectionError("Connection error") from _e
@@ -134,7 +134,7 @@ class LuciClient:
                 response: Response = await client.get(_url, timeout=self._timeout)
 
                 self._debug("Successful request", _url, response.content, _method)
-        except (HTTPError, ValueError, TypeError) as _e:
+        except (HTTPError, ConnectError, TransportError, ValueError, TypeError) as _e:
             self._debug("Logout error", _url, _e, _method)
 
     async def get(
@@ -169,7 +169,14 @@ class LuciClient:
             self._debug("Successful request", _url, response.content, path)
 
             _data: dict = json.loads(response.content)
-        except (HTTPError, ValueError, TypeError, json.JSONDecodeError) as _e:
+        except (
+            HTTPError,
+            ConnectError,
+            TransportError,
+            ValueError,
+            TypeError,
+            json.JSONDecodeError,
+        ) as _e:
             self._debug("Connection error", _url, _e, path)
 
             raise LuciConnectionError("Connection error") from _e
