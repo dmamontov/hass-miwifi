@@ -259,6 +259,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         """
 
         errors: dict[str, str] = {}
+
         if user_input is not None:
             code: codes = await async_verify_access(
                 self.hass,
@@ -271,6 +272,8 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
             _LOGGER.debug("Verify access code: %s", code)
 
             if codes.is_success(code):
+                await self.async_update_unique_id(user_input[CONF_IP_ADDRESS])
+
                 return self.async_create_entry(
                     title=user_input[CONF_IP_ADDRESS], data=user_input
                 )
@@ -284,6 +287,28 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="init", data_schema=self._get_options_schema(), errors=errors
+        )
+
+    async def async_update_unique_id(self, unique_id: str) -> None:  # pragma: no cover
+        """Async update unique_id
+
+        :param unique_id:
+        """
+
+        if self._config_entry.unique_id == unique_id:
+            return
+
+        for flow in self.hass.config_entries.flow.async_progress(
+            include_uninitialized=True
+        ):
+            if (
+                flow["flow_id"] != self.flow_id
+                and flow["context"].get("unique_id") == unique_id
+            ):
+                self.hass.config_entries.flow.async_abort(flow["flow_id"])
+
+        self.hass.config_entries.async_update_entry(
+            self._config_entry, unique_id=unique_id
         )
 
     def _get_options_schema(self) -> vol.Schema:
