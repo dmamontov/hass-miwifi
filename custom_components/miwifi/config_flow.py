@@ -30,11 +30,11 @@ from .const import (
     DEFAULT_TIMEOUT,
     DOMAIN,
     OPTION_IS_FROM_FLOW,
-    UPDATER,
 )
 from .discovery import async_start_discovery
 from .enum import EncryptionAlgorithm
 from .helper import async_user_documentation_url, async_verify_access, get_config_value
+from .updater import async_get_updater, LuciUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -365,13 +365,19 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
         }
 
-        if (
-            DOMAIN not in self.hass.data
-            or self._config_entry.entry_id not in self.hass.data[DOMAIN]
-            or UPDATER not in self.hass.data[DOMAIN][self._config_entry.entry_id]
-            or self.hass.data[DOMAIN][self._config_entry.entry_id][UPDATER].is_repeater
-        ):
-            schema |= {
+        try:
+            updater: LuciUpdater = async_get_updater(
+                self.hass, self._config_entry.entry_id
+            )
+
+            if not updater.is_repeater:  # pragma: no cover
+                return vol.Schema(schema)
+        except ValueError:
+            pass
+
+        return vol.Schema(
+            schema
+            | {
                 vol.Optional(
                     CONF_IS_FORCE_LOAD,
                     default=get_config_value(
@@ -379,5 +385,4 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                     ),
                 ): cv.boolean,
             }
-
-        return vol.Schema(schema)
+        )

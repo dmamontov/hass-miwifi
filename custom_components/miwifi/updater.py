@@ -1269,6 +1269,11 @@ def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
     :return LuciUpdater
     """
 
+    _error: str = f"Integration with identifier: {identifier} not found."
+
+    if DOMAIN not in hass.data:
+        raise ValueError(_error)
+
     if identifier in hass.data[DOMAIN] and UPDATER in hass.data[DOMAIN][identifier]:
         return hass.data[DOMAIN][identifier][UPDATER]
 
@@ -1279,6 +1284,6 @@ def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
     ]
 
     if len(integrations) == 0:
-        raise ValueError(f"Integration with identifier: {identifier} not found.")
+        raise ValueError(_error)
 
     return integrations[0]
