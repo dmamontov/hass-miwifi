@@ -298,9 +298,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         if self._config_entry.unique_id == unique_id:
             return
 
-        for flow in self.hass.config_entries.flow.async_progress(
-            include_uninitialized=True
-        ):
+        for flow in self.hass.config_entries.flow.async_progress(True):
             if (
                 flow["flow_id"] != self.flow_id
                 and flow["context"].get("unique_id") == unique_id
