@@ -2,7 +2,7 @@
   "domain": "miwifi",
   "name": "MiWiFi",
   "version": "2.7.4",
-  "documentation": "https://github.com/dmamontov/hass-miwifi/blob/main/README.md",
+  "documentation": "https://github.com/dmamontov/hass-miwifi/wiki",
   "issue_tracker": "https://github.com/dmamontov/hass-miwifi/issues",
   "config_flow": true,
   "requirements": [],
