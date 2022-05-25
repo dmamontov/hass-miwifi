@@ -14,8 +14,8 @@ from pytest_homeassistant_custom_component.common import load_fixture
 
 from custom_components.miwifi.const import DOMAIN
 from custom_components.miwifi.discovery import async_start_discovery
-from custom_components.miwifi.exceptions import LuciError
-from tests.setup import async_mock_luci_client
+from custom_components.miwifi.exceptions import LuciConnectionError, LuciError
+from tests.setup import MultipleSideEffect, async_mock_luci_client
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -97,3 +97,39 @@ async def test_discovery_error(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
         assert len(hass.config_entries.flow._progress) == 0
+
+
+async def test_discovery_invalid_device(hass: HomeAssistant) -> None:
+    """discovery init.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch("custom_components.miwifi.discovery.LuciClient") as mock_luci_client:
+        await async_mock_luci_client(mock_luci_client)
+
+        def success() -> dict:
+            return json.loads(load_fixture("topo_graph_data.json"))
+
+        def error() -> None:
+            raise LuciConnectionError
+
+        def correct_error() -> None:
+            raise LuciError
+
+        mock_luci_client.return_value.topo_graph = AsyncMock(
+            side_effect=MultipleSideEffect(success, error, correct_error)
+        )
+
+        async_start_discovery(hass)
+        await hass.async_block_till_done()
+
+        assert len(hass.config_entries.flow._progress) == 1
+
+        for entry_id in hass.config_entries.flow._progress.keys():
+            flow = hass.config_entries.flow.async_get(entry_id)
+
+            assert flow["handler"] == DOMAIN
+            assert flow["step_id"] == "discovery_confirm"
+            assert flow["context"]["unique_id"] == "192.168.31.62"
+            assert flow["context"]["source"] == "integration_discovery"

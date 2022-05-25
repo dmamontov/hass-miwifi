@@ -1,15 +1,5 @@
 {
   "name": "MiWiFi",
   "render_readme": true,
-  "domains": [
-    "binary_sensor",
-    "button",
-    "device_tracker",
-    "light",
-    "select",
-    "sensor",
-    "switch",
-    "update"
-  ],
   "homeassistant": "2022.4.0"
 }
