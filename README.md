@@ -84,6 +84,7 @@ Many more Xiaomi and Redmi routers supported by MiWiFi
 | ![](images/RB03.png)     | **Redmi Router AX6S**                  | RB03   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RB01.png)     | **Xiaomi Router AX3200**               | RB01   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RA81.png)     | **Redmi Router AX3000**                | RA81   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
+| ![](images/CR6606.png)   | **Xiaomi China Unicom WiFi 6 Router**  | CR6606 | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RA71.png)     | **Redmi Router AX1800**                | RA71   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RA69.png)     | **Redmi Router AX6**                   | RA69   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |
 | ![](images/RA67.png)     | **Redmi Router AX5**                   | RA67   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢</sub> |

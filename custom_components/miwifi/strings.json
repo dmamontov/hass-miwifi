@@ -13,6 +13,8 @@
         "data": {
           "ip_address": "[%key:common::config_flow::data::ip_address%]",
           "password": "[%key:common::config_flow::data::password%]",
+          "encryption_algorithm": "Password encryption algorithm",
+          "is_track_devices": "Track devices",
           "stay_online": "Minimum stay online in seconds",
           "scan_interval": "Scan interval in seconds [PRO]",
           "timeout": "Timeout of requests in seconds [PRO]"
@@ -34,6 +36,8 @@
         "data": {
           "ip_address": "[%key:common::config_flow::data::ip_address%]",
           "password": "[%key:common::config_flow::data::password%]",
+          "encryption_algorithm": "Password encryption algorithm",
+          "is_track_devices": "Track devices",
           "stay_online": "Minimum stay online in seconds",
           "scan_interval": "Scan interval in seconds [PRO]",
           "activity_days": "Allowed number of days to wait after the last activity [PRO]",

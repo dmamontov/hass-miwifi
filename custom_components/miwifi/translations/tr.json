@@ -15,6 +15,7 @@
           "ip_address": "IP adresi",
           "password": "Parola",
           "encryption_algorithm": "Şifreleme algoritması",
+          "is_track_devices": "Cihazları takip edin",
           "stay_online": "En az çevrimiçi kalma süresi (saniye)",
           "scan_interval": "Tarama aralığı (saniye) [PRO]",
           "timeout": "İstek zaman aşımı (saniye) [PRO]"
@@ -37,6 +38,7 @@
           "ip_address": "IP adresi",
           "password": "Parola",
           "encryption_algorithm": "Şifreleme algoritması",
+          "is_track_devices": "Cihazları takip edin",
           "stay_online": "En az çevrimiçi kalma süresi (saniye)",
           "scan_interval": "Tarama aralığı (saniye) [PRO]",
           "activity_days": "Son aktiviteden sonra beklenmesi gereken süre (gün) [PRO]",

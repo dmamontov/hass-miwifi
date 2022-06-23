@@ -41,6 +41,7 @@ from .const import (
     ATTR_TRACKER_UP_SPEED,
     ATTR_TRACKER_UPDATER_ENTRY_ID,
     ATTRIBUTION,
+    CONF_IS_TRACK_DEVICES,
     CONF_STAY_ONLINE,
     DEFAULT_CALL_DELAY,
     DEFAULT_STAY_ONLINE,
@@ -98,7 +99,10 @@ async def async_setup_entry(
         :param new_device: dict: Device object
         """
 
-        if new_device[ATTR_TRACKER_UPDATER_ENTRY_ID] != config_entry.entry_id:
+        if (
+            not get_config_value(config_entry, CONF_IS_TRACK_DEVICES, True)
+            or new_device[ATTR_TRACKER_UPDATER_ENTRY_ID] != config_entry.entry_id
+        ):
             return  # pragma: no cover
 
         entity_id: str = generate_entity_id(

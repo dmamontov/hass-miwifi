@@ -15,6 +15,7 @@
           "ip_address": "IP address",
           "password": "Password",
           "encryption_algorithm": "Password encryption algorithm",
+          "is_track_devices": "Track devices",
           "stay_online": "Minimum stay online in seconds",
           "scan_interval": "Scan interval in seconds [PRO]",
           "timeout": "Timeout of requests in seconds [PRO]"
@@ -37,6 +38,7 @@
           "ip_address": "IP address",
           "password": "Password",
           "encryption_algorithm": "Password encryption algorithm",
+          "is_track_devices": "Track devices",
           "stay_online": "Minimum stay online in seconds",
           "scan_interval": "Scan interval in seconds [PRO]",
           "activity_days": "Allowed number of days to wait after the last activity [PRO]",
