@@ -39,7 +39,7 @@ from custom_components.miwifi.const import (
     DOMAIN,
     UPDATER,
 )
-from custom_components.miwifi.exceptions import LuciRequestError
+from custom_components.miwifi.exceptions import LuciConnectionError, LuciRequestError
 from custom_components.miwifi.helper import generate_entity_id
 from custom_components.miwifi.updater import LuciUpdater
 from tests.setup import MultipleSideEffect, async_mock_luci_client, async_setup
@@ -216,6 +216,56 @@ async def test_init_without_guest(hass: HomeAssistant) -> None:
         unique_id = _generate_id(ATTR_SWITCH_WIFI_GUEST_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is None
+
+
+async def test_init_with_error(hass: HomeAssistant) -> None:
+    """Test init.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.async_dispatcher_send"
+    ), patch(
+        "custom_components.miwifi.async_start_discovery", return_value=None
+    ), patch(
+        "custom_components.miwifi.device_tracker.socket.socket"
+    ) as mock_socket, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
+        mock_socket.return_value.recv.return_value = AsyncMock(return_value=None)
+
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_luci_client.return_value.wifi_detail_all = AsyncMock(
+            side_effect=LuciConnectionError
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        config_entry: MockConfigEntry = setup_data[1]
+
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        registry = er.async_get(hass)
+
+        assert updater.last_update_success
+
+        unique_id: str = _generate_id(ATTR_SWITCH_WIFI_2_4_NAME, updater)
+        states: State | None = hass.states.get(unique_id)
+        assert states is not None
+        assert states.state == STATE_UNAVAILABLE
+        assert registry.async_get(unique_id) is not None
+
+        unique_id = _generate_id(ATTR_SWITCH_WIFI_5_0_NAME, updater)
+        states = hass.states.get(unique_id)
+        assert states is not None
+        assert states.state == STATE_UNAVAILABLE
+        assert registry.async_get(unique_id) is not None
 
 
 async def test_init_bsd(

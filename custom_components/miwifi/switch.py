@@ -326,7 +326,7 @@ class MiWifiSwitch(MiWifiEntity, SwitchEntity):
                 self._attr_entity_registry_enabled_default = False
                 is_available = False
 
-        return is_available
+        return is_available and self.entity_description.key in self._updater.data
 
     def _change_icon(self, is_on: bool) -> None:
         """Change icon

@@ -623,7 +623,10 @@ class LuciUpdater(DataUpdateCoordinator):
         :param data: dict
         """
 
-        response: dict = await self.luci.wifi_detail_all()
+        try:
+            response: dict = await self.luci.wifi_detail_all()
+        except LuciError:
+            return
 
         if "bsd" in response:
             data[ATTR_BINARY_SENSOR_DUAL_BAND] = int(response["bsd"]) == 1

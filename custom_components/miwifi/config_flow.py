@@ -21,6 +21,7 @@ from httpx import codes
 
 from .const import (
     CONF_ACTIVITY_DAYS,
+    CONF_IS_TRACK_DEVICES,
     CONF_IS_FORCE_LOAD,
     CONF_STAY_ONLINE,
     CONF_ENCRYPTION_ALGORITHM,
@@ -136,6 +137,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                             EncryptionAlgorithm.SHA256,
                         ]
                     ),
+                    vol.Required(CONF_IS_TRACK_DEVICES, default=True): cv.boolean,
                     vol.Required(
                         CONF_STAY_ONLINE, default=DEFAULT_STAY_ONLINE
                     ): cv.positive_int,
@@ -223,6 +225,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                             EncryptionAlgorithm.SHA256,
                         ]
                     ),
+                    vol.Required(CONF_IS_TRACK_DEVICES, default=True): cv.boolean,
                     vol.Required(
                         CONF_STAY_ONLINE, default=DEFAULT_STAY_ONLINE
                     ): cv.positive_int,
@@ -337,6 +340,12 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                     EncryptionAlgorithm.SHA256,
                 ]
             ),
+            vol.Required(
+                CONF_IS_TRACK_DEVICES,
+                default=get_config_value(
+                    self._config_entry, CONF_IS_TRACK_DEVICES, True
+                ),
+            ): cv.boolean,
             vol.Required(
                 CONF_STAY_ONLINE,
                 default=get_config_value(

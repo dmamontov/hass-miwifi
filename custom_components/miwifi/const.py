@@ -41,6 +41,7 @@ SIGNAL_NEW_DEVICE: Final = f"{DOMAIN}-device-new"
 
 """Custom conf"""
 CONF_STAY_ONLINE: Final = "stay_online"
+CONF_IS_TRACK_DEVICES: Final = "is_track_devices"
 CONF_IS_FORCE_LOAD: Final = "is_force_load"
 CONF_ACTIVITY_DAYS: Final = "activity_days"
 CONF_ENCRYPTION_ALGORITHM: Final = "encryption_algorithm"

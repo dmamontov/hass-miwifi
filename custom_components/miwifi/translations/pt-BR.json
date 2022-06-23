@@ -15,6 +15,7 @@
           "ip_address": "Endereço IP",
           "password": "Senha",
           "encryption_algorithm": "Algoritmo de criptografia de senha",
+          "is_track_devices": "Dispositivos de rastreamento",
           "stay_online": "Estadia mínima online em segundos",
           "scan_interval": "Intervalo de varredura em segundos [PRO]",
           "timeout": "Tempo limite de solicitações em segundos [PRO]"
@@ -40,6 +41,7 @@
           "ip_address": "Endereço IP",
           "password": "Senha",
           "encryption_algorithm": "Algoritmo de criptografia de senha",
+          "is_track_devices": "Dispositivos de rastreamento",
           "stay_online": "Estadia mínima online em segundos",
           "scan_interval": "Intervalo de varredura em segundos [PRO]",
           "activity_days": "Número permitido de dias de espera após a última atividade [PRO]",
