@@ -15,14 +15,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
-    ATTR_BUTTON_REBOOT,
-    ATTR_BUTTON_REBOOT_NAME,
-    ATTR_STATE,
-)
+from .const import ATTR_BUTTON_REBOOT, ATTR_BUTTON_REBOOT_NAME, ATTR_STATE
 from .entity import MiWifiEntity
 from .exceptions import LuciError
-from .updater import async_get_updater, LuciUpdater
+from .updater import LuciUpdater, async_get_updater
 
 PARALLEL_UPDATES = 0
 
@@ -105,7 +101,5 @@ class MiWifiButton(MiWifiEntity, ButtonEntity):
     async def async_press(self) -> None:
         """Async press action."""
 
-        action = getattr(self, f"_{self.entity_description.key}_press")
-
-        if action:
+        if action := getattr(self, f"_{self.entity_description.key}_press"):
             await action()

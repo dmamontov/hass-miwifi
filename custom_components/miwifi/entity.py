@@ -7,11 +7,7 @@ import logging
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    ATTR_DEVICE_MAC_ADDRESS,
-    ATTR_STATE,
-    ATTRIBUTION,
-)
+from .const import ATTR_DEVICE_MAC_ADDRESS, ATTR_STATE, ATTRIBUTION
 from .helper import generate_entity_id
 from .updater import LuciUpdater
 

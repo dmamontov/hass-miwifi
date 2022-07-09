@@ -8,29 +8,25 @@ from typing import Final
 
 import homeassistant.components.persistent_notification as pn
 import voluptuous as vol
-from homeassistant.const import (
-    CONF_DEVICE_ID,
-    CONF_IP_ADDRESS,
-    CONF_TYPE,
-)
+from homeassistant.const import CONF_DEVICE_ID, CONF_IP_ADDRESS, CONF_TYPE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.typing import ServiceCallType
 
 from .const import (
-    ATTR_DEVICE_MAC_ADDRESS,
     ATTR_DEVICE_HW_VERSION,
+    ATTR_DEVICE_MAC_ADDRESS,
     CONF_BODY,
-    CONF_URI,
     CONF_REQUEST,
     CONF_RESPONSE,
+    CONF_URI,
     EVENT_LUCI,
     EVENT_TYPE_RESPONSE,
     NAME,
     SERVICE_CALC_PASSWD,
     SERVICE_REQUEST,
 )
-from .updater import async_get_updater, LuciUpdater
+from .updater import LuciUpdater, async_get_updater
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -107,13 +103,11 @@ class MiWifiCalcPasswdServiceCall(MiWifiServiceCall):
                 self.salt_new if "/" in hw_version else self.salt_old
             )
 
-            pn.async_create(
+            return pn.async_create(
                 self.hass,
-                f"Your passwd: {hashlib.md5(_salt.encode()).hexdigest()[0:8]}",
+                f"Your passwd: {hashlib.md5(_salt.encode()).hexdigest()[:8]}",
                 NAME,
             )
-
-            return
 
         raise vol.Invalid(
             f"Integration with ip address: {_updater.ip} does not support this service."

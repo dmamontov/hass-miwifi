@@ -7,11 +7,7 @@ import logging
 from homeassistant.components.system_health import SystemHealthRegistration
 from homeassistant.core import HomeAssistant, callback
 
-from .const import (
-    UPDATER,
-    ATTR_STATE,
-    ATTR_DEVICE_MODEL,
-)
+from .const import ATTR_DEVICE_MODEL, ATTR_STATE, UPDATER
 from .helper import async_get_version
 from .updater import LuciUpdater, async_get_integrations
 

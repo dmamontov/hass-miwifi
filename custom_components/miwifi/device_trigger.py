@@ -4,7 +4,6 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.components.automation import (
     AutomationActionType,
     AutomationTriggerInfo,
@@ -15,7 +14,7 @@ from homeassistant.const import CONF_DEVICE_ID, CONF_DOMAIN, CONF_PLATFORM, CONF
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN, TRIGGER_TYPES, EVENT_LUCI
+from .const import DOMAIN, EVENT_LUCI, TRIGGER_TYPES
 
 DEVICE = "device"
 

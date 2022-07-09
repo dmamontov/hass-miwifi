@@ -155,6 +155,6 @@ def detect_manufacturer(mac: str) -> str | None:
     :return str | None: Manufacturer
     """
 
-    identifier: str = mac.replace(":", "").upper()[0:6]
+    identifier: str = mac.replace(":", "").upper()[:6]
 
     return MANUFACTURERS[identifier] if identifier in MANUFACTURERS else None

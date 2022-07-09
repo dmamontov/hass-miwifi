@@ -1,7 +1,9 @@
 """Configuration flows."""
 
+
 from __future__ import annotations
 
+import contextlib
 import logging
 
 import homeassistant.helpers.config_validation as cv
@@ -21,10 +23,10 @@ from httpx import codes
 
 from .const import (
     CONF_ACTIVITY_DAYS,
-    CONF_IS_TRACK_DEVICES,
-    CONF_IS_FORCE_LOAD,
-    CONF_STAY_ONLINE,
     CONF_ENCRYPTION_ALGORITHM,
+    CONF_IS_FORCE_LOAD,
+    CONF_IS_TRACK_DEVICES,
+    CONF_STAY_ONLINE,
     DEFAULT_ACTIVITY_DAYS,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_STAY_ONLINE,
@@ -35,7 +37,7 @@ from .const import (
 from .discovery import async_start_discovery
 from .enum import EncryptionAlgorithm
 from .helper import async_user_documentation_url, async_verify_access, get_config_value
-from .updater import async_get_updater, LuciUpdater
+from .updater import LuciUpdater, async_get_updater
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -372,15 +374,13 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
         }
 
-        try:
+        with contextlib.suppress(ValueError):
             updater: LuciUpdater = async_get_updater(
                 self.hass, self._config_entry.entry_id
             )
 
             if not updater.is_repeater:  # pragma: no cover
                 return vol.Schema(schema)
-        except ValueError:
-            pass
 
         return vol.Schema(
             schema

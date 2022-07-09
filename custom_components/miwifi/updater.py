@@ -1,8 +1,10 @@
 """Luci data updater."""
 
+
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from datetime import datetime, timedelta
 from functools import cached_property
@@ -10,7 +12,7 @@ from typing import Any, Final
 
 import homeassistant.components.persistent_notification as pn
 from homeassistant.const import CONF_IP_ADDRESS
-from homeassistant.core import callback, CALLBACK_TYPE, HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers import event
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -422,9 +424,7 @@ class LuciUpdater(DataUpdateCoordinator):
         ):
             return
 
-        action = getattr(self, f"_async_prepare_{method}")
-
-        if action:
+        if action := getattr(self, f"_async_prepare_{method}"):
             await action(data)
 
     async def _async_prepare_init(self, data: dict) -> None:
@@ -551,7 +551,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
             return
 
-        try:
+        with contextlib.suppress(KeyError):
             data[ATTR_UPDATE_FIRMWARE] = _rom_info | {
                 ATTR_UPDATE_LATEST_VERSION: response["version"],
                 ATTR_UPDATE_DOWNLOAD_URL: response["downloadUrl"],
@@ -559,8 +559,6 @@ class LuciUpdater(DataUpdateCoordinator):
                 ATTR_UPDATE_FILE_SIZE: response["fileSize"],
                 ATTR_UPDATE_FILE_HASH: response["fullHash"],
             }
-        except KeyError:
-            pass
 
     async def _async_prepare_mode(self, data: dict) -> None:
         """Prepare mode.
@@ -574,12 +572,10 @@ class LuciUpdater(DataUpdateCoordinator):
         response: dict = await self.luci.mode()
 
         if "mode" in response:
-            try:
+            with contextlib.suppress(ValueError):
                 data[ATTR_SENSOR_MODE] = Mode(int(response["mode"]))
 
                 return
-            except ValueError:
-                pass
 
         data[ATTR_SENSOR_MODE] = Mode.DEFAULT
 
@@ -641,7 +637,7 @@ class LuciUpdater(DataUpdateCoordinator):
         if self.supports_guest:
             self.supports_guest = False
 
-            try:
+            with contextlib.suppress(LuciError):
                 response_diag = await self.luci.wifi_diag_detail_all()
                 _adapters_len: int = len(_adapters)
 
@@ -655,8 +651,6 @@ class LuciUpdater(DataUpdateCoordinator):
 
                 if _adapters_len < len(_adapters):
                     self.supports_guest = True
-            except LuciError:
-                pass
 
         length: int = 0
 
@@ -696,7 +690,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 elif data_field in wifi:
                     wifi_data[field] = wifi[data_field]
 
-            if len(wifi_data) > 0:
+            if wifi_data:
                 data[f"{adapter.phrase}_data"] = wifi_data  # type: ignore
 
         data[ATTR_WIFI_ADAPTER_LENGTH] = length
@@ -716,7 +710,7 @@ class LuciUpdater(DataUpdateCoordinator):
             if "list" not in response or len(response["list"]) == 0:
                 continue
 
-            data[Wifi(index).phrase + "_channels"] = [  # type: ignore
+            data[f"{Wifi(index).phrase}_channels"] = [  # type: ignore
                 str(channel["c"])
                 for channel in response["list"]
                 if "c" in channel and int(channel["c"]) > 0
@@ -858,7 +852,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 if ATTR_TRACKER_MAC in device:
                     self.add_device(device, action=action, integrations=integrations)
 
-        if len(add_to) == 0:
+        if not add_to:
             return
 
         await asyncio.sleep(DEFAULT_CALL_DELAY)
@@ -1047,13 +1041,11 @@ class LuciUpdater(DataUpdateCoordinator):
 
         connection: Connection | None = None
 
-        try:
+        with contextlib.suppress(ValueError):
             # fmt: off
             connection = Connection(int(device["type"])) \
                 if "type" in device else None
             # fmt: on
-        except ValueError:
-            pass
 
         return {
             ATTR_TRACKER_ENTRY_ID: device[ATTR_TRACKER_ENTRY_ID],
@@ -1067,9 +1059,7 @@ class LuciUpdater(DataUpdateCoordinator):
             ATTR_TRACKER_SIGNAL: self._signals[device[ATTR_TRACKER_MAC]]
             if device[ATTR_TRACKER_MAC] in self._signals
             else None,
-            ATTR_TRACKER_NAME: device["name"]
-            if "name" in device
-            else device[ATTR_TRACKER_MAC],
+            ATTR_TRACKER_NAME: device.get("name", device[ATTR_TRACKER_MAC]),
             ATTR_TRACKER_IP: ip_attr["ip"] if ip_attr is not None else None,
             ATTR_TRACKER_CONNECTION: connection,
             ATTR_TRACKER_DOWN_SPEED: float(ip_attr["downspeed"])
@@ -1157,15 +1147,14 @@ class LuciUpdater(DataUpdateCoordinator):
             if key in response and "online_sta_count" in response[key]:
                 data[attr] = response[key]["online_sta_count"]
 
-        _other_devices = 0
-        for attr in NEW_STATUS_MAP.values():
-            if attr in data:
-                _other_devices += int(data[attr])
+        _other_devices = sum(
+            int(data[attr]) for attr in NEW_STATUS_MAP.values() if attr in data
+        )
 
         if _other_devices > 0 and ATTR_SENSOR_DEVICES in data:
             _other_devices = int(data[ATTR_SENSOR_DEVICES]) - _other_devices
 
-            data[ATTR_SENSOR_DEVICES_LAN] = _other_devices if _other_devices > 0 else 0
+            data[ATTR_SENSOR_DEVICES_LAN] = max(_other_devices, 0)
 
     def _clean_devices(self) -> None:
         """Clean devices."""
@@ -1286,7 +1275,7 @@ def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
         if isinstance(integration, dict) and integration[CONF_IP_ADDRESS] == identifier
     ]
 
-    if len(integrations) == 0:
+    if not integrations:
         raise ValueError(_error)
 
     return integrations[0]
