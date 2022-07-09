@@ -666,27 +666,6 @@ class LuciUpdater(DataUpdateCoordinator):
 
         data[ATTR_WIFI_ADAPTER_LENGTH] = length
 
-    @staticmethod
-    def _prepare_wifi_data(data: dict) -> dict:
-        """Prepare wifi data
-
-        :param data:
-        :return: dict: wifi data
-        """
-
-        wifi_data: dict = {}
-
-        for data_field, field in ATTR_WIFI_DATA_FIELDS.items():
-            if "channelInfo" in data_field and "channelInfo" in data:
-                data_field = data_field.replace("channelInfo.", "")
-
-                if data_field in data["channelInfo"]:
-                    wifi_data[field] = data["channelInfo"][data_field]
-            elif data_field in data:
-                wifi_data[field] = data[data_field]
-
-        return wifi_data
-
     async def _async_prepare_wifi_guest(self, adapters: list) -> list:
         """Prepare wifi guest.
 
@@ -714,6 +693,27 @@ class LuciUpdater(DataUpdateCoordinator):
                 self.supports_guest = True
 
         return adapters
+
+    @staticmethod
+    def _prepare_wifi_data(data: dict) -> dict:
+        """Prepare wifi data
+
+        :param data:
+        :return: dict: wifi data
+        """
+
+        wifi_data: dict = {}
+
+        for data_field, field in ATTR_WIFI_DATA_FIELDS.items():
+            if "channelInfo" in data_field and "channelInfo" in data:
+                data_field = data_field.replace("channelInfo.", "")
+
+                if data_field in data["channelInfo"]:
+                    wifi_data[field] = data["channelInfo"][data_field]
+            elif data_field in data:
+                wifi_data[field] = data[data_field]
+
+        return wifi_data
 
     async def _async_prepare_channels(self, data: dict) -> None:
         """Prepare channels.
