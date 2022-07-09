@@ -17,8 +17,8 @@ from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
 
 from .const import (
-    CONF_ENCRYPTION_ALGORITHM,
     CONF_ACTIVITY_DAYS,
+    CONF_ENCRYPTION_ALGORITHM,
     CONF_IS_FORCE_LOAD,
     DEFAULT_ACTIVITY_DAYS,
     DEFAULT_CALL_DELAY,

@@ -1,7 +1,9 @@
 """Light component."""
 
+
 from __future__ import annotations
 
+import contextlib
 import logging
 from typing import Any, Final
 
@@ -16,14 +18,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
-    ATTR_LIGHT_LED,
-    ATTR_LIGHT_LED_NAME,
-    ATTR_STATE,
-)
+from .const import ATTR_LIGHT_LED, ATTR_LIGHT_LED_NAME, ATTR_STATE
 from .entity import MiWifiEntity
 from .exceptions import LuciError
-from .updater import async_get_updater, LuciUpdater
+from .updater import LuciUpdater, async_get_updater
 
 PARALLEL_UPDATES = 0
 
@@ -111,18 +109,14 @@ class MiWifiLight(MiWifiEntity, LightEntity):
     async def _led_on(self) -> None:
         """Led on action"""
 
-        try:
+        with contextlib.suppress(LuciError):
             await self._updater.luci.led(1)
-        except LuciError:
-            pass
 
     async def _led_off(self) -> None:
         """Led off action"""
 
-        try:
+        with contextlib.suppress(LuciError):
             await self._updater.luci.led(0)
-        except LuciError:
-            pass
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on action
@@ -152,9 +146,7 @@ class MiWifiLight(MiWifiEntity, LightEntity):
         :param kwargs: Any: Any arguments
         """
 
-        action = getattr(self, method)
-
-        if action:
+        if action := getattr(self, method):
             await action()
 
             is_on: bool = state == STATE_ON

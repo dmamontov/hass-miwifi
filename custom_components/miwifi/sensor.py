@@ -52,7 +52,7 @@ from .const import (
     DEVICE_CLASS_MIWIFI_MODE,
 )
 from .entity import MiWifiEntity
-from .updater import async_get_updater, LuciUpdater
+from .updater import LuciUpdater, async_get_updater
 
 PARALLEL_UPDATES = 0
 

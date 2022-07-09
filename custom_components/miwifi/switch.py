@@ -35,7 +35,7 @@ from .const import (
 from .entity import MiWifiEntity
 from .enum import Wifi
 from .exceptions import LuciError
-from .updater import async_get_updater, LuciUpdater
+from .updater import LuciUpdater, async_get_updater
 
 PARALLEL_UPDATES = 0
 
@@ -173,7 +173,7 @@ class MiWifiSwitch(MiWifiEntity, SwitchEntity):
         if (
             self._attr_is_on == is_on
             and self._attr_available == is_available
-            and len(data_changed) == 0
+            and not data_changed
         ):
             return
 
@@ -297,9 +297,7 @@ class MiWifiSwitch(MiWifiEntity, SwitchEntity):
         :param kwargs: Any: Any arguments
         """
 
-        action = getattr(self, method)
-
-        if action:
+        if action := getattr(self, method):
             await action()
 
             is_on: bool = state == STATE_ON
@@ -318,13 +316,14 @@ class MiWifiSwitch(MiWifiEntity, SwitchEntity):
 
         is_available: bool = self._updater.data.get(ATTR_STATE, False)
 
-        if self._updater.data.get(ATTR_BINARY_SENSOR_DUAL_BAND, False):
-            if self.entity_description.key in [
-                ATTR_SWITCH_WIFI_5_0,
-                ATTR_SWITCH_WIFI_5_0_GAME,
-            ]:
-                self._attr_entity_registry_enabled_default = False
-                is_available = False
+        if self._updater.data.get(
+            ATTR_BINARY_SENSOR_DUAL_BAND, False
+        ) and self.entity_description.key in [
+            ATTR_SWITCH_WIFI_5_0,
+            ATTR_SWITCH_WIFI_5_0_GAME,
+        ]:
+            self._attr_entity_registry_enabled_default = False
+            is_available = False
 
         return is_available and self.entity_description.key in self._updater.data
 

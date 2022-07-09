@@ -1,8 +1,10 @@
 """Luci data updater."""
 
+
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from datetime import datetime, timedelta
 from functools import cached_property
@@ -10,7 +12,7 @@ from typing import Any, Final
 
 import homeassistant.components.persistent_notification as pn
 from homeassistant.const import CONF_IP_ADDRESS
-from homeassistant.core import callback, CALLBACK_TYPE, HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers import event
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -422,9 +424,7 @@ class LuciUpdater(DataUpdateCoordinator):
         ):
             return
 
-        action = getattr(self, f"_async_prepare_{method}")
-
-        if action:
+        if action := getattr(self, f"_async_prepare_{method}"):
             await action(data)
 
     async def _async_prepare_init(self, data: dict) -> None:
@@ -551,7 +551,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
             return
 
-        try:
+        with contextlib.suppress(KeyError):
             data[ATTR_UPDATE_FIRMWARE] = _rom_info | {
                 ATTR_UPDATE_LATEST_VERSION: response["version"],
                 ATTR_UPDATE_DOWNLOAD_URL: response["downloadUrl"],
@@ -559,8 +559,6 @@ class LuciUpdater(DataUpdateCoordinator):
                 ATTR_UPDATE_FILE_SIZE: response["fileSize"],
                 ATTR_UPDATE_FILE_HASH: response["fullHash"],
             }
-        except KeyError:
-            pass
 
     async def _async_prepare_mode(self, data: dict) -> None:
         """Prepare mode.
@@ -574,12 +572,10 @@ class LuciUpdater(DataUpdateCoordinator):
         response: dict = await self.luci.mode()
 
         if "mode" in response:
-            try:
+            with contextlib.suppress(ValueError):
                 data[ATTR_SENSOR_MODE] = Mode(int(response["mode"]))
 
                 return
-            except ValueError:
-                pass
 
         data[ATTR_SENSOR_MODE] = Mode.DEFAULT
 
@@ -628,35 +624,15 @@ class LuciUpdater(DataUpdateCoordinator):
         except LuciError:
             return
 
-        if "bsd" in response:
-            data[ATTR_BINARY_SENSOR_DUAL_BAND] = int(response["bsd"]) == 1
-        else:
-            data[ATTR_BINARY_SENSOR_DUAL_BAND] = False
+        # fmt: off
+        data[ATTR_BINARY_SENSOR_DUAL_BAND] = int(response["bsd"]) == 1 \
+            if "bsd" in response else False
+        # fmt: on
 
         if "info" not in response or len(response["info"]) == 0:
             return
 
-        _adapters: list = response["info"]
-
-        if self.supports_guest:
-            self.supports_guest = False
-
-            try:
-                response_diag = await self.luci.wifi_diag_detail_all()
-                _adapters_len: int = len(_adapters)
-
-                if "info" in response_diag:
-                    _adapters += [
-                        _adapter
-                        for _adapter in response_diag["info"]
-                        if "ifname" in _adapter
-                        and _adapter["ifname"] == IfName.WL14.value
-                    ]
-
-                if _adapters_len < len(_adapters):
-                    self.supports_guest = True
-            except LuciError:
-                pass
+        _adapters: list = await self._async_prepare_wifi_guest(response["info"])
 
         length: int = 0
 
@@ -670,12 +646,12 @@ class LuciUpdater(DataUpdateCoordinator):
             except ValueError:
                 continue
 
+            # Guest network is not an adapter
+            if adapter != IfName.WL14:
+                length += 1
+
             if "status" in wifi:
                 data[adapter.phrase] = int(wifi["status"]) > 0  # type: ignore
-
-                # Guest network is not an adapter
-                if adapter != IfName.WL14:
-                    length += 1
 
             if "channelInfo" in wifi and "channel" in wifi["channelInfo"]:
                 data[f"{adapter.phrase}_channel"] = str(  # type: ignore
@@ -685,21 +661,59 @@ class LuciUpdater(DataUpdateCoordinator):
             if "txpwr" in wifi:
                 data[f"{adapter.phrase}_signal_strength"] = wifi["txpwr"]  # type: ignore
 
-            wifi_data: dict = {}
-
-            for data_field, field in ATTR_WIFI_DATA_FIELDS.items():
-                if "channelInfo" in data_field and "channelInfo" in wifi:
-                    data_field = data_field.replace("channelInfo.", "")
-
-                    if data_field in wifi["channelInfo"]:
-                        wifi_data[field] = wifi["channelInfo"][data_field]
-                elif data_field in wifi:
-                    wifi_data[field] = wifi[data_field]
-
-            if len(wifi_data) > 0:
+            if wifi_data := self._prepare_wifi_data(wifi):
                 data[f"{adapter.phrase}_data"] = wifi_data  # type: ignore
 
         data[ATTR_WIFI_ADAPTER_LENGTH] = length
+
+    async def _async_prepare_wifi_guest(self, adapters: list) -> list:
+        """Prepare wifi guest.
+
+        :param adapters: list
+        :return list: adapters
+        """
+
+        if not self.supports_guest:  # pragma: no cover
+            return adapters
+
+        self.supports_guest = False
+
+        with contextlib.suppress(LuciError):
+            response_diag = await self.luci.wifi_diag_detail_all()
+            _adapters_len: int = len(adapters)
+
+            if "info" in response_diag:
+                adapters += [
+                    _adapter
+                    for _adapter in response_diag["info"]
+                    if "ifname" in _adapter and _adapter["ifname"] == IfName.WL14.value
+                ]
+
+            if _adapters_len < len(adapters):
+                self.supports_guest = True
+
+        return adapters
+
+    @staticmethod
+    def _prepare_wifi_data(data: dict) -> dict:
+        """Prepare wifi data
+
+        :param data:
+        :return: dict: wifi data
+        """
+
+        wifi_data: dict = {}
+
+        for data_field, field in ATTR_WIFI_DATA_FIELDS.items():
+            if "channelInfo" in data_field and "channelInfo" in data:
+                data_field = data_field.replace("channelInfo.", "")
+
+                if data_field in data["channelInfo"]:
+                    wifi_data[field] = data["channelInfo"][data_field]
+            elif data_field in data:
+                wifi_data[field] = data[data_field]
+
+        return wifi_data
 
     async def _async_prepare_channels(self, data: dict) -> None:
         """Prepare channels.
@@ -716,7 +730,7 @@ class LuciUpdater(DataUpdateCoordinator):
             if "list" not in response or len(response["list"]) == 0:
                 continue
 
-            data[Wifi(index).phrase + "_channels"] = [  # type: ignore
+            data[f"{Wifi(index).phrase}_channels"] = [  # type: ignore
                 str(channel["c"])
                 for channel in response["list"]
                 if "c" in channel and int(channel["c"]) > 0
@@ -858,7 +872,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 if ATTR_TRACKER_MAC in device:
                     self.add_device(device, action=action, integrations=integrations)
 
-        if len(add_to) == 0:
+        if not add_to:
             return
 
         await asyncio.sleep(DEFAULT_CALL_DELAY)
@@ -1047,13 +1061,11 @@ class LuciUpdater(DataUpdateCoordinator):
 
         connection: Connection | None = None
 
-        try:
+        with contextlib.suppress(ValueError):
             # fmt: off
             connection = Connection(int(device["type"])) \
                 if "type" in device else None
             # fmt: on
-        except ValueError:
-            pass
 
         return {
             ATTR_TRACKER_ENTRY_ID: device[ATTR_TRACKER_ENTRY_ID],
@@ -1067,9 +1079,7 @@ class LuciUpdater(DataUpdateCoordinator):
             ATTR_TRACKER_SIGNAL: self._signals[device[ATTR_TRACKER_MAC]]
             if device[ATTR_TRACKER_MAC] in self._signals
             else None,
-            ATTR_TRACKER_NAME: device["name"]
-            if "name" in device
-            else device[ATTR_TRACKER_MAC],
+            ATTR_TRACKER_NAME: device.get("name", device[ATTR_TRACKER_MAC]),
             ATTR_TRACKER_IP: ip_attr["ip"] if ip_attr is not None else None,
             ATTR_TRACKER_CONNECTION: connection,
             ATTR_TRACKER_DOWN_SPEED: float(ip_attr["downspeed"])
@@ -1157,15 +1167,14 @@ class LuciUpdater(DataUpdateCoordinator):
             if key in response and "online_sta_count" in response[key]:
                 data[attr] = response[key]["online_sta_count"]
 
-        _other_devices = 0
-        for attr in NEW_STATUS_MAP.values():
-            if attr in data:
-                _other_devices += int(data[attr])
+        _other_devices = sum(
+            int(data[attr]) for attr in NEW_STATUS_MAP.values() if attr in data
+        )
 
         if _other_devices > 0 and ATTR_SENSOR_DEVICES in data:
             _other_devices = int(data[ATTR_SENSOR_DEVICES]) - _other_devices
 
-            data[ATTR_SENSOR_DEVICES_LAN] = _other_devices if _other_devices > 0 else 0
+            data[ATTR_SENSOR_DEVICES_LAN] = max(_other_devices, 0)
 
     def _clean_devices(self) -> None:
         """Clean devices."""
@@ -1286,7 +1295,7 @@ def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
         if isinstance(integration, dict) and integration[CONF_IP_ADDRESS] == identifier
     ]
 
-    if len(integrations) == 0:
+    if not integrations:
         raise ValueError(_error)
 
     return integrations[0]

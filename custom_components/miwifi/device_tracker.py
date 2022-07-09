@@ -58,7 +58,7 @@ from .helper import (
     parse_last_activity,
     pretty_size,
 )
-from .updater import async_get_updater, LuciUpdater
+from .updater import LuciUpdater, async_get_updater
 
 PARALLEL_UPDATES = 0
 
@@ -398,9 +398,9 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         ]
 
         if (
-            self._attr_available == is_available  # type: ignore
+            self._attr_available == is_available
             and self._is_connected == is_connected
-            and len(attr_changed) == 0
+            and not attr_changed
         ):
             return
 

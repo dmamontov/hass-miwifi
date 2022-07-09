@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum, IntEnum
+
 from homeassistant.backports.enum import StrEnum
 
 from .const import (

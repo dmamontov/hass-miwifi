@@ -56,9 +56,7 @@ async def async_self_check(hass: HomeAssistant, client: LuciClient, model: str) 
 
             continue
 
-        action = getattr(client, method)
-
-        if action:
+        if action := getattr(client, method):
             try:
                 await action()
                 data[code] = "🟢"
