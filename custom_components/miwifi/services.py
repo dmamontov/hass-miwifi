@@ -109,9 +109,10 @@ class MiWifiCalcPasswdServiceCall(MiWifiServiceCall):
 
             pn.async_create(
                 self.hass,
-                f"Your passwd: {hashlib.md5(_salt.encode()).hexdigest()[0:8]}",
+                f"Your passwd: {hashlib.md5(_salt.encode()).hexdigest()[:8]}",
                 NAME,
             )
+
 
             return
 

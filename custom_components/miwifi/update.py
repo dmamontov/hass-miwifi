@@ -92,20 +92,17 @@ async def async_setup_entry(
 
     updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
-    entities: list[MiWifiUpdate] = []
-    for description in MIWIFI_UPDATES:
-        if description.key == ATTR_UPDATE_FIRMWARE and not updater.supports_update:
-            continue
-
-        entities.append(
-            MiWifiUpdate(
-                f"{config_entry.entry_id}-{description.key}",
-                description,
-                updater,
-            )
+    entities: list[MiWifiUpdate] = [
+        MiWifiUpdate(
+            f"{config_entry.entry_id}-{description.key}",
+            description,
+            updater,
         )
+        for description in MIWIFI_UPDATES
+        if description.key != ATTR_UPDATE_FIRMWARE or updater.supports_update
+    ]
 
-    if len(entities) > 0:
+    if entities:
         async_add_entities(entities)
 
 
@@ -180,22 +177,19 @@ class MiWifiUpdate(MiWifiEntity, UpdateEntity):
             if self._update_data.get(attr, None) != _update_data.get(attr, None)
         ]
 
-        if (
-            self._attr_available == is_available and len(attr_changed) == 0
-        ):  # type: ignore
+        if self._attr_available == is_available and not attr_changed:  # type: ignore
             return
 
         self._attr_available = is_available
         self._update_data = _update_data
 
-        self._attr_title = self._update_data.get(ATTR_UPDATE_TITLE, None)
+        self._attr_title = self._update_data.get(ATTR_UPDATE_TITLE)
         self._attr_installed_version = self._update_data.get(
-            ATTR_UPDATE_CURRENT_VERSION, None
+            ATTR_UPDATE_CURRENT_VERSION
         )
-        self._attr_latest_version = self._update_data.get(
-            ATTR_UPDATE_LATEST_VERSION, None
-        )
-        self._attr_release_url = self._update_data.get(ATTR_UPDATE_RELEASE_URL, None)
+
+        self._attr_latest_version = self._update_data.get(ATTR_UPDATE_LATEST_VERSION)
+        self._attr_release_url = self._update_data.get(ATTR_UPDATE_RELEASE_URL)
 
         self.async_write_ha_state()
 
@@ -237,9 +231,7 @@ class MiWifiUpdate(MiWifiEntity, UpdateEntity):
         :param kwargs: Any: Any arguments
         """
 
-        action = getattr(self, f"_{self.entity_description.key}_install")
-
-        if action:
+        if action := getattr(self, f"_{self.entity_description.key}_install"):
             await action()
 
             self._attr_installed_version = self._attr_latest_version

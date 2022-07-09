@@ -105,7 +105,5 @@ class MiWifiButton(MiWifiEntity, ButtonEntity):
     async def async_press(self) -> None:
         """Async press action."""
 
-        action = getattr(self, f"_{self.entity_description.key}_press")
-
-        if action:
+        if action := getattr(self, f"_{self.entity_description.key}_press"):
             await action()

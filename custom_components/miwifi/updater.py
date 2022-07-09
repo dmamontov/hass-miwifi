@@ -422,9 +422,7 @@ class LuciUpdater(DataUpdateCoordinator):
         ):
             return
 
-        action = getattr(self, f"_async_prepare_{method}")
-
-        if action:
+        if action := getattr(self, f"_async_prepare_{method}"):
             await action(data)
 
     async def _async_prepare_init(self, data: dict) -> None:
@@ -696,7 +694,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 elif data_field in wifi:
                     wifi_data[field] = wifi[data_field]
 
-            if len(wifi_data) > 0:
+            if wifi_data:
                 data[f"{adapter.phrase}_data"] = wifi_data  # type: ignore
 
         data[ATTR_WIFI_ADAPTER_LENGTH] = length
@@ -716,7 +714,7 @@ class LuciUpdater(DataUpdateCoordinator):
             if "list" not in response or len(response["list"]) == 0:
                 continue
 
-            data[Wifi(index).phrase + "_channels"] = [  # type: ignore
+            data[f"{Wifi(index).phrase}_channels"] = [  # type: ignore
                 str(channel["c"])
                 for channel in response["list"]
                 if "c" in channel and int(channel["c"]) > 0
@@ -858,7 +856,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 if ATTR_TRACKER_MAC in device:
                     self.add_device(device, action=action, integrations=integrations)
 
-        if len(add_to) == 0:
+        if not add_to:
             return
 
         await asyncio.sleep(DEFAULT_CALL_DELAY)
@@ -1067,9 +1065,7 @@ class LuciUpdater(DataUpdateCoordinator):
             ATTR_TRACKER_SIGNAL: self._signals[device[ATTR_TRACKER_MAC]]
             if device[ATTR_TRACKER_MAC] in self._signals
             else None,
-            ATTR_TRACKER_NAME: device["name"]
-            if "name" in device
-            else device[ATTR_TRACKER_MAC],
+            ATTR_TRACKER_NAME: device.get("name", device[ATTR_TRACKER_MAC]),
             ATTR_TRACKER_IP: ip_attr["ip"] if ip_attr is not None else None,
             ATTR_TRACKER_CONNECTION: connection,
             ATTR_TRACKER_DOWN_SPEED: float(ip_attr["downspeed"])
@@ -1083,14 +1079,16 @@ class LuciUpdater(DataUpdateCoordinator):
             and float(ip_attr["upspeed"]) > 0
             else 0.0,
             ATTR_TRACKER_ONLINE: str(
-                timedelta(seconds=int(ip_attr["online"] if ip_attr is not None else 0))
+                timedelta(
+                    seconds=int(ip_attr["online"] if ip_attr is not None else 0)
+                )
             ),
             ATTR_TRACKER_LAST_ACTIVITY: datetime.now()
             .replace(microsecond=0)
             .isoformat(),
-            ATTR_TRACKER_OPTIONAL_MAC: integrations[ip_attr["ip"]][UPDATER].data.get(
-                ATTR_DEVICE_MAC_ADDRESS, None
-            )
+            ATTR_TRACKER_OPTIONAL_MAC: integrations[ip_attr["ip"]][
+                UPDATER
+            ].data.get(ATTR_DEVICE_MAC_ADDRESS, None)
             if integrations is not None
             and ip_attr is not None
             and ip_attr["ip"] in integrations
@@ -1157,15 +1155,14 @@ class LuciUpdater(DataUpdateCoordinator):
             if key in response and "online_sta_count" in response[key]:
                 data[attr] = response[key]["online_sta_count"]
 
-        _other_devices = 0
-        for attr in NEW_STATUS_MAP.values():
-            if attr in data:
-                _other_devices += int(data[attr])
+        _other_devices = sum(
+            int(data[attr]) for attr in NEW_STATUS_MAP.values() if attr in data
+        )
 
         if _other_devices > 0 and ATTR_SENSOR_DEVICES in data:
             _other_devices = int(data[ATTR_SENSOR_DEVICES]) - _other_devices
 
-            data[ATTR_SENSOR_DEVICES_LAN] = _other_devices if _other_devices > 0 else 0
+            data[ATTR_SENSOR_DEVICES_LAN] = max(_other_devices, 0)
 
     def _clean_devices(self) -> None:
         """Clean devices."""
@@ -1286,7 +1283,7 @@ def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
         if isinstance(integration, dict) and integration[CONF_IP_ADDRESS] == identifier
     ]
 
-    if len(integrations) == 0:
+    if not integrations:
         raise ValueError(_error)
 
     return integrations[0]

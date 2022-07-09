@@ -63,9 +63,7 @@ class LuciClient:
         :param timeout: int: Query execution timeout
         """
 
-        if ip.endswith("/"):
-            ip = ip[:-1]
-
+        ip = ip.removesuffix("/")
         self._client = client
         self.ip = ip  # pylint: disable=invalid-name
         self._password = password
@@ -190,10 +188,9 @@ class LuciClient:
                 raise LuciError(errors[_data["code"]])
 
             raise LuciRequestError(
-                _data["msg"]
-                if "msg" in _data
-                else f"Invalid error code received: {_code}"
+                _data.get("msg", f"Invalid error code received: {_code}")
             )
+
 
         return _data
 

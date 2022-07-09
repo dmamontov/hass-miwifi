@@ -152,9 +152,7 @@ class MiWifiLight(MiWifiEntity, LightEntity):
         :param kwargs: Any: Any arguments
         """
 
-        action = getattr(self, method)
-
-        if action:
+        if action := getattr(self, method):
             await action()
 
             is_on: bool = state == STATE_ON

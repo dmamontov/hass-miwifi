@@ -398,9 +398,9 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         ]
 
         if (
-            self._attr_available == is_available  # type: ignore
+            self._attr_available == is_available
             and self._is_connected == is_connected
-            and len(attr_changed) == 0
+            and not attr_changed
         ):
             return
 

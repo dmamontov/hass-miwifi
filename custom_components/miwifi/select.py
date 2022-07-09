@@ -150,25 +150,20 @@ async def async_setup_entry(
 
     updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
-    entities: list[MiWifiSelect] = []
-    for description in MIWIFI_SELECTS:
-        if (
-            description.key
-            in [
-                ATTR_SELECT_WIFI_5_0_GAME_CHANNEL,
-                ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
-            ]
-            and not updater.supports_game
-        ):
-            continue
-
-        entities.append(
-            MiWifiSelect(
-                f"{config_entry.entry_id}-{description.key}",
-                description,
-                updater,
-            )
+    entities: list[MiWifiSelect] = [
+        MiWifiSelect(
+            f"{config_entry.entry_id}-{description.key}",
+            description,
+            updater,
         )
+        for description in MIWIFI_SELECTS
+        if description.key
+        not in [
+            ATTR_SELECT_WIFI_5_0_GAME_CHANNEL,
+            ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
+        ]
+        or updater.supports_game
+    ]
 
     async_add_entities(entities)
 
@@ -245,7 +240,7 @@ class MiWifiSelect(MiWifiEntity, SelectEntity):
         if (
             self._attr_current_option == current_option
             and self._attr_available == is_available
-            and len(data_changed) == 0
+            and not data_changed
         ):
             return
 
@@ -337,9 +332,7 @@ class MiWifiSelect(MiWifiEntity, SelectEntity):
         :param option: str: Option
         """
 
-        action = getattr(self, f"_{self.entity_description.key}_change")
-
-        if action:
+        if action := getattr(self, f"_{self.entity_description.key}_change"):
             await action(option)
 
             self._updater.data[self.entity_description.key] = option
