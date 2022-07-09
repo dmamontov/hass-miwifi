@@ -624,33 +624,15 @@ class LuciUpdater(DataUpdateCoordinator):
         except LuciError:
             return
 
-        if "bsd" in response:
-            data[ATTR_BINARY_SENSOR_DUAL_BAND] = int(response["bsd"]) == 1
-        else:
-            data[ATTR_BINARY_SENSOR_DUAL_BAND] = False
+        # fmt: off
+        data[ATTR_BINARY_SENSOR_DUAL_BAND] = int(response["bsd"]) == 1 \
+            if "bsd" in response else False
+        # fmt: on
 
         if "info" not in response or len(response["info"]) == 0:
             return
 
-        _adapters: list = response["info"]
-
-        if self.supports_guest:
-            self.supports_guest = False
-
-            with contextlib.suppress(LuciError):
-                response_diag = await self.luci.wifi_diag_detail_all()
-                _adapters_len: int = len(_adapters)
-
-                if "info" in response_diag:
-                    _adapters += [
-                        _adapter
-                        for _adapter in response_diag["info"]
-                        if "ifname" in _adapter
-                        and _adapter["ifname"] == IfName.WL14.value
-                    ]
-
-                if _adapters_len < len(_adapters):
-                    self.supports_guest = True
+        _adapters: list = await self._async_prepare_wifi_guest(response["info"])
 
         length: int = 0
 
@@ -664,12 +646,12 @@ class LuciUpdater(DataUpdateCoordinator):
             except ValueError:
                 continue
 
+            # Guest network is not an adapter
+            if adapter != IfName.WL14:
+                length += 1
+
             if "status" in wifi:
                 data[adapter.phrase] = int(wifi["status"]) > 0  # type: ignore
-
-                # Guest network is not an adapter
-                if adapter != IfName.WL14:
-                    length += 1
 
             if "channelInfo" in wifi and "channel" in wifi["channelInfo"]:
                 data[f"{adapter.phrase}_channel"] = str(  # type: ignore
@@ -679,21 +661,59 @@ class LuciUpdater(DataUpdateCoordinator):
             if "txpwr" in wifi:
                 data[f"{adapter.phrase}_signal_strength"] = wifi["txpwr"]  # type: ignore
 
-            wifi_data: dict = {}
-
-            for data_field, field in ATTR_WIFI_DATA_FIELDS.items():
-                if "channelInfo" in data_field and "channelInfo" in wifi:
-                    data_field = data_field.replace("channelInfo.", "")
-
-                    if data_field in wifi["channelInfo"]:
-                        wifi_data[field] = wifi["channelInfo"][data_field]
-                elif data_field in wifi:
-                    wifi_data[field] = wifi[data_field]
-
-            if wifi_data:
+            if wifi_data := self._prepare_wifi_data(wifi):
                 data[f"{adapter.phrase}_data"] = wifi_data  # type: ignore
 
         data[ATTR_WIFI_ADAPTER_LENGTH] = length
+
+    @staticmethod
+    def _prepare_wifi_data(data: dict) -> dict:
+        """Prepare wifi data
+
+        :param data:
+        :return: dict: wifi data
+        """
+
+        wifi_data: dict = {}
+
+        for data_field, field in ATTR_WIFI_DATA_FIELDS.items():
+            if "channelInfo" in data_field and "channelInfo" in data:
+                data_field = data_field.replace("channelInfo.", "")
+
+                if data_field in data["channelInfo"]:
+                    wifi_data[field] = data["channelInfo"][data_field]
+            elif data_field in data:
+                wifi_data[field] = data[data_field]
+
+        return wifi_data
+
+    async def _async_prepare_wifi_guest(self, adapters: list) -> list:
+        """Prepare wifi guest.
+
+        :param adapters: list
+        :return list: adapters
+        """
+
+        if not self.supports_guest:  # pragma: no cover
+            return adapters
+
+        self.supports_guest = False
+
+        with contextlib.suppress(LuciError):
+            response_diag = await self.luci.wifi_diag_detail_all()
+            _adapters_len: int = len(adapters)
+
+            if "info" in response_diag:
+                adapters += [
+                    _adapter
+                    for _adapter in response_diag["info"]
+                    if "ifname" in _adapter and _adapter["ifname"] == IfName.WL14.value
+                ]
+
+            if _adapters_len < len(adapters):
+                self.supports_guest = True
+
+        return adapters
 
     async def _async_prepare_channels(self, data: dict) -> None:
         """Prepare channels.
