@@ -7,6 +7,8 @@ The component allows you to monitor devices and manage routers based on [MiWiFi]
 
 ❗ Supports routers with original or original patched MiWifi firmware
 
+❗ On the modified firmware, not all functionality may work
+
 ## More info
 - [Install](https://github.com/dmamontov/hass-miwifi/wiki/Install)
 - [Config](https://github.com/dmamontov/hass-miwifi/wiki/Config)
@@ -28,6 +30,7 @@ The component allows you to monitor devices and manage routers based on [MiWiFi]
 - [Performance table](https://github.com/dmamontov/hass-miwifi/wiki/Performance-table)
 - [Example automation](https://github.com/dmamontov/hass-miwifi/wiki/Example-automation)
   - [Device blocking](https://github.com/dmamontov/hass-miwifi/wiki/Example-automation#device-blocking)
+  - [Lighting automation](https://github.com/dmamontov/hass-miwifi/wiki/Example-automation#lighting-automation)
 - [Diagnostics](https://github.com/dmamontov/hass-miwifi/wiki/Diagnostics)
 - [FAQ](https://github.com/dmamontov/hass-miwifi/wiki/FAQ)
 
