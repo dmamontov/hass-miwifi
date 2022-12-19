@@ -35,9 +35,38 @@ async def test_supported(hass: HomeAssistant) -> None:
 
     def pn_check(hass: HomeAssistant, message: str, title: str) -> None:
         assert title == NAME
-        assert (
-            message
-            == 'Router 192.168.31.1 not supported.\n\nModel: R3600\n\nCheck list:\n * xqsystem/login: 🟢\n * xqsystem/init_info: 🟢\n * misystem/status: 🟢\n * xqnetwork/mode: 🟢\n * misystem/topo_graph: 🟢\n * xqsystem/check_rom_update: 🟢\n * xqnetwork/wan_info: 🟢\n * misystem/led: 🟢\n * xqnetwork/wifi_detail_all: 🟢\n * xqnetwork/wifi_diag_detail_all: 🟢\n * xqnetwork/avaliable_channels: 🟢\n * xqnetwork/wifi_connect_devices: 🟢\n * misystem/devicelist: 🟢\n * xqnetwork/wifiap_signal: 🟢\n * misystem/newstatus: 🟢\n * xqsystem/reboot: ⚪\n * xqsystem/upgrade_rom: ⚪\n * xqsystem/flash_permission: ⚪\n * xqnetwork/set_wifi: ⚪\n * xqnetwork/set_wifi_without_restart: ⚪\n\n<a href="https://github.com/dmamontov/hass-miwifi/issues/new?title=Add+supports+R3600&body=Check+list%3A%0A+%2A+xqsystem%2Flogin%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Finit_info%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fstatus%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fmode%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Ftopo_graph%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Fcheck_rom_update%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwan_info%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fled%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_detail_all%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_diag_detail_all%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Favaliable_channels%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_connect_devices%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fdevicelist%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifiap_signal%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fnewstatus%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Freboot%3A+%E2%9A%AA%0A+%2A+xqsystem%2Fupgrade_rom%3A+%E2%9A%AA%0A+%2A+xqsystem%2Fflash_permission%3A+%E2%9A%AA%0A+%2A+xqnetwork%2Fset_wifi%3A+%E2%9A%AA%0A+%2A+xqnetwork%2Fset_wifi_without_restart%3A+%E2%9A%AA" target="_blank">Create an issue with the data from this post to add support</a>'
+        assert message == (
+            "Router 192.168.31.1 not supported.\n"
+            "\n"
+            "Model: R3600\n"
+            "\n"
+            "Check list:\n"
+            " * xqsystem/login: 🟢\n"
+            " * xqsystem/init_info: 🟢\n"
+            " * misystem/status: 🟢\n"
+            " * xqnetwork/mode: 🟢\n"
+            " * xqsystem/vpn_status: 🟢\n"
+            " * misystem/topo_graph: 🟢\n"
+            " * xqsystem/check_rom_update: 🟢\n"
+            " * xqnetwork/wan_info: 🟢\n"
+            " * misystem/led: 🟢\n"
+            " * xqnetwork/wifi_detail_all: 🟢\n"
+            " * xqnetwork/wifi_diag_detail_all: 🟢\n"
+            " * xqnetwork/avaliable_channels: 🟢\n"
+            " * xqnetwork/wifi_connect_devices: 🟢\n"
+            " * misystem/devicelist: 🟢\n"
+            " * xqnetwork/wifiap_signal: 🟢\n"
+            " * misystem/newstatus: 🟢\n"
+            " * xqsystem/reboot: ⚪\n"
+            " * xqsystem/upgrade_rom: ⚪\n"
+            " * xqsystem/flash_permission: ⚪\n"
+            " * xqnetwork/set_wifi: ⚪\n"
+            " * xqnetwork/set_wifi_without_restart: ⚪\n"
+            "\n"
+            "<a "
+            'href="https://github.com/dmamontov/hass-miwifi/issues/new?title=Add+supports+R3600&body=Check+list%3A%0A+%2A+xqsystem%2Flogin%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Finit_info%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fstatus%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fmode%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Fvpn_status%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Ftopo_graph%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Fcheck_rom_update%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwan_info%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fled%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_detail_all%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_diag_detail_all%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Favaliable_channels%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_connect_devices%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fdevicelist%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifiap_signal%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fnewstatus%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Freboot%3A+%E2%9A%AA%0A+%2A+xqsystem%2Fupgrade_rom%3A+%E2%9A%AA%0A+%2A+xqsystem%2Fflash_permission%3A+%E2%9A%AA%0A+%2A+xqnetwork%2Fset_wifi%3A+%E2%9A%AA%0A+%2A+xqnetwork%2Fset_wifi_without_restart%3A+%E2%9A%AA" '
+            'target="_blank">Create an issue with the data from this post to add '
+            "support</a>"
         )
 
     with patch(
@@ -67,9 +96,38 @@ async def test_unsupported(hass: HomeAssistant) -> None:
 
     def pn_check(hass: HomeAssistant, message: str, title: str) -> None:
         assert title == "MiWifi"
-        assert (
-            message
-            == 'Router 192.168.31.1 not supported.\n\nModel: R3600\n\nCheck list:\n * xqsystem/login: 🟢\n * xqsystem/init_info: 🟢\n * misystem/status: 🟢\n * xqnetwork/mode: 🔴\n * misystem/topo_graph: 🟢\n * xqsystem/check_rom_update: 🟢\n * xqnetwork/wan_info: 🟢\n * misystem/led: 🟢\n * xqnetwork/wifi_detail_all: 🟢\n * xqnetwork/wifi_diag_detail_all: 🟢\n * xqnetwork/avaliable_channels: 🟢\n * xqnetwork/wifi_connect_devices: 🟢\n * misystem/devicelist: 🟢\n * xqnetwork/wifiap_signal: 🟢\n * misystem/newstatus: 🟢\n * xqsystem/reboot: ⚪\n * xqsystem/upgrade_rom: ⚪\n * xqsystem/flash_permission: ⚪\n * xqnetwork/set_wifi: ⚪\n * xqnetwork/set_wifi_without_restart: ⚪\n\n<a href="https://github.com/dmamontov/hass-miwifi/issues/new?title=Add+supports+R3600&body=Check+list%3A%0A+%2A+xqsystem%2Flogin%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Finit_info%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fstatus%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fmode%3A+%F0%9F%94%B4%0A+%2A+misystem%2Ftopo_graph%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Fcheck_rom_update%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwan_info%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fled%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_detail_all%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_diag_detail_all%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Favaliable_channels%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_connect_devices%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fdevicelist%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifiap_signal%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fnewstatus%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Freboot%3A+%E2%9A%AA%0A+%2A+xqsystem%2Fupgrade_rom%3A+%E2%9A%AA%0A+%2A+xqsystem%2Fflash_permission%3A+%E2%9A%AA%0A+%2A+xqnetwork%2Fset_wifi%3A+%E2%9A%AA%0A+%2A+xqnetwork%2Fset_wifi_without_restart%3A+%E2%9A%AA" target="_blank">Create an issue with the data from this post to add support</a>'
+        assert message == (
+            "Router 192.168.31.1 not supported.\n"
+            "\n"
+            "Model: R3600\n"
+            "\n"
+            "Check list:\n"
+            " * xqsystem/login: 🟢\n"
+            " * xqsystem/init_info: 🟢\n"
+            " * misystem/status: 🟢\n"
+            " * xqnetwork/mode: 🔴\n"
+            " * xqsystem/vpn_status: 🟢\n"
+            " * misystem/topo_graph: 🟢\n"
+            " * xqsystem/check_rom_update: 🟢\n"
+            " * xqnetwork/wan_info: 🟢\n"
+            " * misystem/led: 🟢\n"
+            " * xqnetwork/wifi_detail_all: 🟢\n"
+            " * xqnetwork/wifi_diag_detail_all: 🟢\n"
+            " * xqnetwork/avaliable_channels: 🟢\n"
+            " * xqnetwork/wifi_connect_devices: 🟢\n"
+            " * misystem/devicelist: 🟢\n"
+            " * xqnetwork/wifiap_signal: 🟢\n"
+            " * misystem/newstatus: 🟢\n"
+            " * xqsystem/reboot: ⚪\n"
+            " * xqsystem/upgrade_rom: ⚪\n"
+            " * xqsystem/flash_permission: ⚪\n"
+            " * xqnetwork/set_wifi: ⚪\n"
+            " * xqnetwork/set_wifi_without_restart: ⚪\n"
+            "\n"
+            "<a "
+            'href="https://github.com/dmamontov/hass-miwifi/issues/new?title=Add+supports+R3600&body=Check+list%3A%0A+%2A+xqsystem%2Flogin%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Finit_info%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fstatus%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fmode%3A+%F0%9F%94%B4%0A+%2A+xqsystem%2Fvpn_status%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Ftopo_graph%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Fcheck_rom_update%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwan_info%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fled%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_detail_all%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_diag_detail_all%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Favaliable_channels%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifi_connect_devices%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fdevicelist%3A+%F0%9F%9F%A2%0A+%2A+xqnetwork%2Fwifiap_signal%3A+%F0%9F%9F%A2%0A+%2A+misystem%2Fnewstatus%3A+%F0%9F%9F%A2%0A+%2A+xqsystem%2Freboot%3A+%E2%9A%AA%0A+%2A+xqsystem%2Fupgrade_rom%3A+%E2%9A%AA%0A+%2A+xqsystem%2Fflash_permission%3A+%E2%9A%AA%0A+%2A+xqnetwork%2Fset_wifi%3A+%E2%9A%AA%0A+%2A+xqnetwork%2Fset_wifi_without_restart%3A+%E2%9A%AA" '
+            'target="_blank">Create an issue with the data from this post to add '
+            "support</a>"
         )
 
     with patch(

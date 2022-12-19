@@ -92,7 +92,7 @@ async def async_setup_entry(
 
     updater: LuciUpdater = async_get_updater(hass, config_entry.entry_id)
 
-    entities: list[MiWifiUpdate] = [
+    if entities := [
         MiWifiUpdate(
             f"{config_entry.entry_id}-{description.key}",
             description,
@@ -100,9 +100,7 @@ async def async_setup_entry(
         )
         for description in MIWIFI_UPDATES
         if description.key != ATTR_UPDATE_FIRMWARE or updater.supports_update
-    ]
-
-    if entities:
+    ]:
         async_add_entities(entities)
 
 

@@ -529,20 +529,21 @@ class LuciUpdater(DataUpdateCoordinator):
         :param data: dict
         """
 
-        response: dict = await self.luci.vpn_status()
+        with contextlib.suppress(LuciError):
+            response: dict = await self.luci.vpn_status()
 
-        data |= {
-            ATTR_SENSOR_VPN_UPTIME: 0,
-            ATTR_BINARY_SENSOR_VPN_STATE: False,
-        }
-
-        if "uptime" in response:
             data |= {
-                ATTR_SENSOR_VPN_UPTIME: str(
-                    timedelta(seconds=int(float(response["uptime"])))
-                ),
-                ATTR_BINARY_SENSOR_VPN_STATE: int(float(response["uptime"])) > 0,
+                ATTR_SENSOR_VPN_UPTIME: 0,
+                ATTR_BINARY_SENSOR_VPN_STATE: False,
             }
+
+            if "uptime" in response:
+                data |= {
+                    ATTR_SENSOR_VPN_UPTIME: str(
+                        timedelta(seconds=int(float(response["uptime"])))
+                    ),
+                    ATTR_BINARY_SENSOR_VPN_STATE: int(float(response["uptime"])) > 0,
+                }
 
     async def _async_prepare_rom_update(self, data: dict) -> None:
         """Prepare rom update.
@@ -1313,13 +1314,11 @@ def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
     if identifier in hass.data[DOMAIN] and UPDATER in hass.data[DOMAIN][identifier]:
         return hass.data[DOMAIN][identifier][UPDATER]
 
-    integrations: list[LuciUpdater] = [
+    if integrations := [
         integration[UPDATER]
         for integration in hass.data[DOMAIN].values()
         if isinstance(integration, dict) and integration[CONF_IP_ADDRESS] == identifier
-    ]
+    ]:
+        return integrations[0]
 
-    if not integrations:
-        raise ValueError(_error)
-
-    return integrations[0]
+    raise ValueError(_error)

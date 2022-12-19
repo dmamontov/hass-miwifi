@@ -19,6 +19,7 @@ SELF_CHECK_METHODS: Final = (
     ("xqsystem/init_info", "🟢"),
     ("misystem/status", "status"),
     ("xqnetwork/mode", "mode"),
+    ("xqsystem/vpn_status", "vpn_status"),
     ("misystem/topo_graph", "topo_graph"),
     ("xqsystem/check_rom_update", "rom_update"),
     ("xqnetwork/wan_info", "wan_info"),
