@@ -71,6 +71,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_updater(hass: HomeAssistant) -> None:
     """Test updater.
 
@@ -123,6 +124,7 @@ async def test_updater(hass: HomeAssistant) -> None:
     assert updater.device_info["configuration_url"] == f"http://{MOCK_IP_ADDRESS}/"
 
 
+@pytest.mark.asyncio
 async def test_updater_login_fail(hass: HomeAssistant) -> None:
     """Test updater login_fail.
 
@@ -152,6 +154,7 @@ async def test_updater_login_fail(hass: HomeAssistant) -> None:
     assert len(mock_luci_client.mock_calls) == 13
 
 
+@pytest.mark.asyncio
 async def test_updater_reauthorization(hass: HomeAssistant) -> None:
     """Test updater reauthorization.
 
@@ -201,6 +204,7 @@ async def test_updater_reauthorization(hass: HomeAssistant) -> None:
         assert not updater.data[ATTR_STATE]
 
 
+@pytest.mark.asyncio
 async def test_updater_skip_method(hass: HomeAssistant) -> None:
     """Test updater skip unsupported method.
 
@@ -233,6 +237,7 @@ async def test_updater_skip_method(hass: HomeAssistant) -> None:
     assert len(mock_new_status.mock_calls) == 0
 
 
+@pytest.mark.asyncio
 async def test_updater_without_model_info(hass: HomeAssistant) -> None:
     """Test updater without model info.
 
@@ -262,6 +267,7 @@ async def test_updater_without_model_info(hass: HomeAssistant) -> None:
     assert updater.device_info["manufacturer"] == DEFAULT_MANUFACTURER
 
 
+@pytest.mark.asyncio
 async def test_updater_undefined_router(hass: HomeAssistant) -> None:
     """Test updater undefined router config.
 
@@ -295,6 +301,7 @@ async def test_updater_undefined_router(hass: HomeAssistant) -> None:
     assert len(mock_async_self_check.mock_calls) == 1
 
 
+@pytest.mark.asyncio
 async def test_updater_without_hardware_info(hass: HomeAssistant) -> None:
     """Test updater without hardware info.
 
@@ -328,6 +335,7 @@ async def test_updater_without_hardware_info(hass: HomeAssistant) -> None:
     assert len(mock_async_create_pm.mock_calls) == 1
 
 
+@pytest.mark.asyncio
 async def test_updater_without_version_info(hass: HomeAssistant) -> None:
     """Test updater without version info.
 
@@ -355,6 +363,7 @@ async def test_updater_without_version_info(hass: HomeAssistant) -> None:
     assert ATTR_UPDATE_CURRENT_VERSION not in updater.data
 
 
+@pytest.mark.asyncio
 async def test_updater_raise_rom_update(hass: HomeAssistant) -> None:
     """Test updater raise rom update.
 
@@ -384,6 +393,7 @@ async def test_updater_raise_rom_update(hass: HomeAssistant) -> None:
     }
 
 
+@pytest.mark.asyncio
 async def test_updater_need_rom_update(hass: HomeAssistant) -> None:
     """Test updater need rom update.
 
@@ -419,6 +429,7 @@ async def test_updater_need_rom_update(hass: HomeAssistant) -> None:
     }
 
 
+@pytest.mark.asyncio
 async def test_updater_key_error_rom_update(hass: HomeAssistant) -> None:
     """Test updater key error rom update.
 
@@ -447,6 +458,7 @@ async def test_updater_key_error_rom_update(hass: HomeAssistant) -> None:
     assert ATTR_UPDATE_FIRMWARE not in updater.data
 
 
+@pytest.mark.asyncio
 async def test_updater_skip_mode_mesh(hass: HomeAssistant) -> None:
     """Test updater key error rom update.
 
@@ -472,6 +484,7 @@ async def test_updater_skip_mode_mesh(hass: HomeAssistant) -> None:
     assert updater.data[ATTR_SENSOR_MODE] == Mode.MESH
 
 
+@pytest.mark.asyncio
 async def test_updater_value_error_mode(hass: HomeAssistant) -> None:
     """Test updater value error mode.
 
@@ -500,6 +513,7 @@ async def test_updater_value_error_mode(hass: HomeAssistant) -> None:
     assert updater.data[ATTR_SENSOR_MODE] == Mode.DEFAULT
 
 
+@pytest.mark.asyncio
 async def test_updater_incorrect_wan_info(hass: HomeAssistant) -> None:
     """Test updater incorrect wan info.
 
@@ -528,6 +542,7 @@ async def test_updater_incorrect_wan_info(hass: HomeAssistant) -> None:
     assert not updater.data[ATTR_BINARY_SENSOR_WAN_STATE]
 
 
+@pytest.mark.asyncio
 async def test_updater_incorrect_led(hass: HomeAssistant) -> None:
     """Test updater incorrect led.
 
@@ -556,6 +571,7 @@ async def test_updater_incorrect_led(hass: HomeAssistant) -> None:
     assert not updater.data[ATTR_LIGHT_LED]
 
 
+@pytest.mark.asyncio
 async def test_updater_undefined_bsd_wifi_info(hass: HomeAssistant) -> None:
     """Test updater undefined bsd wifi info.
 
@@ -586,6 +602,7 @@ async def test_updater_undefined_bsd_wifi_info(hass: HomeAssistant) -> None:
     assert not updater.data[ATTR_BINARY_SENSOR_DUAL_BAND]
 
 
+@pytest.mark.asyncio
 async def test_updater_empty_wifi_info(hass: HomeAssistant) -> None:
     """Test updater empty wifi info.
 
@@ -629,6 +646,7 @@ async def test_updater_empty_wifi_info(hass: HomeAssistant) -> None:
     assert ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH not in updater.data
 
 
+@pytest.mark.asyncio
 async def test_updater_unsupported_guest_wifi_info(hass: HomeAssistant) -> None:
     """Test updater unsupported guest wifi info.
 
@@ -661,6 +679,7 @@ async def test_updater_unsupported_guest_wifi_info(hass: HomeAssistant) -> None:
     assert not updater.supports_guest
 
 
+@pytest.mark.asyncio
 async def test_updater_error_guest_wifi_info(hass: HomeAssistant) -> None:
     """Test updater error guest wifi info.
 
@@ -691,6 +710,7 @@ async def test_updater_error_guest_wifi_info(hass: HomeAssistant) -> None:
     assert not updater.supports_guest
 
 
+@pytest.mark.asyncio
 async def test_updater_is_absent_ifname_wifi_info(hass: HomeAssistant) -> None:
     """Test updater is absent ifname wifi info.
 
@@ -726,6 +746,7 @@ async def test_updater_is_absent_ifname_wifi_info(hass: HomeAssistant) -> None:
     assert ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH not in updater.data
 
 
+@pytest.mark.asyncio
 async def test_updater_undefined_ifname_wifi_info(hass: HomeAssistant) -> None:
     """Test updater undefined ifname wifi info.
 
@@ -761,6 +782,7 @@ async def test_updater_undefined_ifname_wifi_info(hass: HomeAssistant) -> None:
     assert ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH not in updater.data
 
 
+@pytest.mark.asyncio
 async def test_updater_empty_2g_avaliable_channels(hass: HomeAssistant) -> None:
     """Test updater empty 2g avaliable channels.
 
@@ -798,6 +820,7 @@ async def test_updater_empty_2g_avaliable_channels(hass: HomeAssistant) -> None:
     assert ATTR_SELECT_WIFI_5_0_CHANNELS in updater.data
 
 
+@pytest.mark.asyncio
 async def test_updater_without_store(hass: HomeAssistant) -> None:
     """Test updater without_store.
 
@@ -828,6 +851,7 @@ async def test_updater_without_store(hass: HomeAssistant) -> None:
     assert len(mock_store.mock_calls) == 0
 
 
+@pytest.mark.asyncio
 async def test_updater_with_clean_store(hass: HomeAssistant) -> None:
     """Test updater with clean store.
 
@@ -851,6 +875,7 @@ async def test_updater_with_clean_store(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
 
+@pytest.mark.asyncio
 async def test_get_updater_by_ip_error(hass: HomeAssistant) -> None:
     """Test updater by ip error.
 

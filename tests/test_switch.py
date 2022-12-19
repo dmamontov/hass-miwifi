@@ -54,6 +54,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_init(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -104,6 +105,7 @@ async def test_init(hass: HomeAssistant) -> None:
         assert registry.async_get(unique_id) is not None
 
 
+@pytest.mark.asyncio
 async def test_init_with_game(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -163,6 +165,7 @@ async def test_init_with_game(hass: HomeAssistant) -> None:
         assert registry.async_get(unique_id) is not None
 
 
+@pytest.mark.asyncio
 async def test_init_without_guest(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -218,6 +221,7 @@ async def test_init_without_guest(hass: HomeAssistant) -> None:
         assert registry.async_get(unique_id) is None
 
 
+@pytest.mark.asyncio
 async def test_init_with_error(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -268,6 +272,7 @@ async def test_init_with_error(hass: HomeAssistant) -> None:
         assert registry.async_get(unique_id) is not None
 
 
+@pytest.mark.asyncio
 async def test_init_bsd(
     hass: HomeAssistant,
 ) -> None:
@@ -368,6 +373,7 @@ async def test_init_bsd(
         assert entry.original_name == ATTR_SWITCH_WIFI_5_0_GAME_NAME
 
 
+@pytest.mark.asyncio
 async def test_update_2_4(hass: HomeAssistant) -> None:
     """Test update 2.4.
 
@@ -435,6 +441,7 @@ async def test_update_2_4(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_2_4_wifi_data(hass: HomeAssistant) -> None:
     """Test update 2.4.
 
@@ -518,6 +525,7 @@ async def test_update_2_4_wifi_data(hass: HomeAssistant) -> None:
         }
 
 
+@pytest.mark.asyncio
 async def test_update_2_4_turn(hass: HomeAssistant) -> None:
     """Test update 2.4.
 
@@ -623,6 +631,7 @@ async def test_update_2_4_turn(hass: HomeAssistant) -> None:
         assert len(mock_luci_client.mock_calls) == _prev_calls + 4
 
 
+@pytest.mark.asyncio
 async def test_update_5_0(hass: HomeAssistant) -> None:
     """Test update 5.0.
 
@@ -690,6 +699,7 @@ async def test_update_5_0(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_5_0_wifi_data(hass: HomeAssistant) -> None:
     """Test update 5.0.
 
@@ -773,6 +783,7 @@ async def test_update_5_0_wifi_data(hass: HomeAssistant) -> None:
         }
 
 
+@pytest.mark.asyncio
 async def test_update_5_0_turn(hass: HomeAssistant) -> None:
     """Test update 5.0.
 
@@ -878,6 +889,7 @@ async def test_update_5_0_turn(hass: HomeAssistant) -> None:
         assert len(mock_luci_client.mock_calls) == _prev_calls + 4
 
 
+@pytest.mark.asyncio
 async def test_update_5_0_game(hass: HomeAssistant) -> None:
     """Test update 5.0 game.
 
@@ -954,6 +966,7 @@ async def test_update_5_0_game(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_5_0_game_wifi_data(hass: HomeAssistant) -> None:
     """Test update 5.0.
 
@@ -1045,6 +1058,7 @@ async def test_update_5_0_game_wifi_data(hass: HomeAssistant) -> None:
         }
 
 
+@pytest.mark.asyncio
 async def test_update_5_0_game_turn(hass: HomeAssistant) -> None:
     """Test update 5.0 game.
 
@@ -1159,6 +1173,7 @@ async def test_update_5_0_game_turn(hass: HomeAssistant) -> None:
         assert len(mock_luci_client.mock_calls) == _prev_calls + 4
 
 
+@pytest.mark.asyncio
 async def test_update_guest(hass: HomeAssistant) -> None:
     """Test update guest.
 
@@ -1250,6 +1265,7 @@ async def test_update_guest(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_guest_wifi_data(hass: HomeAssistant) -> None:
     """Test update guest.
 
@@ -1343,6 +1359,7 @@ async def test_update_guest_wifi_data(hass: HomeAssistant) -> None:
         }
 
 
+@pytest.mark.asyncio
 async def test_update_guest_turn(hass: HomeAssistant) -> None:
     """Test update guest.
 

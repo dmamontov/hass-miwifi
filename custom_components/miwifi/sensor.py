@@ -44,6 +44,8 @@ from .const import (
     ATTR_SENSOR_TEMPERATURE_NAME,
     ATTR_SENSOR_UPTIME,
     ATTR_SENSOR_UPTIME_NAME,
+    ATTR_SENSOR_VPN_UPTIME,
+    ATTR_SENSOR_VPN_UPTIME_NAME,
     ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
     ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME,
     ATTR_SENSOR_WAN_UPLOAD_SPEED,
@@ -73,6 +75,13 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=ATTR_SENSOR_UPTIME,
         name=ATTR_SENSOR_UPTIME_NAME,
+        icon="mdi:timer-sand",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key=ATTR_SENSOR_VPN_UPTIME,
+        name=ATTR_SENSOR_VPN_UPTIME_NAME,
         icon="mdi:timer-sand",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,

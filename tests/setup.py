@@ -152,6 +152,9 @@ async def async_mock_luci_client(mock_luci_client) -> None:
     mock_luci_client.return_value.device_list = AsyncMock(
         return_value=json.loads(load_fixture("device_list_data.json"))
     )
+    mock_luci_client.return_value.vpn_status = AsyncMock(
+        return_value=json.loads(load_fixture("vpn_status_data.json"))
+    )
 
     async def mock_avaliable_channels(index: int = 1) -> dict:
         """Mock channels"""

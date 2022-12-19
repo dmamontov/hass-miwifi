@@ -258,6 +258,14 @@ class LuciClient:
 
         return await self.get("xqnetwork/wifi_diag_detail_all")
 
+    async def vpn_status(self) -> dict:
+        """xqsystem/vpn_status method.
+
+        :return dict: dict with api data.
+        """
+
+        return await self.get("xqsystem/vpn_status")
+
     async def set_wifi(self, data: dict) -> dict:
         """xqnetwork/set_wifi method.
 

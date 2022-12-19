@@ -36,6 +36,7 @@ from custom_components.miwifi.const import (
     ATTR_SENSOR_MODE_NAME,
     ATTR_SENSOR_TEMPERATURE_NAME,
     ATTR_SENSOR_UPTIME_NAME,
+    ATTR_SENSOR_VPN_UPTIME_NAME,
     ATTR_SENSOR_WAN_DOWNLOAD_SPEED_NAME,
     ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME,
     ATTRIBUTION,
@@ -58,6 +59,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_init(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -92,6 +94,10 @@ async def test_init(hass: HomeAssistant) -> None:
         assert updater.last_update_success
 
         unique_id: str = _generate_id(ATTR_SENSOR_UPTIME_NAME, updater)
+        assert hass.states.get(unique_id) is None
+        assert registry.async_get(unique_id) is not None
+
+        unique_id = _generate_id(ATTR_SENSOR_VPN_UPTIME_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
@@ -148,6 +154,7 @@ async def test_init(hass: HomeAssistant) -> None:
         assert registry.async_get(unique_id) is None
 
 
+@pytest.mark.asyncio
 async def test_init_with_game(
     hass: HomeAssistant,
 ) -> None:
@@ -191,6 +198,10 @@ async def test_init_with_game(
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
+        unique_id = _generate_id(ATTR_SENSOR_VPN_UPTIME_NAME, updater)
+        assert hass.states.get(unique_id) is None
+        assert registry.async_get(unique_id) is not None
+
         unique_id = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
@@ -244,6 +255,7 @@ async def test_init_with_game(
         assert registry.async_get(unique_id) is not None
 
 
+@pytest.mark.asyncio
 async def test_init_without_zero(
     hass: HomeAssistant,
 ) -> None:
@@ -290,6 +302,10 @@ async def test_init_without_zero(
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
+        unique_id = _generate_id(ATTR_SENSOR_VPN_UPTIME_NAME, updater)
+        assert hass.states.get(unique_id) is None
+        assert registry.async_get(unique_id) is not None
+
         unique_id = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
@@ -343,6 +359,7 @@ async def test_init_without_zero(
         assert registry.async_get(unique_id) is None
 
 
+@pytest.mark.asyncio
 async def test_init_without_wan(
     hass: HomeAssistant,
 ) -> None:
@@ -386,6 +403,10 @@ async def test_init_without_wan(
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
 
+        unique_id = _generate_id(ATTR_SENSOR_VPN_UPTIME_NAME, updater)
+        assert hass.states.get(unique_id) is None
+        assert registry.async_get(unique_id) is not None
+
         unique_id = _generate_id(ATTR_SENSOR_MEMORY_USAGE_NAME, updater)
         assert hass.states.get(unique_id) is None
         assert registry.async_get(unique_id) is not None
@@ -439,6 +460,7 @@ async def test_init_without_wan(
         assert registry.async_get(unique_id) is None
 
 
+@pytest.mark.asyncio
 async def test_update_uptime(hass: HomeAssistant) -> None:
     """Test update uptime.
 
@@ -538,6 +560,107 @@ async def test_update_uptime(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
+async def test_update_vpn_uptime(hass: HomeAssistant) -> None:
+    """Test update vpn uptime.
+
+    :param hass: HomeAssistant
+    """
+
+    with patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.async_start_discovery", return_value=None
+    ), patch(
+        "custom_components.miwifi.device_tracker.socket.socket"
+    ) as mock_socket, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
+        await async_mock_luci_client(mock_luci_client)
+
+        mock_socket.return_value.recv.return_value = AsyncMock(return_value=None)
+
+        def success() -> dict:
+            return json.loads(load_fixture("device_list_data.json"))
+
+        def error() -> None:
+            raise LuciRequestError
+
+        mock_luci_client.return_value.device_list = AsyncMock(
+            side_effect=MultipleSideEffect(success, success, success, error, error)
+        )
+
+        def original() -> dict:
+            return json.loads(load_fixture("vpn_status_data.json"))
+
+        def change() -> dict:
+            return json.loads(load_fixture("vpn_status_off_data.json"))
+
+        mock_luci_client.return_value.vpn_status = AsyncMock(
+            side_effect=MultipleSideEffect(original, original, original, change, change)
+        )
+
+        setup_data: list = await async_setup(hass)
+
+        config_entry: MockConfigEntry = setup_data[1]
+
+        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+        registry = er.async_get(hass)
+
+        assert updater.last_update_success
+
+        unique_id: str = _generate_id(ATTR_SENSOR_VPN_UPTIME_NAME, updater)
+
+        entry: er.RegistryEntry | None = registry.async_get(unique_id)
+        state: State = hass.states.get(unique_id)
+        assert state is None
+        assert entry is not None
+        assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
+
+        registry.async_update_entity(entity_id=unique_id, disabled_by=None)
+        await hass.async_block_till_done()
+
+        async_fire_time_changed(
+            hass, utcnow() + timedelta(seconds=DEFAULT_SCAN_INTERVAL + 1)
+        )
+        await hass.async_block_till_done()
+
+        async_fire_time_changed(
+            hass, utcnow() + timedelta(seconds=DEFAULT_SCAN_INTERVAL + 1)
+        )
+        await hass.async_block_till_done()
+
+        entry = registry.async_get(unique_id)
+        state = hass.states.get(unique_id)
+
+        assert entry.disabled_by is None
+        assert state.state == "3 days, 23:29:17"
+        assert state.name == ATTR_SENSOR_VPN_UPTIME_NAME
+        assert state.attributes["icon"] == "mdi:timer-sand"
+        assert state.attributes["attribution"] == ATTRIBUTION
+        assert entry.entity_category == EntityCategory.DIAGNOSTIC
+
+        async_fire_time_changed(
+            hass, utcnow() + timedelta(seconds=DEFAULT_SCAN_INTERVAL + 1)
+        )
+        await hass.async_block_till_done()
+
+        state = hass.states.get(unique_id)
+        assert state.state == "0:00:00"
+
+        async_fire_time_changed(
+            hass, utcnow() + timedelta(seconds=DEFAULT_SCAN_INTERVAL + 1)
+        )
+        await hass.async_block_till_done()
+
+        state = hass.states.get(unique_id)
+        assert state.state == STATE_UNAVAILABLE
+
+
+@pytest.mark.asyncio
 async def test_update_memory_usage(hass: HomeAssistant) -> None:
     """Test update memory usage.
 
@@ -637,6 +760,7 @@ async def test_update_memory_usage(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_memory_total(hass: HomeAssistant) -> None:
     """Test update memory total.
 
@@ -736,6 +860,7 @@ async def test_update_memory_total(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_temperature(hass: HomeAssistant) -> None:
     """Test update temperature.
 
@@ -835,6 +960,7 @@ async def test_update_temperature(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_mode(hass: HomeAssistant) -> None:
     """Test update mode.
 
@@ -914,6 +1040,7 @@ async def test_update_mode(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_ap_signal(hass: HomeAssistant) -> None:
     """Test update ap signal.
 
@@ -997,6 +1124,7 @@ async def test_update_ap_signal(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_download_speed(hass: HomeAssistant) -> None:
     """Test update download speed.
 
@@ -1076,6 +1204,7 @@ async def test_update_download_speed(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_upload_speed(hass: HomeAssistant) -> None:
     """Test update upload speed.
 
@@ -1155,6 +1284,7 @@ async def test_update_upload_speed(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_devices(hass: HomeAssistant) -> None:
     """Test update devices.
 
@@ -1242,6 +1372,7 @@ async def test_update_devices(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_devices_lan(hass: HomeAssistant) -> None:
     """Test update devices lan.
 
@@ -1351,6 +1482,7 @@ async def test_update_devices_lan(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_devices_2_4(hass: HomeAssistant) -> None:
     """Test update devices 2.4.
 
@@ -1460,6 +1592,7 @@ async def test_update_devices_2_4(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_devices_5_0(hass: HomeAssistant) -> None:
     """Test update devices 5.0.
 
@@ -1569,6 +1702,7 @@ async def test_update_devices_5_0(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_devices_guest(hass: HomeAssistant) -> None:
     """Test update devices guest.
 
@@ -1678,6 +1812,7 @@ async def test_update_devices_guest(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_devices_5_0_game(hass: HomeAssistant) -> None:
     """Test update devices 5.0 game.
 

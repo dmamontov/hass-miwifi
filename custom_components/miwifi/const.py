@@ -127,6 +127,9 @@ ATTR_WIFI_ADAPTER_LENGTH: Final = "wifi_adapter_length"
 ATTR_SENSOR_UPTIME: Final = "uptime"
 ATTR_SENSOR_UPTIME_NAME: Final = "Uptime"
 
+ATTR_SENSOR_VPN_UPTIME: Final = "vpn_uptime"
+ATTR_SENSOR_VPN_UPTIME_NAME: Final = "Vpn uptime"
+
 ATTR_SENSOR_MEMORY_USAGE: Final = "memory_usage"
 ATTR_SENSOR_MEMORY_USAGE_NAME: Final = "Memory usage"
 
@@ -172,6 +175,9 @@ ATTR_BINARY_SENSOR_WAN_STATE_NAME: Final = "Wan state"
 
 ATTR_BINARY_SENSOR_DUAL_BAND: Final = "dual_band"
 ATTR_BINARY_SENSOR_DUAL_BAND_NAME: Final = "Dual band"
+
+ATTR_BINARY_SENSOR_VPN_STATE: Final = "vpn_state"
+ATTR_BINARY_SENSOR_VPN_STATE_NAME: Final = "Vpn state"
 
 """Light attributes"""
 ATTR_LIGHT_LED: Final = "led"

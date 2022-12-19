@@ -56,6 +56,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_init(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -94,6 +95,7 @@ async def test_init(hass: HomeAssistant) -> None:
         assert registry.async_get(unique_id) is not None
 
 
+@pytest.mark.asyncio
 async def test_init_unsupported(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -136,6 +138,7 @@ async def test_init_unsupported(hass: HomeAssistant) -> None:
         assert registry.async_get(unique_id) is None
 
 
+@pytest.mark.asyncio
 async def test_update(hass: HomeAssistant) -> None:
     """Test update.
 
@@ -191,6 +194,7 @@ async def test_update(hass: HomeAssistant) -> None:
         )
 
 
+@pytest.mark.asyncio
 async def test_need_update(hass: HomeAssistant) -> None:
     """Test need update.
 
@@ -265,6 +269,7 @@ async def test_need_update(hass: HomeAssistant) -> None:
         )
 
 
+@pytest.mark.asyncio
 async def test_release_notes(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -306,6 +311,7 @@ async def test_release_notes(hass: HomeAssistant) -> None:
         assert await entity.async_release_notes() == MAP_NOTES[ATTR_UPDATE_FIRMWARE]
 
 
+@pytest.mark.asyncio
 async def test_install(hass: HomeAssistant) -> None:
     """Test install.
 
@@ -387,6 +393,7 @@ async def test_install(hass: HomeAssistant) -> None:
         assert len(mock_asyncio_sleep.mock_calls) == 739
 
 
+@pytest.mark.asyncio
 async def test_install_flash_error(hass: HomeAssistant) -> None:
     """Test install.
 
@@ -459,6 +466,7 @@ async def test_install_flash_error(hass: HomeAssistant) -> None:
         assert len(mock_asyncio_sleep.mock_calls) == 18
 
 
+@pytest.mark.asyncio
 async def test_install_error(hass: HomeAssistant) -> None:
     """Test install error.
 

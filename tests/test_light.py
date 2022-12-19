@@ -47,6 +47,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_init(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -92,6 +93,7 @@ async def test_init(hass: HomeAssistant) -> None:
         assert entry.entity_category == EntityCategory.CONFIG
 
 
+@pytest.mark.asyncio
 async def test_update_led(hass: HomeAssistant) -> None:
     """Test update led.
 

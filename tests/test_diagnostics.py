@@ -31,6 +31,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_init(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """Test init.
 
@@ -62,6 +63,11 @@ async def test_init(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
         text=load_fixture("wifi_diag_detail_all_data.json"),
         method="GET",
         url=get_url("xqnetwork/wifi_diag_detail_all"),
+    )
+    httpx_mock.add_response(
+        text=load_fixture("vpn_status_data.json"),
+        method="GET",
+        url=get_url("xqsystem/vpn_status"),
     )
     httpx_mock.add_response(
         text=load_fixture("avaliable_channels_2g_data.json"),

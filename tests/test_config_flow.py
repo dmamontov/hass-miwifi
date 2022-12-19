@@ -53,6 +53,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_user(hass: HomeAssistant) -> None:
     """Test user config.
 
@@ -101,6 +102,7 @@ async def test_user(hass: HomeAssistant) -> None:
     assert len(mock_async_setup_entry.mock_calls) == 1
 
 
+@pytest.mark.asyncio
 async def test_user_ip_error(hass: HomeAssistant) -> None:
     """Test user config ip error.
 
@@ -130,6 +132,7 @@ async def test_user_ip_error(hass: HomeAssistant) -> None:
     assert len(mock_luci_client.mock_calls) == 4
 
 
+@pytest.mark.asyncio
 async def test_token_error(hass: HomeAssistant) -> None:
     """Test user config token error.
 
@@ -159,6 +162,7 @@ async def test_token_error(hass: HomeAssistant) -> None:
     assert len(mock_luci_client.mock_calls) == 4
 
 
+@pytest.mark.asyncio
 async def test_undefined_router(hass: HomeAssistant) -> None:
     """Test user undefined router config.
 
@@ -198,6 +202,7 @@ async def test_undefined_router(hass: HomeAssistant) -> None:
     assert len(mock_async_self_check.mock_calls) == 1
 
 
+@pytest.mark.asyncio
 async def test_undefined_router_without_hardware_info(hass: HomeAssistant) -> None:
     """Test user undefined router without hardware info config.
 
@@ -237,6 +242,7 @@ async def test_undefined_router_without_hardware_info(hass: HomeAssistant) -> No
     assert len(mock_async_create_pm.mock_calls) == 1
 
 
+@pytest.mark.asyncio
 async def test_ssdp(hass: HomeAssistant) -> None:
     """Test ssdp config.
 
@@ -260,6 +266,7 @@ async def test_ssdp(hass: HomeAssistant) -> None:
     assert len(mock_async_start_discovery.mock_calls) == 1
 
 
+@pytest.mark.asyncio
 async def test_dhcp(hass: HomeAssistant) -> None:
     """Test dhcp config.
 
@@ -283,6 +290,7 @@ async def test_dhcp(hass: HomeAssistant) -> None:
     assert len(mock_async_start_discovery.mock_calls) == 1
 
 
+@pytest.mark.asyncio
 async def test_integration_discovery(hass: HomeAssistant) -> None:
     """Test integration_discovery config.
 
@@ -302,6 +310,7 @@ async def test_integration_discovery(hass: HomeAssistant) -> None:
     assert result_init["step_id"] == "discovery_confirm"
 
 
+@pytest.mark.asyncio
 async def test_options_flow(hass: HomeAssistant) -> None:
     """Test options flow.
 
@@ -361,6 +370,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert len(mock_async_setup_entry.mock_calls) == 1
 
 
+@pytest.mark.asyncio
 async def test_options_flow_ip_error(hass: HomeAssistant) -> None:
     """Test options flow ip error.
 
@@ -404,6 +414,7 @@ async def test_options_flow_ip_error(hass: HomeAssistant) -> None:
     assert len(mock_luci_client.mock_calls) == 4
 
 
+@pytest.mark.asyncio
 async def test_options_flow_token_error(hass: HomeAssistant) -> None:
     """Test options flow token error.
 
@@ -447,6 +458,7 @@ async def test_options_flow_token_error(hass: HomeAssistant) -> None:
     assert len(mock_luci_client.mock_calls) == 4
 
 
+@pytest.mark.asyncio
 async def test_options_flow_undefined_router(hass: HomeAssistant) -> None:
     """Test options flow undefined router.
 
