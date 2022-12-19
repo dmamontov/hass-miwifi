@@ -130,3 +130,7 @@ dmypy.json
 
 .DS_Store
 .idea
+.run
+bin
+share
+include

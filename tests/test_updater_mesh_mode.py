@@ -18,6 +18,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry, load_f
 
 from custom_components.miwifi.const import (
     ATTR_BINARY_SENSOR_DUAL_BAND,
+    ATTR_BINARY_SENSOR_VPN_STATE,
     ATTR_BINARY_SENSOR_WAN_STATE,
     ATTR_DEVICE_HW_VERSION,
     ATTR_DEVICE_MAC_ADDRESS,
@@ -44,6 +45,7 @@ from custom_components.miwifi.const import (
     ATTR_SENSOR_MODE,
     ATTR_SENSOR_TEMPERATURE,
     ATTR_SENSOR_UPTIME,
+    ATTR_SENSOR_VPN_UPTIME,
     ATTR_SENSOR_WAN_DOWNLOAD_SPEED,
     ATTR_SENSOR_WAN_UPLOAD_SPEED,
     ATTR_STATE,
@@ -91,6 +93,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_updater_mesh_mode(
     hass: HomeAssistant,
 ) -> None:
@@ -151,6 +154,8 @@ async def test_updater_mesh_mode(
     assert updater.data[ATTR_DEVICE_MAC_ADDRESS] == "00:00:00:00:00:00"
     assert updater.data[ATTR_UPDATE_CURRENT_VERSION] == "3.0.34"
     assert updater.data[ATTR_SENSOR_UPTIME] == "8:06:26"
+    assert updater.data[ATTR_BINARY_SENSOR_VPN_STATE]
+    assert updater.data[ATTR_SENSOR_VPN_UPTIME] == "3 days, 23:29:17"
     assert updater.data[ATTR_SENSOR_MEMORY_USAGE] == 53
     assert updater.data[ATTR_SENSOR_MEMORY_TOTAL] == 256
     assert updater.data[ATTR_SENSOR_TEMPERATURE] == 0.0
@@ -242,9 +247,10 @@ async def test_updater_mesh_mode(
     }
 
     assert len(mock_async_dispatcher_send.mock_calls) == 0
-    assert len(mock_luci_client.mock_calls) == 16
+    assert len(mock_luci_client.mock_calls) == 17
 
 
+@pytest.mark.asyncio
 async def test_updater_mesh_mode_force_load(
     hass: HomeAssistant,
 ) -> None:
@@ -311,6 +317,8 @@ async def test_updater_mesh_mode_force_load(
     assert updater.data[ATTR_DEVICE_MAC_ADDRESS] == "00:00:00:00:00:00"
     assert updater.data[ATTR_UPDATE_CURRENT_VERSION] == "3.0.34"
     assert updater.data[ATTR_SENSOR_UPTIME] == "8:06:26"
+    assert updater.data[ATTR_BINARY_SENSOR_VPN_STATE]
+    assert updater.data[ATTR_SENSOR_VPN_UPTIME] == "3 days, 23:29:17"
     assert updater.data[ATTR_SENSOR_MEMORY_USAGE] == 53
     assert updater.data[ATTR_SENSOR_MEMORY_TOTAL] == 256
     assert updater.data[ATTR_SENSOR_TEMPERATURE] == 0.0
@@ -438,9 +446,10 @@ async def test_updater_mesh_mode_force_load(
     }
 
     assert len(mock_async_dispatcher_send.mock_calls) == 2
-    assert len(mock_luci_client.mock_calls) == 26
+    assert len(mock_luci_client.mock_calls) == 28
 
 
+@pytest.mark.asyncio
 async def test_updater_mesh_mode_move(hass: HomeAssistant) -> None:
     """Test updater.
 
@@ -621,6 +630,7 @@ async def test_updater_mesh_mode_move(hass: HomeAssistant) -> None:
     }
 
 
+@pytest.mark.asyncio
 async def test_updater_mesh_mode_revert_move(
     hass: HomeAssistant,
 ) -> None:
@@ -925,6 +935,7 @@ async def test_updater_mesh_mode_revert_move(
     }
 
 
+@pytest.mark.asyncio
 async def test_updater_mesh_mode_revert_move_force_mode(
     hass: HomeAssistant,
 ) -> None:
@@ -1228,6 +1239,7 @@ async def test_updater_mesh_mode_revert_move_force_mode(
     }
 
 
+@pytest.mark.asyncio
 async def test_updater_mesh_mode_move_force_mode(hass: HomeAssistant) -> None:
     """Test updater.
 
@@ -1399,6 +1411,7 @@ async def test_updater_mesh_mode_move_force_mode(hass: HomeAssistant) -> None:
     }
 
 
+@pytest.mark.asyncio
 async def test_updater_mesh_mode_restore(hass: HomeAssistant) -> None:
     """Test updater.
 
@@ -1620,6 +1633,7 @@ async def test_updater_mesh_mode_restore(hass: HomeAssistant) -> None:
     }
 
 
+@pytest.mark.asyncio
 async def test_updater_mesh_mode_restore_force_mode(hass: HomeAssistant) -> None:
     """Test updater.
 
@@ -1798,6 +1812,7 @@ async def test_updater_mesh_mode_restore_force_mode(hass: HomeAssistant) -> None
     }
 
 
+@pytest.mark.asyncio
 async def test_updater_ap_mode_force_load_incorrect_type(hass: HomeAssistant) -> None:
     """Test updater in force load.
 
@@ -1891,4 +1906,4 @@ async def test_updater_ap_mode_force_load_incorrect_type(hass: HomeAssistant) ->
     }
 
     assert len(mock_async_dispatcher_send.mock_calls) == 2
-    assert len(mock_luci_client.mock_calls) == 26
+    assert len(mock_luci_client.mock_calls) == 28

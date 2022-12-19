@@ -51,6 +51,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_init(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -135,6 +136,7 @@ async def test_init(hass: HomeAssistant) -> None:
         assert state.attributes["attribution"] == ATTRIBUTION
 
 
+@pytest.mark.asyncio
 async def test_init_with_restore(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -243,6 +245,7 @@ async def test_init_with_restore(hass: HomeAssistant) -> None:
         assert state.attributes["attribution"] == ATTRIBUTION
 
 
+@pytest.mark.asyncio
 async def test_init_with_parent(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -458,6 +461,7 @@ async def test_init_with_parent(hass: HomeAssistant) -> None:
     assert state.attributes["attribution"] == ATTRIBUTION
 
 
+@pytest.mark.asyncio
 async def test_init_with_parent_revert(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -754,6 +758,7 @@ async def test_init_with_parent_revert(hass: HomeAssistant) -> None:
     assert state.attributes["attribution"] == ATTRIBUTION
 
 
+@pytest.mark.asyncio
 async def test_init_in_force_mode(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -828,6 +833,7 @@ async def test_init_in_force_mode(hass: HomeAssistant) -> None:
         assert state is None
 
 
+@pytest.mark.asyncio
 async def test_init_with_force_and_parent(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -1043,6 +1049,7 @@ async def test_init_with_force_and_parent(hass: HomeAssistant) -> None:
     assert state.attributes["attribution"] == ATTRIBUTION
 
 
+@pytest.mark.asyncio
 async def test_init_with_restore_without_connection(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -1153,6 +1160,7 @@ async def test_init_with_restore_without_connection(hass: HomeAssistant) -> None
         assert state.attributes["attribution"] == ATTRIBUTION
 
 
+@pytest.mark.asyncio
 async def test_init_with_optional_parent(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -1307,6 +1315,7 @@ async def test_init_with_optional_parent(hass: HomeAssistant) -> None:
     }
 
 
+@pytest.mark.asyncio
 async def test_init_with_restore_and_remove(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -1407,6 +1416,7 @@ async def test_init_with_restore_and_remove(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_init_detect_manufacturer(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -1481,6 +1491,7 @@ async def test_init_detect_manufacturer(hass: HomeAssistant) -> None:
         assert device.manufacturer == MANUFACTURERS["CC50E3"]
 
 
+@pytest.mark.asyncio
 async def test_init_detect_url(hass: HomeAssistant) -> None:
     """Test init.
 

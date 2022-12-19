@@ -54,6 +54,7 @@ def calls(hass):
     return async_mock_service(hass, "test", "automation")
 
 
+@pytest.mark.asyncio
 async def setup_automation(hass, device_id, trigger_type):
     """Set up an automation trigger for testing triggering."""
 
@@ -79,6 +80,7 @@ async def setup_automation(hass, device_id, trigger_type):
     )
 
 
+@pytest.mark.asyncio
 async def test_calc_passwd(hass: HomeAssistant) -> None:
     """Test calc passwd.
 
@@ -131,6 +133,7 @@ async def test_calc_passwd(hass: HomeAssistant) -> None:
         )
 
 
+@pytest.mark.asyncio
 async def test_calc_passwd_not_found_device(hass: HomeAssistant) -> None:
     """Test calc passwd not found device.
 
@@ -171,6 +174,7 @@ async def test_calc_passwd_not_found_device(hass: HomeAssistant) -> None:
         assert str(error.value) == "Device test not found."
 
 
+@pytest.mark.asyncio
 async def test_calc_passwd_unsupported_device(hass: HomeAssistant) -> None:
     """Test calc passwd unsupported device.
 
@@ -221,6 +225,7 @@ async def test_calc_passwd_unsupported_device(hass: HomeAssistant) -> None:
         )
 
 
+@pytest.mark.asyncio
 async def test_calc_passwd_unsupported_device_with_integration(
     hass: HomeAssistant,
 ) -> None:
@@ -277,6 +282,7 @@ async def test_calc_passwd_unsupported_device_with_integration(
         )
 
 
+@pytest.mark.asyncio
 async def test_request(
     hass: HomeAssistant,
     httpx_mock: HTTPXMock,
@@ -314,6 +320,11 @@ async def test_request(
         text=load_fixture("wifi_diag_detail_all_data.json"),
         method="GET",
         url=get_url("xqnetwork/wifi_diag_detail_all"),
+    )
+    httpx_mock.add_response(
+        text=load_fixture("vpn_status_data.json"),
+        method="GET",
+        url=get_url("xqsystem/vpn_status"),
     )
     httpx_mock.add_response(
         text=load_fixture("avaliable_channels_2g_data.json"),

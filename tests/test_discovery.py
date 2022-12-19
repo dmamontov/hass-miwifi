@@ -27,6 +27,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_discovery(hass: HomeAssistant) -> None:
     """discovery init.
 
@@ -51,6 +52,7 @@ async def test_discovery(hass: HomeAssistant) -> None:
             assert flow["context"]["source"] == "integration_discovery"
 
 
+@pytest.mark.asyncio
 async def test_discovery_sub_leaf(hass: HomeAssistant) -> None:
     """discovery init.
 
@@ -82,6 +84,7 @@ async def test_discovery_sub_leaf(hass: HomeAssistant) -> None:
             assert flow["context"]["source"] == "integration_discovery"
 
 
+@pytest.mark.asyncio
 async def test_discovery_error(hass: HomeAssistant) -> None:
     """discovery init error.
 
@@ -99,6 +102,7 @@ async def test_discovery_error(hass: HomeAssistant) -> None:
         assert len(hass.config_entries.flow._progress) == 0
 
 
+@pytest.mark.asyncio
 async def test_discovery_invalid_device(hass: HomeAssistant) -> None:
     """discovery init.
 

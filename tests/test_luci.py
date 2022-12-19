@@ -26,6 +26,7 @@ from tests.setup import MOCK_IP_ADDRESS, get_url
 _LOGGER = logging.getLogger(__name__)
 
 
+@pytest.mark.asyncio
 async def test_login(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """Login test"""
 
@@ -44,6 +45,7 @@ async def test_login(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert client._token == "**REDACTED**"
 
 
+@pytest.mark.asyncio
 async def test_login_error_request(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """Login test"""
 
@@ -57,6 +59,7 @@ async def test_login_error_request(hass: HomeAssistant, httpx_mock: HTTPXMock) -
         await client.login()
 
 
+@pytest.mark.asyncio
 async def test_login_incorrect_token(
     hass: HomeAssistant, httpx_mock: HTTPXMock
 ) -> None:
@@ -72,6 +75,7 @@ async def test_login_incorrect_token(
         await client.login()
 
 
+@pytest.mark.asyncio
 async def test_logout_without_token(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """Logout test"""
 
@@ -84,6 +88,7 @@ async def test_logout_without_token(hass: HomeAssistant, httpx_mock: HTTPXMock) 
     assert not httpx_mock.get_request()
 
 
+@pytest.mark.asyncio
 async def test_logout(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """Logout test"""
 
@@ -106,6 +111,7 @@ async def test_logout(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_logout_error(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """Logout test"""
 
@@ -122,6 +128,7 @@ async def test_logout_error(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert client.diagnostics["logout"]["message"] == "Logout error"
 
 
+@pytest.mark.asyncio
 async def test_get_without_token(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """get test"""
 
@@ -135,6 +142,7 @@ async def test_get_without_token(hass: HomeAssistant, httpx_mock: HTTPXMock) -> 
     assert not httpx_mock.get_request()
 
 
+@pytest.mark.asyncio
 async def test_get(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """get test"""
 
@@ -154,6 +162,7 @@ async def test_get(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_get_sha256(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """get test"""
 
@@ -176,6 +185,7 @@ async def test_get_sha256(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_get_without_stok(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """get test"""
 
@@ -193,6 +203,7 @@ async def test_get_without_stok(hass: HomeAssistant, httpx_mock: HTTPXMock) -> N
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_get_error(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """get test"""
 
@@ -209,6 +220,7 @@ async def test_get_error(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
         await client.get("misystem/miwifi")
 
 
+@pytest.mark.asyncio
 async def test_get_error_code(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """get test"""
 
@@ -230,6 +242,7 @@ async def test_get_error_code(hass: HomeAssistant, httpx_mock: HTTPXMock) -> Non
     assert str(error.value) == "custom errors"
 
 
+@pytest.mark.asyncio
 async def test_topo_graph(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """topo_graph test"""
 
@@ -250,6 +263,7 @@ async def test_topo_graph(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_init_info(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """init_info test"""
 
@@ -270,6 +284,7 @@ async def test_init_info(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_status(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """status test"""
 
@@ -290,6 +305,7 @@ async def test_status(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_new_status(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """new_status test"""
 
@@ -310,6 +326,7 @@ async def test_new_status(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_mode(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """mode test"""
 
@@ -330,6 +347,7 @@ async def test_mode(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_wifi_ap_signal(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """wifi_ap_signal test"""
 
@@ -352,6 +370,7 @@ async def test_wifi_ap_signal(hass: HomeAssistant, httpx_mock: HTTPXMock) -> Non
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_wifi_detail_all(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """wifi_detail_all test"""
 
@@ -376,6 +395,7 @@ async def test_wifi_detail_all(hass: HomeAssistant, httpx_mock: HTTPXMock) -> No
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_wifi_diag_detail_all(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """wifi_diag_detail_all test"""
 
@@ -400,6 +420,28 @@ async def test_wifi_diag_detail_all(hass: HomeAssistant, httpx_mock: HTTPXMock) 
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
+async def test_vpn_status(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
+    """vpn_status test"""
+
+    httpx_mock.add_response(text=load_fixture("login_data.json"), method="POST")
+    httpx_mock.add_response(text=load_fixture("vpn_status_data.json"), method="GET")
+
+    client: LuciClient = LuciClient(
+        get_async_client(hass, False), f"{MOCK_IP_ADDRESS}/", "test"
+    )
+
+    await client.login()
+
+    assert await client.vpn_status() == json.loads(load_fixture("vpn_status_data.json"))
+
+    request: Request | None = httpx_mock.get_request(method="GET")
+    assert request is not None
+    assert request.url == get_url("xqsystem/vpn_status")
+    assert request.method == "GET"
+
+
+@pytest.mark.asyncio
 async def test_set_wifi(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """set_wifi test"""
 
@@ -432,6 +474,7 @@ async def test_set_wifi(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_set_guest_wifi(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """set_guest_wifi test"""
 
@@ -459,6 +502,7 @@ async def test_set_guest_wifi(hass: HomeAssistant, httpx_mock: HTTPXMock) -> Non
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_set_avaliable_channels(
     hass: HomeAssistant, httpx_mock: HTTPXMock
 ) -> None:
@@ -521,6 +565,7 @@ async def test_set_avaliable_channels(
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_wan_info(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """wan_info test"""
 
@@ -541,6 +586,7 @@ async def test_wan_info(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_reboot(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """reboot test"""
 
@@ -561,6 +607,7 @@ async def test_reboot(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_set_led(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """led test"""
 
@@ -615,6 +662,7 @@ async def test_set_led(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_device_list(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """device_list test"""
 
@@ -637,6 +685,7 @@ async def test_device_list(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_wifi_connect_devices(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """wifi_connect_devices test"""
 
@@ -661,6 +710,7 @@ async def test_wifi_connect_devices(hass: HomeAssistant, httpx_mock: HTTPXMock) 
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_rom_update(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """rom_update test"""
 
@@ -681,6 +731,7 @@ async def test_rom_update(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_rom_upgrade(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """rom_upgrade test"""
 
@@ -705,6 +756,7 @@ async def test_rom_upgrade(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     assert request.method == "GET"
 
 
+@pytest.mark.asyncio
 async def test_flash_permission(hass: HomeAssistant, httpx_mock: HTTPXMock) -> None:
     """flash_permission test"""
 

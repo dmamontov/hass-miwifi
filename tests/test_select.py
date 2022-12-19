@@ -59,6 +59,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_init(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -119,6 +120,7 @@ async def test_init(hass: HomeAssistant) -> None:
         assert registry.async_get(unique_id) is None
 
 
+@pytest.mark.asyncio
 async def test_init_with_game(hass: HomeAssistant) -> None:
     """Test init.
 
@@ -183,6 +185,7 @@ async def test_init_with_game(hass: HomeAssistant) -> None:
         assert registry.async_get(unique_id) is not None
 
 
+@pytest.mark.asyncio
 async def test_update_channel_2_4(hass: HomeAssistant) -> None:
     """Test update channel 2.4.
 
@@ -273,6 +276,7 @@ async def test_update_channel_2_4(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_channel_2_4_empty_channels(hass: HomeAssistant) -> None:
     """Test update channel 2.4.
 
@@ -336,6 +340,7 @@ async def test_update_channel_2_4_empty_channels(hass: HomeAssistant) -> None:
         assert state.attributes["options"] == ATTR_SELECT_WIFI_2_4_CHANNEL_OPTIONS
 
 
+@pytest.mark.asyncio
 async def test_update_channel_2_4_wifi_data(hass: HomeAssistant) -> None:
     """Test update channel 2.4.
 
@@ -439,6 +444,7 @@ async def test_update_channel_2_4_wifi_data(hass: HomeAssistant) -> None:
         }
 
 
+@pytest.mark.asyncio
 async def test_update_channel_2_4_change_channel(hass: HomeAssistant) -> None:
     """Test update channel 2.4.
 
@@ -535,6 +541,7 @@ async def test_update_channel_2_4_change_channel(hass: HomeAssistant) -> None:
         assert len(mock_luci_client.mock_calls) == _prev_calls + 2
 
 
+@pytest.mark.asyncio
 async def test_update_channel_5_0(hass: HomeAssistant) -> None:
     """Test update channel 5.0.
 
@@ -634,6 +641,7 @@ async def test_update_channel_5_0(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_channel_5_0_empty_channels(hass: HomeAssistant) -> None:
     """Test update channel 5.0.
 
@@ -697,6 +705,7 @@ async def test_update_channel_5_0_empty_channels(hass: HomeAssistant) -> None:
         assert state.attributes["options"] == ATTR_SELECT_WIFI_5_0_CHANNEL_OPTIONS
 
 
+@pytest.mark.asyncio
 async def test_update_channel_5_0_empty_channels_and_5g_game(
     hass: HomeAssistant,
 ) -> None:
@@ -766,6 +775,7 @@ async def test_update_channel_5_0_empty_channels_and_5g_game(
         assert state.attributes["options"] == ["149", "153", "157", "161", "165"]
 
 
+@pytest.mark.asyncio
 async def test_update_channel_5_0_wifi_data(hass: HomeAssistant) -> None:
     """Test update channel 5.0.
 
@@ -869,6 +879,7 @@ async def test_update_channel_5_0_wifi_data(hass: HomeAssistant) -> None:
         }
 
 
+@pytest.mark.asyncio
 async def test_update_channel_5_0_change_channel(hass: HomeAssistant) -> None:
     """Test update channel 5.0.
 
@@ -965,6 +976,7 @@ async def test_update_channel_5_0_change_channel(hass: HomeAssistant) -> None:
         assert len(mock_luci_client.mock_calls) == _prev_calls + 2
 
 
+@pytest.mark.asyncio
 async def test_update_channel_5_0_game(hass: HomeAssistant) -> None:
     """Test update channel 5.0 game.
 
@@ -1059,6 +1071,7 @@ async def test_update_channel_5_0_game(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_channel_5_0_game_empty_channels(hass: HomeAssistant) -> None:
     """Test update channel 5.0 game.
 
@@ -1126,6 +1139,7 @@ async def test_update_channel_5_0_game_empty_channels(hass: HomeAssistant) -> No
         assert state.attributes["options"] == ATTR_SELECT_WIFI_5_0_GAME_CHANNEL_OPTIONS
 
 
+@pytest.mark.asyncio
 async def test_update_channel_5_0_game_wifi_data(hass: HomeAssistant) -> None:
     """Test update channel 5.0 game.
 
@@ -1231,6 +1245,7 @@ async def test_update_channel_5_0_game_wifi_data(hass: HomeAssistant) -> None:
         }
 
 
+@pytest.mark.asyncio
 async def test_update_channel_5_0_game_change_channel(hass: HomeAssistant) -> None:
     """Test update channel 5.0 game.
 
@@ -1331,6 +1346,7 @@ async def test_update_channel_5_0_game_change_channel(hass: HomeAssistant) -> No
         assert len(mock_luci_client.mock_calls) == _prev_calls + 2
 
 
+@pytest.mark.asyncio
 async def test_update_strength_2_4(hass: HomeAssistant) -> None:
     """Test update strength 2.4.
 
@@ -1423,6 +1439,7 @@ async def test_update_strength_2_4(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_strength_2_4_wifi_data(hass: HomeAssistant) -> None:
     """Test update strength 2.4.
 
@@ -1528,6 +1545,7 @@ async def test_update_strength_2_4_wifi_data(hass: HomeAssistant) -> None:
         }
 
 
+@pytest.mark.asyncio
 async def test_update_strength_2_4_change_strength(hass: HomeAssistant) -> None:
     """Test update strength 2.4.
 
@@ -1632,6 +1650,7 @@ async def test_update_strength_2_4_change_strength(hass: HomeAssistant) -> None:
         assert len(mock_luci_client.mock_calls) == _prev_calls + 2
 
 
+@pytest.mark.asyncio
 async def test_update_strength_5_0(hass: HomeAssistant) -> None:
     """Test update strength 5.0.
 
@@ -1724,6 +1743,7 @@ async def test_update_strength_5_0(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_strength_5_0_wifi_data(hass: HomeAssistant) -> None:
     """Test update strength 5.0.
 
@@ -1829,6 +1849,7 @@ async def test_update_strength_5_0_wifi_data(hass: HomeAssistant) -> None:
         }
 
 
+@pytest.mark.asyncio
 async def test_update_strength_5_0_change_channel(hass: HomeAssistant) -> None:
     """Test update strength 5.0.
 
@@ -1932,6 +1953,7 @@ async def test_update_strength_5_0_change_channel(hass: HomeAssistant) -> None:
         assert len(mock_luci_client.mock_calls) == _prev_calls + 2
 
 
+@pytest.mark.asyncio
 async def test_update_strength_5_0_game(hass: HomeAssistant) -> None:
     """Test update strength 5.0 game.
 
@@ -2028,6 +2050,7 @@ async def test_update_strength_5_0_game(hass: HomeAssistant) -> None:
         assert state.state == STATE_UNAVAILABLE
 
 
+@pytest.mark.asyncio
 async def test_update_strength_5_0_game_wifi_data(hass: HomeAssistant) -> None:
     """Test update strength 5.0 game.
 
@@ -2135,6 +2158,7 @@ async def test_update_strength_5_0_game_wifi_data(hass: HomeAssistant) -> None:
         }
 
 
+@pytest.mark.asyncio
 async def test_update_strength_5_0_game_change_strength(hass: HomeAssistant) -> None:
     """Test update strength 5.0 game.
 

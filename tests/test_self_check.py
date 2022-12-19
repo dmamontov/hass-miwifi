@@ -26,6 +26,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.mark.asyncio
 async def test_supported(hass: HomeAssistant) -> None:
     """supported init.
 
@@ -57,6 +58,7 @@ async def test_supported(hass: HomeAssistant) -> None:
         await async_self_check(hass, updater.luci, "R3600")
 
 
+@pytest.mark.asyncio
 async def test_unsupported(hass: HomeAssistant) -> None:
     """unsupported init.
 

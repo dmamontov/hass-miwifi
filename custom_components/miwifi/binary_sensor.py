@@ -22,6 +22,8 @@ from .const import (
     ATTR_BINARY_SENSOR_DUAL_BAND_NAME,
     ATTR_BINARY_SENSOR_WAN_STATE,
     ATTR_BINARY_SENSOR_WAN_STATE_NAME,
+    ATTR_BINARY_SENSOR_VPN_STATE,
+    ATTR_BINARY_SENSOR_VPN_STATE_NAME,
     ATTR_STATE,
     ATTR_STATE_NAME,
 )
@@ -50,6 +52,14 @@ MIWIFI_BINARY_SENSORS: tuple[BinarySensorEntityDescription, ...] = (
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=True,
+    ),
+    BinarySensorEntityDescription(
+        key=ATTR_BINARY_SENSOR_VPN_STATE,
+        name=ATTR_BINARY_SENSOR_VPN_STATE_NAME,
+        icon="mdi:security-network",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
     BinarySensorEntityDescription(
         key=ATTR_BINARY_SENSOR_DUAL_BAND,
