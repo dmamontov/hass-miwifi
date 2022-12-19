@@ -1313,13 +1313,12 @@ def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
     if identifier in hass.data[DOMAIN] and UPDATER in hass.data[DOMAIN][identifier]:
         return hass.data[DOMAIN][identifier][UPDATER]
 
-    integrations: list[LuciUpdater] = [
+    if integrations := [
         integration[UPDATER]
         for integration in hass.data[DOMAIN].values()
-        if isinstance(integration, dict) and integration[CONF_IP_ADDRESS] == identifier
-    ]
-
-    if not integrations:
+        if isinstance(integration, dict)
+        and integration[CONF_IP_ADDRESS] == identifier
+    ]:
+        return integrations[0]
+    else:
         raise ValueError(_error)
-
-    return integrations[0]
