@@ -313,12 +313,11 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
 
         _schema: str = "https" if self._configuration_port == 443 else "http"
 
-        _url: str = f"{_schema}://{self.ip_address}:{self._configuration_port}"
-
-        if self._configuration_port in [80, 443]:
-            _url = f"{_schema}://{self.ip_address}"
-
-        return _url
+        return (
+            f"{_schema}://{self.ip_address}"
+            if self._configuration_port in [80, 443]
+            else f"{_schema}://{self.ip_address}:{self._configuration_port}"
+        )
 
     @property
     def device_info(self) -> DeviceInfo:  # pylint: disable=overridden-final-method
@@ -417,7 +416,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         :return dict
         """
 
-        entry_id: str = track_device.get(ATTR_TRACKER_ENTRY_ID, None)
+        entry_id: str | None = track_device.get(ATTR_TRACKER_ENTRY_ID)
 
         device_registry: dr.DeviceRegistry = dr.async_get(self.hass)
         device: dr.DeviceEntry | None = device_registry.async_get_device(

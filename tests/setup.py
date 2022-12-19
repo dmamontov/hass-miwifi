@@ -89,7 +89,7 @@ async def async_setup(
         get_config_value(config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT),
         get_config_value(config_entry, CONF_IS_FORCE_LOAD, is_force),
         activity_days,
-        get_store(hass, _ip) if not without_store else None,
+        None if without_store else get_store(hass, _ip),
         entry_id=config_entry.entry_id,
     )
 
