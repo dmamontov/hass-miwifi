@@ -124,6 +124,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
+# pylint: disable=too-many-ancestors
 class MiWifiSwitch(MiWifiEntity, SwitchEntity):
     """MiWifi switch entry."""
 

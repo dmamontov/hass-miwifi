@@ -26,6 +26,7 @@ from .const import (
     SERVICE_CALC_PASSWD,
     SERVICE_REQUEST,
 )
+from .exceptions import LuciError
 from .updater import LuciUpdater, async_get_updater
 
 _LOGGER = logging.getLogger(__name__)
@@ -132,9 +133,12 @@ class MiWifiRequestServiceCall(MiWifiServiceCall):
 
         _data: dict = dict(service.data)
 
-        response: dict = await updater.luci.get(
-            uri := _data.get(CONF_URI), body := _data.get(CONF_BODY, {})  # type: ignore
-        )
+        try:
+            response: dict = await updater.luci.get(
+                uri := _data.get(CONF_URI), body := _data.get(CONF_BODY, {})  # type: ignore
+            )
+        except LuciError:
+            return
 
         device: dr.DeviceEntry | None = dr.async_get(self.hass).async_get_device(
             set(),

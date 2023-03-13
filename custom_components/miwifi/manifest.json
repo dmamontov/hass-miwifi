@@ -1,15 +1,116 @@
 {
   "domain": "miwifi",
   "name": "MiWiFi",
-  "version": "2.9.0",
-  "documentation": "https://github.com/dmamontov/hass-miwifi/wiki",
-  "issue_tracker": "https://github.com/dmamontov/hass-miwifi/issues",
+  "codeowners": [
+    "@dmamontov"
+  ],
   "config_flow": true,
-  "requirements": [],
-  "dependencies": ["http"],
-  "codeowners": ["@dmamontov"],
+  "dependencies": [
+    "http"
+  ],
+  "dhcp": [
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "C85CCC*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "D43538*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "649E31*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "5C0214*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "CCB5D1*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "68ABBC*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "8CDEF9*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "DCED83*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "3CCD57*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "64644A*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "5448E6*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "6490C1*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "44237C*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "5CE50C*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "50D2F5*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "88C397*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "8C53C3*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "50EC50*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "EC4D3E*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "28D127*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "7CC294*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "9C9D7E*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "B460ED*"
+    },
+    {
+      "hostname": "miwifi-*",
+      "macaddress": "58B623*"
+    }
+  ],
+  "documentation": "https://github.com/dmamontov/hass-miwifi/wiki",
   "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/dmamontov/hass-miwifi/issues",
   "quality_scale": "platinum",
+  "requirements": [],
   "ssdp": [
     {
       "st": "upnp:rootdevice",
@@ -17,30 +118,5 @@
       "deviceType": "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
     }
   ],
-  "dhcp": [
-    {"hostname": "miwifi-*", "macaddress": "C85CCC*"},
-    {"hostname": "miwifi-*", "macaddress": "D43538*"},
-    {"hostname": "miwifi-*", "macaddress": "649E31*"},
-    {"hostname": "miwifi-*", "macaddress": "5C0214*"},
-    {"hostname": "miwifi-*", "macaddress": "CCB5D1*"},
-    {"hostname": "miwifi-*", "macaddress": "68ABBC*"},
-    {"hostname": "miwifi-*", "macaddress": "8CDEF9*"},
-    {"hostname": "miwifi-*", "macaddress": "DCED83*"},
-    {"hostname": "miwifi-*", "macaddress": "3CCD57*"},
-    {"hostname": "miwifi-*", "macaddress": "64644A*"},
-    {"hostname": "miwifi-*", "macaddress": "5448E6*"},
-    {"hostname": "miwifi-*", "macaddress": "6490C1*"},
-    {"hostname": "miwifi-*", "macaddress": "44237C*"},
-    {"hostname": "miwifi-*", "macaddress": "5CE50C*"},
-    {"hostname": "miwifi-*", "macaddress": "50D2F5*"},
-    {"hostname": "miwifi-*", "macaddress": "88C397*"},
-    {"hostname": "miwifi-*", "macaddress": "8C53C3*"},
-    {"hostname": "miwifi-*", "macaddress": "50EC50*"},
-    {"hostname": "miwifi-*", "macaddress": "EC4D3E*"},
-    {"hostname": "miwifi-*", "macaddress": "28D127*"},
-    {"hostname": "miwifi-*", "macaddress": "7CC294*"},
-    {"hostname": "miwifi-*", "macaddress": "9C9D7E*"},
-    {"hostname": "miwifi-*", "macaddress": "B460ED*"},
-    {"hostname": "miwifi-*", "macaddress": "58B623*"}
-  ]
+  "version": "3.0.0"
 }

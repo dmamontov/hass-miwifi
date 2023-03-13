@@ -40,10 +40,9 @@ from .const import (
     ATTR_WIFI_5_0_DATA,
     ATTR_WIFI_5_0_GAME_DATA,
     ATTR_WIFI_ADAPTER_LENGTH,
-    DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
 )
 from .entity import MiWifiEntity
-from .enum import Wifi
+from .enum import Wifi, DeviceClass
 from .exceptions import LuciError
 from .updater import LuciUpdater, async_get_updater
 
@@ -111,7 +110,7 @@ MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
         key=ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH,
         name=ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH_NAME,
         icon=ICONS[f"{ATTR_SELECT_WIFI_2_4_SIGNAL_STRENGTH}_max"],
-        device_class=DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
+        device_class=DeviceClass.SIGNAL_STRENGTH,
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
     ),
@@ -119,7 +118,7 @@ MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
         key=ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH,
         name=ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH_NAME,
         icon=ICONS[f"{ATTR_SELECT_WIFI_5_0_SIGNAL_STRENGTH}_max"],
-        device_class=DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
+        device_class=DeviceClass.SIGNAL_STRENGTH,
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
     ),
@@ -127,7 +126,7 @@ MIWIFI_SELECTS: tuple[SelectEntityDescription, ...] = (
         key=ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH,
         name=ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH_NAME,
         icon=ICONS[f"{ATTR_SELECT_WIFI_5_0_GAME_SIGNAL_STRENGTH}_max"],
-        device_class=DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH,
+        device_class=DeviceClass.SIGNAL_STRENGTH,
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
     ),

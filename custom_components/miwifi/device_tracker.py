@@ -45,12 +45,11 @@ from .const import (
     CONF_STAY_ONLINE,
     DEFAULT_CALL_DELAY,
     DEFAULT_STAY_ONLINE,
-    DEVICE_CLASS_MIWIFI_DEVICE_TRACKER,
     DOMAIN,
     SIGNAL_NEW_DEVICE,
     UPDATER,
 )
-from .enum import Connection
+from .enum import Connection, DeviceClass
 from .helper import (
     detect_manufacturer,
     generate_entity_id,
@@ -147,7 +146,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
     """MiWifi device tracker entry."""
 
     _attr_attribution: str = ATTRIBUTION
-    _attr_device_class: str = DEVICE_CLASS_MIWIFI_DEVICE_TRACKER
+    _attr_device_class: str = DeviceClass.DEVICE_TRACKER
 
     _configuration_port: int | None = None
     _is_connected: bool = False

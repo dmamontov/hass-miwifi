@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from enum import Enum, IntEnum
+from enum import Enum, IntEnum  # type: ignore
 
 from homeassistant.backports.enum import StrEnum
 
@@ -180,6 +180,14 @@ class EncryptionAlgorithm(StrEnum):
     SHA256 = "sha256"
 
 
+class DeviceClass(StrEnum):
+    """DeviceClass enum"""
+
+    MODE = "miwifi__mode"
+    SIGNAL_STRENGTH = "miwifi__signal_strength"
+    DEVICE_TRACKER = "miwifi__device_tracker"
+
+
 class Model(str, Enum):
     """Model enum"""
 
@@ -239,7 +247,10 @@ class Model(str, Enum):
     RB01 = "rb01"  # 2021.10.28
     RA82 = "ra82"  # 2021.11.01
     CR8808 = "cr8808"  # 2021.11.26
+    RB02 = "rb02"  # 2022.01.18
     RB04 = "rb04"  # 2022.02.17
     RA74 = "ra74"  # 2022.03.18
     RB06 = "rb06"  # 2022.04.02
     RB08 = "rb08"  # 2022.07.04
+    R4AV2 = "r4av2"  # 2022
+    CB0401 = "cb0401"  # 2022

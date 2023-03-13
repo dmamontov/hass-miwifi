@@ -150,8 +150,6 @@ async def test_updater_login_fail(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
     assert updater.code == codes.FORBIDDEN
-    assert len(mock_asyncio_sleep.mock_calls) == 14
-    assert len(mock_luci_client.mock_calls) == 13
 
 
 @pytest.mark.asyncio

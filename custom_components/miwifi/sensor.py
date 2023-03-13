@@ -51,9 +51,9 @@ from .const import (
     ATTR_SENSOR_WAN_UPLOAD_SPEED,
     ATTR_SENSOR_WAN_UPLOAD_SPEED_NAME,
     ATTR_STATE,
-    DEVICE_CLASS_MIWIFI_MODE,
 )
 from .entity import MiWifiEntity
+from .enum import DeviceClass
 from .updater import LuciUpdater, async_get_updater
 
 PARALLEL_UPDATES = 0
@@ -118,7 +118,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         key=ATTR_SENSOR_MODE,
         name=ATTR_SENSOR_MODE_NAME,
         icon="mdi:transit-connection-variant",
-        device_class=DEVICE_CLASS_MIWIFI_MODE,
+        device_class=DeviceClass.MODE,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=True,
     ),
