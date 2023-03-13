@@ -1,10 +1,25 @@
 {
+  "domain": "miwifi",
+  "name": "MiWiFi",
+  "version": "3.0.0",
+  "documentation": "https://github.com/dmamontov/hass-miwifi/wiki",
+  "issue_tracker": "https://github.com/dmamontov/hass-miwifi/issues",
+  "config_flow": true,
+  "requirements": [],
+  "dependencies": [
+    "http"
+  ],
   "codeowners": [
     "@dmamontov"
   ],
-  "config_flow": true,
-  "dependencies": [
-    "http"
+  "iot_class": "local_polling",
+  "quality_scale": "platinum",
+  "ssdp": [
+    {
+      "st": "upnp:rootdevice",
+      "manufacturer": "Xiaomi",
+      "deviceType": "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
+    }
   ],
   "dhcp": [
     {
@@ -103,20 +118,5 @@
       "hostname": "miwifi-*",
       "macaddress": "58B623*"
     }
-  ],
-  "documentation": "https://github.com/dmamontov/hass-miwifi/wiki",
-  "domain": "miwifi",
-  "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/dmamontov/hass-miwifi/issues",
-  "name": "MiWiFi",
-  "quality_scale": "platinum",
-  "requirements": [],
-  "ssdp": [
-    {
-      "st": "upnp:rootdevice",
-      "manufacturer": "Xiaomi",
-      "deviceType": "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
-    }
-  ],
-  "version": "3.0.0"
+  ]
 }
