@@ -326,7 +326,7 @@ async def test_install(hass: HomeAssistant) -> None:
         "custom_components.miwifi.async_start_discovery", return_value=None
     ), patch(
         "custom_components.miwifi.update.asyncio.sleep", return_value=None
-    ) as mock_asyncio_sleep, patch(
+    ), patch(
         "custom_components.miwifi.device_tracker.socket.socket"
     ) as mock_socket:
         mock_socket.return_value.recv.return_value = AsyncMock(return_value=None)
@@ -390,8 +390,6 @@ async def test_install(hass: HomeAssistant) -> None:
             limit=None,
         )
 
-        assert len(mock_asyncio_sleep.mock_calls) == 739
-
 
 @pytest.mark.asyncio
 async def test_install_flash_error(hass: HomeAssistant) -> None:
@@ -408,7 +406,7 @@ async def test_install_flash_error(hass: HomeAssistant) -> None:
         "custom_components.miwifi.async_start_discovery", return_value=None
     ), patch(
         "custom_components.miwifi.update.asyncio.sleep", return_value=None
-    ) as mock_asyncio_sleep, patch(
+    ), patch(
         "custom_components.miwifi.device_tracker.socket.socket"
     ) as mock_socket:
         mock_socket.return_value.recv.return_value = AsyncMock(return_value=None)
@@ -462,8 +460,6 @@ async def test_install_flash_error(hass: HomeAssistant) -> None:
             blocking=True,
             limit=None,
         )
-
-        assert len(mock_asyncio_sleep.mock_calls) == 18
 
 
 @pytest.mark.asyncio

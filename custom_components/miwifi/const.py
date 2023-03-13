@@ -71,11 +71,6 @@ CLIENT_LOGIN_TYPE: Final = 2
 CLIENT_NONCE_TYPE: Final = 0
 CLIENT_PUBLIC_KEY: Final = "a2ffa5c9be07488bbb04a3a47d3c5f6a"
 
-"""Device classes"""
-DEVICE_CLASS_MIWIFI_SIGNAL_STRENGTH: Final = "miwifi__signal_strength"
-DEVICE_CLASS_MIWIFI_DEVICE_TRACKER: Final = "miwifi__device_tracker"
-DEVICE_CLASS_MIWIFI_MODE: Final = "miwifi__mode"
-
 """Services"""
 SERVICE_CALC_PASSWD: Final = "calc_passwd"
 SERVICE_REQUEST: Final = "request"
