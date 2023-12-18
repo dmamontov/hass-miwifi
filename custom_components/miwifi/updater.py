@@ -594,7 +594,7 @@ class LuciUpdater(DataUpdateCoordinator):
         if data.get(ATTR_SENSOR_MODE, Mode.DEFAULT) == Mode.MESH:
             return
 
-        response: dict = await self.luci.mode()
+        response: dict = await self.luci.netmode()
 
         if "mode" in response:
             with contextlib.suppress(ValueError):
