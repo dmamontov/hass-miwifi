@@ -43,7 +43,8 @@ class Mode(IntEnum):
     DEFAULT = 0, "default"
     REPEATER = 1, "repeater"
     ACCESS_POINT = 2, "access_point"
-    MESH = 9, "mesh"
+    """ netmode:3 """
+    MESH = 3, "mesh"
 
 
 class Connection(IntEnum):
