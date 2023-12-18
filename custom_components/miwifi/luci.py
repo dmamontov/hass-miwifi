@@ -226,13 +226,13 @@ class LuciClient:
 
         return await self.get("misystem/newstatus")
 
-    async def mode(self) -> dict:
-        """xqnetwork/mode method.
+    async def netmode(self) -> dict:
+        """xqnetwork/get_netmode method.
 
         :return dict: dict with api data.
         """
 
-        return await self.get("xqnetwork/mode")
+        return await self.get("xqnetwork/get_netmode")
 
     async def wifi_ap_signal(self) -> dict:
         """xqnetwork/wifiap_signal method.
