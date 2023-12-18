@@ -121,3 +121,4 @@ Many more Xiaomi and Redmi routers supported by MiWiFi
 | ![](images/R1CL.png)   | **Mi Router Lite**                    |  R1CL  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> |  <sub>🟢🟢🟢🟢🟢</sub>  |
 | ![](images/R1C.png)    | **Mi Router Mini**                    |  R1CM  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> |  <sub>🟢🟢🟢🟢🟢</sub>  |
 | ![](images/R1D.png)    | **Mi Router R1D**                     |  R1D   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> |  <sub>🟢🟢🟢🟢🟢</sub>  |
+| ![](images/RD03.png)   | **Mi Router AX3000T**                 |  RD03  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢</sub> |  <sub>⚪⚪⚪⚪⚪</sub>  |
