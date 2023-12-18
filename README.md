@@ -44,7 +44,7 @@ Many more Xiaomi and Redmi routers supported by MiWiFi
 - `xqsystem/login` - Authorization;
 - `xqsystem/init_info` - Basic information about the router;
 - `misystem/status` - Basic information about the router. Diagnostic data, memory, temperature, etc;
-- `xqnetwork/mode` - Operating mode. Repeater, Access Point, Mesh, etc.
+- `xqnetwork/get_netmode` - Operating mode. Repeater, Access Point, Mesh, etc.
 
 ##### Additional
 - `misystem/topo_graph` - Topography, auto discovery does not work without it;
