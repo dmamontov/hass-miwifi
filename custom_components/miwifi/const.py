@@ -195,6 +195,9 @@ ATTR_SWITCH_WIFI_5_0_GAME_NAME: Final = f"{ATTR_WIFI_NAME} 5G game"
 ATTR_SWITCH_WIFI_GUEST: Final = "wifi_guest"
 ATTR_SWITCH_WIFI_GUEST_NAME: Final = f"{ATTR_WIFI_NAME} guest"
 
+ATTR_SWITCH_QOS: Final = "qos"
+ATTR_SWITCH_QOS_NAME: Final = "QOS"
+
 """Select attributes"""
 ATTR_SELECT_WIFI_2_4_CHANNEL: Final = "wifi_2_4_channel"
 ATTR_SELECT_WIFI_2_4_CHANNELS: Final = "wifi_2_4_channels"

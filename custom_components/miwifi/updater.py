@@ -76,6 +76,7 @@ from .const import (
     ATTR_UPDATE_TITLE,
     ATTR_WIFI_ADAPTER_LENGTH,
     ATTR_WIFI_DATA_FIELDS,
+    ATTR_SWITCH_QOS,
     DEFAULT_ACTIVITY_DAYS,
     DEFAULT_CALL_DELAY,
     DEFAULT_MANUFACTURER,
@@ -109,6 +110,7 @@ PREPARE_METHODS: Final = (
     "mode",
     "wan",
     "led",
+    "qos",
     "wifi",
     "channels",
     "devices",
@@ -637,6 +639,16 @@ class LuciUpdater(DataUpdateCoordinator):
             return
 
         data[ATTR_LIGHT_LED] = False
+
+    async def _async_prepare_qos(self, data: dict) -> None:
+        """Prepare qos.
+
+        :param data: dict
+        """
+
+        response: dict = await self.luci.qos_info()
+
+        data[ATTR_SWITCH_QOS] = response["status"]["on"] == 1
 
     async def _async_prepare_wifi(self, data: dict) -> None:
         """Prepare wifi.

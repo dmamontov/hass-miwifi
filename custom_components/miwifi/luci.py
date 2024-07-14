@@ -322,6 +322,24 @@ class LuciClient:
 
         return await self.get("misystem/led", data)
 
+    async def qos_toggle(self, qosState: int = 0) -> dict:
+        """misystem/qos_switch method.
+
+        :param qosState: int: 0 or 1 to toggle the QOS feature
+        :return dict: dict with api data.
+        """
+
+        return await self.get("misystem/qos_switch", {"on": qosState})
+
+
+    async def qos_info(self) -> dict:
+        """misystem/qos_info method.
+
+        :return dict: dict with api data.
+        """
+
+        return await self.get("misystem/qos_info")
+
     async def device_list(self) -> dict:
         """misystem/devicelist method.
 

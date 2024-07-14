@@ -1488,6 +1488,136 @@ async def test_update_guest_turn(hass: HomeAssistant) -> None:
         assert state.attributes["icon"] == "mdi:wifi-off"
         assert len(mock_luci_client.mock_calls) == _prev_calls + 4
 
+#
+# @pytest.mark.asyncio
+# async def test_update_qos_turn(hass: HomeAssistant) -> None:
+#     """Test update qos.
+#
+#     :param hass: HomeAssistant
+#     """
+#
+#     with patch(
+#             "custom_components.miwifi.updater.LuciClient"
+#     ) as mock_luci_client, patch(
+#         "custom_components.miwifi.async_start_discovery", return_value=None
+#     ), patch(
+#         "custom_components.miwifi.device_tracker.socket.socket"
+#     ) as mock_socket, patch(
+#         "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+#     ):
+#         await async_mock_luci_client(mock_luci_client)
+#
+#         mock_socket.return_value.recv.return_value = AsyncMock(return_value=None)
+#
+#         def success_set_qos(data: dict) -> dict:
+#             return {"code": 0}
+#
+#         def error_set_qos(data: dict) -> None:
+#             raise LuciRequestError
+#
+#         mock_luci_client.return_value.qos_toggle = AsyncMock(
+#             side_effect=MultipleSideEffect(
+#                 success_set_qos,
+#                 success_set_qos,
+#                 error_set_qos,
+#                 error_set_qos,
+#             )
+#         )
+#
+#         setup_data: list = await async_setup(hass)
+#
+#         config_entry: MockConfigEntry = setup_data[1]
+#
+#         assert await hass.config_entries.async_setup(config_entry.entry_id)
+#         await hass.async_block_till_done()
+#
+#         updater: LuciUpdater = hass.data[DOMAIN][config_entry.entry_id][UPDATER]
+#         registry = er.async_get(hass)
+#
+#         assert updater.last_update_success
+#
+#         unique_id: str = _generate_id(ATTR_SWITCH_WIFI_GUEST_NAME, updater)
+#
+#         entry: er.RegistryEntry | None = registry.async_get(unique_id)
+#         state: State = hass.states.get(unique_id)
+#         assert state is None
+#         assert entry is not None
+#         assert entry.disabled_by == er.RegistryEntryDisabler.INTEGRATION
+#
+#         registry.async_update_entity(entity_id=unique_id, disabled_by=None)
+#         await hass.async_block_till_done()
+#
+#         async_fire_time_changed(
+#             hass, utcnow() + timedelta(seconds=DEFAULT_SCAN_INTERVAL + 1)
+#         )
+#         await hass.async_block_till_done()
+#
+#         async_fire_time_changed(
+#             hass, utcnow() + timedelta(seconds=DEFAULT_SCAN_INTERVAL + 1)
+#         )
+#         await hass.async_block_till_done()
+#
+#         entry = registry.async_get(unique_id)
+#
+#         assert entry.disabled_by is None
+#
+#         state = hass.states.get(unique_id)
+#         assert state.state == STATE_OFF
+#
+#         _prev_calls: int = len(mock_luci_client.mock_calls)
+#
+#         assert await hass.services.async_call(
+#             SWITCH_DOMAIN,
+#             SERVICE_TURN_ON,
+#             {ATTR_ENTITY_ID: [unique_id]},
+#             blocking=True,
+#             limit=None,
+#         )
+#
+#         state = hass.states.get(unique_id)
+#         assert state.state == STATE_ON
+#         assert state.attributes["icon"] == "mdi:wifi-lock-open"
+#         assert len(mock_luci_client.mock_calls) == _prev_calls + 1
+#
+#         assert await hass.services.async_call(
+#             SWITCH_DOMAIN,
+#             SERVICE_TURN_OFF,
+#             {ATTR_ENTITY_ID: [unique_id]},
+#             blocking=True,
+#             limit=None,
+#         )
+#
+#         state = hass.states.get(unique_id)
+#         assert state.state == STATE_OFF
+#         assert state.attributes["icon"] == "mdi:wifi-off"
+#         assert len(mock_luci_client.mock_calls) == _prev_calls + 2
+#
+#         assert await hass.services.async_call(
+#             SWITCH_DOMAIN,
+#             SERVICE_TURN_ON,
+#             {ATTR_ENTITY_ID: [unique_id]},
+#             blocking=True,
+#             limit=None,
+#         )
+#
+#         state = hass.states.get(unique_id)
+#         assert state.state == STATE_ON
+#         assert state.attributes["icon"] == "mdi:wifi-lock-open"
+#         assert len(mock_luci_client.mock_calls) == _prev_calls + 3
+#
+#         assert await hass.services.async_call(
+#             SWITCH_DOMAIN,
+#             SERVICE_TURN_OFF,
+#             {ATTR_ENTITY_ID: [unique_id]},
+#             blocking=True,
+#             limit=None,
+#         )
+#
+#         state = hass.states.get(unique_id)
+#         assert state.state == STATE_OFF
+#         assert state.attributes["icon"] == "mdi:wifi-off"
+#         assert len(mock_luci_client.mock_calls) == _prev_calls + 4
+
 
 def _generate_id(code: str, updater: LuciUpdater) -> str:
     """Generate unique id
