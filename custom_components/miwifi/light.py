@@ -9,6 +9,7 @@ from typing import Any, Final
 
 from homeassistant.components.light import (
     ENTITY_ID_FORMAT,
+    ColorMode,
     LightEntity,
     LightEntityDescription,
 )
@@ -88,6 +89,8 @@ class MiWifiLight(MiWifiEntity, LightEntity):
         MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
 
         self._attr_is_on = updater.data.get(description.key, False)
+        self._attr_color_mode = ColorMode.ONOFF
+        self._attr_supported_color_modes = {ColorMode.ONOFF}
         self._change_icon(self._attr_is_on)
 
     def _handle_coordinator_update(self) -> None:

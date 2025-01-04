@@ -9,9 +9,8 @@ from typing import Final
 import homeassistant.components.persistent_notification as pn
 import voluptuous as vol
 from homeassistant.const import CONF_DEVICE_ID, CONF_IP_ADDRESS, CONF_TYPE
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.typing import ServiceCallType
 
 from .const import (
     ATTR_DEVICE_HW_VERSION,
@@ -54,10 +53,10 @@ class MiWifiServiceCall:
 
         self.hass = hass
 
-    def get_updater(self, service: ServiceCallType) -> LuciUpdater:
+    def get_updater(self, service: ServiceCall) -> LuciUpdater:
         """Get updater.
 
-        :param service: ServiceCallType
+        :param service: ServiceCall
         :return LuciUpdater
         """
 
@@ -76,10 +75,10 @@ class MiWifiServiceCall:
             f"Device {device_id} does not support the called service. Choose a router with MiWifi support."  # pylint: disable=line-too-long
         )
 
-    async def async_call_service(self, service: ServiceCallType) -> None:
+    async def async_call_service(self, service: ServiceCall) -> None:
         """Execute service call.
 
-        :param service: ServiceCallType
+        :param service: ServiceCall
         """
 
         raise NotImplementedError  # pragma: no cover
@@ -91,10 +90,10 @@ class MiWifiCalcPasswdServiceCall(MiWifiServiceCall):
     salt_old: str = "A2E371B0-B34B-48A5-8C40-A7133F3B5D88"
     salt_new: str = "6d2df50a-250f-4a30-a5e6-d44fb0960aa0"
 
-    async def async_call_service(self, service: ServiceCallType) -> None:
+    async def async_call_service(self, service: ServiceCall) -> None:
         """Execute service call.
 
-        :param service: ServiceCallType
+        :param service: ServiceCall
         """
 
         _updater: LuciUpdater = self.get_updater(service)
@@ -122,10 +121,10 @@ class MiWifiRequestServiceCall(MiWifiServiceCall):
         {vol.Required(CONF_URI): str, vol.Optional(CONF_BODY): dict}
     )
 
-    async def async_call_service(self, service: ServiceCallType) -> None:
+    async def async_call_service(self, service: ServiceCall) -> None:
         """Execute service call.
 
-        :param service: ServiceCallType
+        :param service: ServiceCall
         """
 
         updater: LuciUpdater = self.get_updater(service)

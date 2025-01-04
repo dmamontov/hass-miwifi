@@ -9,7 +9,7 @@ from contextlib import closing
 from functools import cached_property
 from typing import Any, Final
 
-from homeassistant.components.device_tracker import ENTITY_ID_FORMAT, SOURCE_TYPE_ROUTER
+from homeassistant.components.device_tracker import ENTITY_ID_FORMAT, SourceType
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -351,7 +351,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         :return str: Source type router
         """
 
-        return SOURCE_TYPE_ROUTER
+        return SourceType.ROUTER
 
     @cached_property
     def entity_registry_enabled_default(self) -> bool:
