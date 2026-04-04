@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import traceback
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -13,27 +14,31 @@ from homeassistant.const import (
     CONF_TIMEOUT,
     EVENT_HOMEASSISTANT_STOP,
 )
+from homeassistant.components import persistent_notification
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
 
 from .const import (
     CONF_ACTIVITY_DAYS,
+    CONF_AUTO_DISCOVER,
     CONF_ENCRYPTION_ALGORITHM,
     CONF_IS_FORCE_LOAD,
+    CONF_SETUP_TIMEOUT,
     DEFAULT_ACTIVITY_DAYS,
-    DEFAULT_CALL_DELAY,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SETUP_TIMEOUT,
     DEFAULT_SLEEP,
     DEFAULT_TIMEOUT,
     DOMAIN,
     OPTION_IS_FROM_FLOW,
     PLATFORMS,
+    SETUP_TASK,
     UPDATE_LISTENER,
     UPDATER,
 )
-from .discovery import async_start_discovery
+from .discovery import async_is_discovery_enabled, async_start_discovery, async_stop_discovery
 from .enum import EncryptionAlgorithm
-from .helper import get_config_value, get_store
+from .helper import async_get_version, get_config_value, get_store
 from .services import SERVICES
 from .updater import LuciUpdater
 
@@ -50,12 +55,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     async_start_discovery(hass)
 
+    _LOGGER.info(
+        "Setting up MiWiFi integration version %s for entry %s",
+        await async_get_version(hass),
+        entry.entry_id,
+    )
+
+    notification_id: str = f"{DOMAIN}_{entry.entry_id}_setup_error"
+    # Clear the previous setup error so a successful retry does not leave stale UI noise behind.
+    persistent_notification.async_dismiss(hass, notification_id)
+
     is_new: bool = get_config_value(entry, OPTION_IS_FROM_FLOW, False)
 
     if is_new:
         hass.config_entries.async_update_entry(entry, data=entry.data, options={})
 
     _ip: str = get_config_value(entry, CONF_IP_ADDRESS)
+    _setup_timeout: int = get_config_value(
+        entry, CONF_SETUP_TIMEOUT, DEFAULT_SETUP_TIMEOUT
+    )
 
     _updater: LuciUpdater = LuciUpdater(
         hass,
@@ -73,6 +91,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     hass.data[DOMAIN][entry.entry_id] = {
+        CONF_AUTO_DISCOVER: get_config_value(entry, CONF_AUTO_DISCOVER, True),
         CONF_IP_ADDRESS: _ip,
         UPDATER: _updater,
     }
@@ -87,7 +106,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         :param with_sleep: bool
         """
 
-        await _updater.async_config_entry_first_refresh()
+        # First refresh is allowed to run longer than normal polling because it discovers
+        # capabilities, builds entities, and may need to walk mesh topology.
+        _previous_timeout: int = _updater.luci.timeout
+        _updater.luci.timeout = _setup_timeout
+        try:
+            await _updater.async_config_entry_first_refresh()
+        finally:
+            _updater.luci.timeout = _previous_timeout
         if not _updater.last_update_success:
             if _updater.last_exception is not None:
                 raise PlatformNotReady from _updater.last_exception
@@ -95,18 +121,59 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             raise PlatformNotReady
 
         if with_sleep:
+            # Reloads wait a moment before platform setup so the router can settle after
+            # reauthentication and optional discovery work.
             await asyncio.sleep(DEFAULT_SLEEP)
 
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    if is_new:
-        await async_start()
-        await asyncio.sleep(DEFAULT_SLEEP)
-    else:
-        hass.loop.call_later(
-            DEFAULT_CALL_DELAY,
-            lambda: hass.async_create_task(async_start(True)),
+    def handle_setup_failure(err: Exception) -> None:
+        trace: str = "".join(
+            traceback.format_exception(type(err), err, err.__traceback__)
         )
+
+        _LOGGER.exception("Failed to set up MiWiFi entry %s", entry.entry_id)
+
+        # Keep the full traceback available so background setup failures stay actionable.
+        persistent_notification.async_create(
+            hass,
+            (
+                f"MiWiFi setup failed for `{_ip}`.\n\n"
+                f"Error: `{err}`\n\n"
+                "<details><summary>Traceback</summary>\n\n"
+                f"```python\n{trace}\n```\n"
+                "</details>"
+            ),
+            title="MiWiFi setup failed",
+            notification_id=notification_id,
+        )
+
+    async def async_start_in_background() -> None:
+        """Finish first-time entry setup without blocking config flow."""
+
+        try:
+            await async_start()
+            await asyncio.sleep(DEFAULT_SLEEP)
+        except Exception as err:  # pragma: no cover - best effort notification path
+            handle_setup_failure(err)
+        finally:
+            if entry.entry_id in hass.data.get(DOMAIN, {}):
+                hass.data[DOMAIN][entry.entry_id].pop(SETUP_TASK, None)
+
+    try:
+        if is_new:
+            # First-time setup should only validate credentials synchronously in the
+            # config flow. The heavier coordinator/platform initialization runs in the
+            # background so the form no longer collapses into Home Assistant's generic
+            # unknown-error banner after valid credentials.
+            hass.data[DOMAIN][entry.entry_id][SETUP_TASK] = hass.async_create_task(
+                async_start_in_background()
+            )
+        else:
+            await async_start(True)
+    except Exception as err:
+        handle_setup_failure(err)
+        raise
 
     async def async_stop(event: Event) -> None:
         """Async stop"""
@@ -149,12 +216,19 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _updater: LuciUpdater = hass.data[DOMAIN][entry.entry_id][UPDATER]
         await _updater.async_stop()
 
+        _setup_task = hass.data[DOMAIN][entry.entry_id].get(SETUP_TASK)
+        if _setup_task is not None and not _setup_task.done():
+            _setup_task.cancel()
+
         _update_listener: CALLBACK_TYPE = hass.data[DOMAIN][entry.entry_id][
             UPDATE_LISTENER
         ]
         _update_listener()
 
         hass.data[DOMAIN].pop(entry.entry_id)
+
+        if not async_is_discovery_enabled(hass):
+            async_stop_discovery(hass)
 
     return is_unload
 
@@ -166,5 +240,6 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     :param entry: ConfigEntry: Config Entry object
     """
 
-    _updater: LuciUpdater = hass.data[DOMAIN][entry.entry_id][UPDATER]
-    await _updater.async_stop(clean_store=True)
+    await get_store(hass, get_config_value(entry, CONF_IP_ADDRESS)).async_remove()
+
+

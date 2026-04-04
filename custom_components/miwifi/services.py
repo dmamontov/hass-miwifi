@@ -8,10 +8,9 @@ from typing import Final
 
 import homeassistant.components.persistent_notification as pn
 import voluptuous as vol
-from homeassistant.const import CONF_DEVICE_ID, CONF_IP_ADDRESS, CONF_TYPE
-from homeassistant.core import HomeAssistant
+from homeassistant.const import CONF_DEVICE_ID, CONF_TYPE
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.typing import ServiceCallType
 
 from .const import (
     ATTR_DEVICE_HW_VERSION,
@@ -20,6 +19,7 @@ from .const import (
     CONF_REQUEST,
     CONF_RESPONSE,
     CONF_URI,
+    DOMAIN,
     EVENT_LUCI,
     EVENT_TYPE_RESPONSE,
     NAME,
@@ -54,10 +54,10 @@ class MiWifiServiceCall:
 
         self.hass = hass
 
-    def get_updater(self, service: ServiceCallType) -> LuciUpdater:
+    def get_updater(self, service: ServiceCall) -> LuciUpdater:
         """Get updater.
 
-        :param service: ServiceCallType
+        :param service: ServiceCall
         :return LuciUpdater
         """
 
@@ -68,18 +68,21 @@ class MiWifiServiceCall:
         if device is None:
             raise vol.Invalid(f"Device {device_id} not found.")
 
-        for connection_type, identifier in device.connections:
-            if connection_type == CONF_IP_ADDRESS and len(identifier) > 0:
-                return async_get_updater(self.hass, identifier)
+        for entry_id in device.config_entries:
+            if entry_id in self.hass.data.get(DOMAIN, {}):
+                _LOGGER.debug("Resolved service device %s to MiWiFi entry %s", device_id, entry_id)
+                return async_get_updater(self.hass, entry_id)
+
+        _LOGGER.debug("Failed to resolve service device %s to any MiWiFi entry", device_id)
 
         raise vol.Invalid(
             f"Device {device_id} does not support the called service. Choose a router with MiWifi support."  # pylint: disable=line-too-long
         )
 
-    async def async_call_service(self, service: ServiceCallType) -> None:
+    async def async_call_service(self, service: ServiceCall) -> None:
         """Execute service call.
 
-        :param service: ServiceCallType
+        :param service: ServiceCall
         """
 
         raise NotImplementedError  # pragma: no cover
@@ -91,10 +94,10 @@ class MiWifiCalcPasswdServiceCall(MiWifiServiceCall):
     salt_old: str = "A2E371B0-B34B-48A5-8C40-A7133F3B5D88"
     salt_new: str = "6d2df50a-250f-4a30-a5e6-d44fb0960aa0"
 
-    async def async_call_service(self, service: ServiceCallType) -> None:
+    async def async_call_service(self, service: ServiceCall) -> None:
         """Execute service call.
 
-        :param service: ServiceCallType
+        :param service: ServiceCall
         """
 
         _updater: LuciUpdater = self.get_updater(service)
@@ -122,10 +125,10 @@ class MiWifiRequestServiceCall(MiWifiServiceCall):
         {vol.Required(CONF_URI): str, vol.Optional(CONF_BODY): dict}
     )
 
-    async def async_call_service(self, service: ServiceCallType) -> None:
+    async def async_call_service(self, service: ServiceCall) -> None:
         """Execute service call.
 
-        :param service: ServiceCallType
+        :param service: ServiceCall
         """
 
         updater: LuciUpdater = self.get_updater(service)

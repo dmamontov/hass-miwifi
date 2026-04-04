@@ -15,7 +15,8 @@ from homeassistant.loader import async_get_integration
 from homeassistant.util import slugify
 from httpx import codes
 
-from .const import DEFAULT_TIMEOUT, DOMAIN, MANUFACTURERS, STORAGE_VERSION
+from .const import DEFAULT_TIMEOUT, DOMAIN, STORAGE_VERSION
+from .manufacturers import MANUFACTURERS
 from .updater import LuciUpdater
 
 
@@ -93,10 +94,10 @@ async def async_get_version(hass: HomeAssistant) -> str:
     return f"{integration.version}"
 
 
-def generate_entity_id(entity_id_format: str, mac: str, name: str | None = None) -> str:
+def generate_entity_id(entity_id_pattern: str, mac: str, name: str | None = None) -> str:
     """Generate Entity ID
 
-    :param entity_id_format: str: Format
+    :param entity_id_pattern: str: Entity ID pattern
     :param mac: str: Mac address
     :param name: str | None: Name
     :return str: Entity ID
@@ -104,7 +105,7 @@ def generate_entity_id(entity_id_format: str, mac: str, name: str | None = None)
 
     _name: str = f"_{name}" if name is not None else ""
 
-    return entity_id_format.format(slugify(f"miwifi_{mac}{_name}".lower()))
+    return entity_id_pattern.format(slugify(f"miwifi_{mac}{_name}".lower()))
 
 
 def get_store(hass: HomeAssistant, ip: str) -> Store:  # pylint: disable=invalid-name
@@ -158,3 +159,4 @@ def detect_manufacturer(mac: str) -> str | None:
     identifier: str = mac.replace(":", "").upper()[:6]
 
     return MANUFACTURERS[identifier] if identifier in MANUFACTURERS else None
+

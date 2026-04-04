@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import logging
@@ -75,6 +76,18 @@ class LuciClient:
 
         self.diagnostics: dict[str, Any] = {}
 
+    @property
+    def timeout(self) -> int:
+        """Current request timeout in seconds."""
+
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value: int) -> None:
+        """Override request timeout in seconds."""
+
+        self._timeout = value
+
     async def login(self) -> dict:
         """Login method
 
@@ -95,8 +108,7 @@ class LuciClient:
         try:
             self._debug("Start request", _url, json.dumps(_request_data), _method, True)
 
-            async with self._client as client:
-                response: Response = await client.post(
+            response: Response = await self._client.post(
                     _url,
                     data=_request_data,
                     timeout=self._timeout,
@@ -129,10 +141,10 @@ class LuciClient:
         _url: str = f"{self._url}/;stok={self._token}/web/{_method}"
 
         try:
-            async with self._client as client:
-                response: Response = await client.get(_url, timeout=self._timeout)
+            self._debug("Start request", _url, {"method": _method}, _method, True)
+            response: Response = await self._client.get(_url, timeout=self._timeout)
 
-                self._debug("Successful request", _url, response.content, _method)
+            self._debug("Successful request", _url, response.content, _method)
         except (HTTPError, ConnectError, TransportError, ValueError, TypeError) as _e:
             self._debug("Logout error", _url, _e, _method)
 
@@ -162,8 +174,8 @@ class LuciClient:
         _url: str = f"{self._url}/{_stok}api/{path}"
 
         try:
-            async with self._client as client:
-                response: Response = await client.get(_url, timeout=self._timeout)
+            self._debug("Start request", _url, query_params or {}, path, True)
+            response: Response = await self._client.get(_url, timeout=self._timeout)
 
             self._debug("Successful request", _url, response.content, path)
 
@@ -428,20 +440,33 @@ class LuciClient:
         :param is_only_log: bool: Is only log
         """
 
-        _LOGGER.debug("%s (%s): %s", message, url, str(content))
+        _content: Any = self._normalize_debug_content(content)
+
+        _LOGGER.debug("%s (%s): %s", message, url, _content)
 
         if is_only_log:
             return
-
-        _content: dict | str = {}
-
-        try:
-            _content = json.loads(content)
-        except (ValueError, TypeError):
-            _content = str(content)
 
         self.diagnostics[path] = {
             DIAGNOSTIC_DATE_TIME: datetime.now().replace(microsecond=0).isoformat(),
             DIAGNOSTIC_MESSAGE: message,
             DIAGNOSTIC_CONTENT: _content,
         }
+
+    @staticmethod
+    def _normalize_debug_content(content: Any) -> Any:
+        """Normalize debug payloads for readable logs and diagnostics."""
+
+        if isinstance(content, bytes):
+            with contextlib.suppress(UnicodeDecodeError):
+                content = content.decode()
+
+        if isinstance(content, str):
+            with contextlib.suppress(ValueError, TypeError, json.JSONDecodeError):
+                return json.loads(content)
+
+            return content
+
+        return content
+
+

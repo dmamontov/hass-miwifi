@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -18,17 +19,21 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.typing import ConfigType
 from httpx import codes
 
 from .const import (
     CONF_ACTIVITY_DAYS,
+    CONF_AUTO_DISCOVER,
     CONF_ENCRYPTION_ALGORITHM,
     CONF_IS_FORCE_LOAD,
     CONF_IS_TRACK_DEVICES,
+    CONF_SETUP_TIMEOUT,
     CONF_STAY_ONLINE,
     DEFAULT_ACTIVITY_DAYS,
+    DEFAULT_AUTO_DISCOVER,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SETUP_TIMEOUT,
     DEFAULT_STAY_ONLINE,
     DEFAULT_TIMEOUT,
     DOMAIN,
@@ -58,7 +63,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         :return MiWifiOptionsFlow: Options Flow object
         """
 
-        return MiWifiOptionsFlow(config_entry)
+        return MiWifiOptionsFlow()
 
     async def async_step_ssdp(self, discovery_info: ssdp.SsdpServiceInfo) -> FlowResult:
         """Handle discovery via ssdp.
@@ -96,11 +101,11 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         return self.async_abort(reason="discovery_started")
 
     async def async_step_integration_discovery(
-        self, discovery_info: DiscoveryInfoType
+        self, discovery_info: dict[str, Any]
     ) -> FlowResult:
         """Handle discovery via integration.
 
-        :param discovery_info: DiscoveryInfoType: Discovery Info object
+        :param discovery_info: dict[str, Any]: Discovery Info object
         :return FlowResult: Result object
         """
 
@@ -141,6 +146,9 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                     ),
                     vol.Required(CONF_IS_TRACK_DEVICES, default=True): cv.boolean,
                     vol.Required(
+                        CONF_AUTO_DISCOVER, default=DEFAULT_AUTO_DISCOVER
+                    ): cv.boolean,
+                    vol.Required(
                         CONF_STAY_ONLINE, default=DEFAULT_STAY_ONLINE
                     ): cv.positive_int,
                     vol.Required(
@@ -149,6 +157,10 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                     vol.Required(
                         CONF_TIMEOUT,
                         default=DEFAULT_TIMEOUT,
+                    ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+                    vol.Required(
+                        CONF_SETUP_TIMEOUT,
+                        default=DEFAULT_SETUP_TIMEOUT,
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
                 }
             ),
@@ -176,7 +188,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                 user_input[CONF_IP_ADDRESS],
                 user_input[CONF_PASSWORD],
                 user_input[CONF_ENCRYPTION_ALGORITHM],
-                user_input[CONF_TIMEOUT],
+                user_input[CONF_SETUP_TIMEOUT],
             )
 
             _LOGGER.debug("Verify access code: %s", code)
@@ -189,11 +201,11 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                 )
 
             if code == codes.CONFLICT:
-                errors["base"] = "router.not.supported"
+                errors["base"] = "router_not_supported"
             elif code == codes.FORBIDDEN:
-                errors["base"] = "password.not_matched"
+                errors["base"] = "password_not_matched"
             else:
-                errors["base"] = "ip_address.not_matched"
+                errors["base"] = "ip_address_not_matched"
 
         if self._discovered_device is None:
             return await self.async_step_user(user_input, errors)
@@ -229,6 +241,9 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                     ),
                     vol.Required(CONF_IS_TRACK_DEVICES, default=True): cv.boolean,
                     vol.Required(
+                        CONF_AUTO_DISCOVER, default=DEFAULT_AUTO_DISCOVER
+                    ): cv.boolean,
+                    vol.Required(
                         CONF_STAY_ONLINE, default=DEFAULT_STAY_ONLINE
                     ): cv.positive_int,
                     vol.Required(
@@ -238,6 +253,10 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                         CONF_TIMEOUT,
                         default=DEFAULT_TIMEOUT,
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+                    vol.Required(
+                        CONF_SETUP_TIMEOUT,
+                        default=DEFAULT_SETUP_TIMEOUT,
+                    ): vol.All(vol.Coerce(int), vol.Range(min=10)),
                 }
             ),
             errors=errors,
@@ -246,16 +265,6 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
 
 class MiWifiOptionsFlow(config_entries.OptionsFlow):
     """Changing options flow."""
-
-    _config_entry: config_entries.ConfigEntry
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow.
-
-        :param config_entry: config_entries.ConfigEntry: Config Entry object
-        """
-
-        self._config_entry = config_entry
 
     async def async_step_init(self, user_input: ConfigType | None = None) -> FlowResult:
         """Manage the options.
@@ -271,7 +280,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 user_input[CONF_IP_ADDRESS],
                 user_input[CONF_PASSWORD],
                 user_input[CONF_ENCRYPTION_ALGORITHM],
-                user_input[CONF_TIMEOUT],
+                user_input[CONF_SETUP_TIMEOUT],
             )
 
             _LOGGER.debug("Verify access code: %s", code)
@@ -279,16 +288,14 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
             if codes.is_success(code):
                 await self.async_update_unique_id(user_input[CONF_IP_ADDRESS])
 
-                return self.async_create_entry(
-                    title=user_input[CONF_IP_ADDRESS], data=user_input
-                )
+                return self.async_create_entry(data=user_input)
 
             if code == codes.CONFLICT:
-                errors["base"] = "router.not.supported"
+                errors["base"] = "router_not_supported"
             elif code == codes.FORBIDDEN:
-                errors["base"] = "password.not_matched"
+                errors["base"] = "password_not_matched"
             else:
-                errors["base"] = "ip_address.not_matched"
+                errors["base"] = "ip_address_not_matched"
 
         return self.async_show_form(
             step_id="init", data_schema=self._get_options_schema(), errors=errors
@@ -300,7 +307,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         :param unique_id:
         """
 
-        if self._config_entry.unique_id == unique_id:
+        if self.config_entry.unique_id == unique_id:
             return
 
         for flow in self.hass.config_entries.flow.async_progress(True):
@@ -311,7 +318,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 self.hass.config_entries.flow.async_abort(flow["flow_id"])
 
         self.hass.config_entries.async_update_entry(
-            self._config_entry, unique_id=unique_id
+            self.config_entry, unique_id=unique_id
         )
 
     def _get_options_schema(self) -> vol.Schema:
@@ -323,16 +330,16 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         schema: dict = {
             vol.Required(
                 CONF_IP_ADDRESS,
-                default=get_config_value(self._config_entry, CONF_IP_ADDRESS, ""),
+                default=get_config_value(self.config_entry, CONF_IP_ADDRESS, ""),
             ): str,
             vol.Required(
                 CONF_PASSWORD,
-                default=get_config_value(self._config_entry, CONF_PASSWORD, ""),
+                default=get_config_value(self.config_entry, CONF_PASSWORD, ""),
             ): str,
             vol.Required(
                 CONF_ENCRYPTION_ALGORITHM,
                 default=get_config_value(
-                    self._config_entry,
+                    self.config_entry,
                     CONF_ENCRYPTION_ALGORITHM,
                     EncryptionAlgorithm.SHA1,
                 ),
@@ -345,38 +352,50 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
             vol.Required(
                 CONF_IS_TRACK_DEVICES,
                 default=get_config_value(
-                    self._config_entry, CONF_IS_TRACK_DEVICES, True
+                    self.config_entry, CONF_IS_TRACK_DEVICES, True
+                ),
+            ): cv.boolean,
+            vol.Required(
+                CONF_AUTO_DISCOVER,
+                default=get_config_value(
+                    self.config_entry, CONF_AUTO_DISCOVER, DEFAULT_AUTO_DISCOVER
                 ),
             ): cv.boolean,
             vol.Required(
                 CONF_STAY_ONLINE,
                 default=get_config_value(
-                    self._config_entry, CONF_STAY_ONLINE, DEFAULT_STAY_ONLINE
+                    self.config_entry, CONF_STAY_ONLINE, DEFAULT_STAY_ONLINE
                 ),
             ): cv.positive_int,
             vol.Required(
                 CONF_SCAN_INTERVAL,
                 default=get_config_value(
-                    self._config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    self.config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                 ),
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
             vol.Optional(
                 CONF_ACTIVITY_DAYS,
                 default=get_config_value(
-                    self._config_entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS
+                    self.config_entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS
                 ),
             ): cv.positive_int,
             vol.Optional(
                 CONF_TIMEOUT,
                 default=get_config_value(
-                    self._config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT
+                    self.config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT
+                ),
+            ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+            vol.Optional(
+                CONF_SETUP_TIMEOUT,
+                default=get_config_value(
+                    self.config_entry, CONF_SETUP_TIMEOUT, DEFAULT_SETUP_TIMEOUT
                 ),
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
         }
 
         with contextlib.suppress(ValueError):
             updater: LuciUpdater = async_get_updater(
-                self.hass, self._config_entry.entry_id
+                self.hass, self.config_entry.entry_id
             )
 
             if not updater.is_repeater:  # pragma: no cover
@@ -388,8 +407,10 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_IS_FORCE_LOAD,
                     default=get_config_value(
-                        self._config_entry, CONF_IS_FORCE_LOAD, False
+                        self.config_entry, CONF_IS_FORCE_LOAD, False
                     ),
                 ): cv.boolean,
             }
         )
+
+

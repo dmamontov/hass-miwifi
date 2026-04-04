@@ -1,10 +1,10 @@
 {
   "config": {
     "error": {
-      "ip_address.not_matched": "Invalid IP",
-      "password.not_matched": "Invalid password",
+      "ip_address_not_matched": "Invalid IP",
+      "password_not_matched": "Invalid password",
       "connection": "Failed to establish connection",
-      "router.not.supported": "The router is not supported. Detailed information has been sent to the notification center."
+      "router_not_supported": "The router is not supported. Detailed information has been sent to the notification center."
     },
     "step": {
       "discovery_confirm": {
@@ -15,19 +15,21 @@
           "password": "[%key:common::config_flow::data::password%]",
           "encryption_algorithm": "Password encryption algorithm",
           "is_track_devices": "Track devices",
+          "auto_discover": "Auto discover mesh devices",
           "stay_online": "Minimum stay online in seconds",
           "scan_interval": "Scan interval in seconds [PRO]",
-          "timeout": "Timeout of requests in seconds [PRO]"
+          "timeout": "Timeout of requests in seconds [PRO]",
+          "setup_timeout": "Initial setup timeout in seconds [PRO]"
         }
       }
     }
   },
   "options": {
     "error": {
-      "ip_address.not_matched": "Invalid IP",
-      "password.not_matched": "Invalid password",
+      "ip_address_not_matched": "Invalid IP",
+      "password_not_matched": "Invalid password",
       "connection": "Failed to establish connection",
-      "router.not.supported": "The router is not supported. Detailed information has been sent to the notification center."
+      "router_not_supported": "The router is not supported. Detailed information has been sent to the notification center."
     },
     "step": {
       "init": {
@@ -38,10 +40,12 @@
           "password": "[%key:common::config_flow::data::password%]",
           "encryption_algorithm": "Password encryption algorithm",
           "is_track_devices": "Track devices",
+          "auto_discover": "Auto discover mesh devices",
           "stay_online": "Minimum stay online in seconds",
           "scan_interval": "Scan interval in seconds [PRO]",
           "activity_days": "Allowed number of days to wait after the last activity [PRO]",
           "timeout": "Timeout of requests in seconds [PRO]",
+          "setup_timeout": "Initial setup timeout in seconds [PRO]",
           "is_force_load": "Forced booting of devices in repeater mode [PRO]"
         }
       }
@@ -53,3 +57,5 @@
     }
   }
 }
+
+

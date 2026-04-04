@@ -18,20 +18,21 @@ class MiWifiEntity(CoordinatorEntity):
     """MiWifi entity."""
 
     _attr_attribution: str = ATTRIBUTION
+    _attr_has_entity_name = True
 
     def __init__(
         self,
         unique_id: str,
         description: EntityDescription,
         updater: LuciUpdater,
-        entity_id_format: str,
+        entity_id_pattern: str,
     ) -> None:
         """Initialize sensor.
 
         :param unique_id: str: Unique ID
         :param description: EntityDescription: EntityDescription object
         :param updater: LuciUpdater: Luci updater object
-        :param entity_id_format: str: ENTITY_ID_FORMAT
+        :param entity_id_pattern: str: Entity ID pattern
         """
 
         CoordinatorEntity.__init__(self, coordinator=updater)
@@ -40,7 +41,7 @@ class MiWifiEntity(CoordinatorEntity):
         self._updater: LuciUpdater = updater
 
         self.entity_id = generate_entity_id(
-            entity_id_format,
+            entity_id_pattern,
             updater.data.get(ATTR_DEVICE_MAC_ADDRESS, updater.ip),
             description.name,
         )

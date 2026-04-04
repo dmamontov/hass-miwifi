@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components.button import (
-    ENTITY_ID_FORMAT,
     ButtonDeviceClass,
     ButtonEntity,
     ButtonEntityDescription,
@@ -77,7 +76,7 @@ class MiWifiButton(MiWifiEntity, ButtonEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
+        MiWifiEntity.__init__(self, unique_id, description, updater, "button.{}")
 
     def _handle_coordinator_update(self) -> None:
         """Update state."""

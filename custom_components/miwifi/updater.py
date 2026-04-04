@@ -101,6 +101,8 @@ from .exceptions import LuciConnectionError, LuciError, LuciRequestError
 from .luci import LuciClient
 from .self_check import async_self_check
 
+# Refresh flow is intentionally ordered: start with capability and router state, then
+# enrich optional features, then merge connected-device data from the different LuCI endpoints.
 PREPARE_METHODS: Final = (
     "init",
     "status",
@@ -274,10 +276,21 @@ class LuciUpdater(DataUpdateCoordinator):
 
         self.code = codes.OK
 
+        _LOGGER.debug(
+            "Starting updater refresh for %s: retry=%s, first_update=%s, reauthorization=%s, only_login=%s",
+            self.ip,
+            retry,
+            self._is_first_update,
+            self._is_reauthorization,
+            self._is_only_login,
+        )
+
         _is_before_reauthorization: bool = self._is_reauthorization
         _err: LuciError | None = None
 
         try:
+            # Login is repeated on first refresh, explicit reauthorization, or config-flow
+            # validation runs where we only need to prove credentials work.
             if self._is_reauthorization or self._is_only_login or self._is_first_update:
                 if self._is_first_update and retry == 1:
                     await self.luci.logout()
@@ -286,6 +299,8 @@ class LuciUpdater(DataUpdateCoordinator):
                 await self.luci.login()
 
             for method in PREPARE_METHODS:
+                # Config flow only needs the minimal init probe; a normal refresh walks the
+                # full preparation pipeline and tolerates optional probe failures per method.
                 if not self._is_only_login or method == "init":
                     await self._async_prepare(method, self.data)
         except LuciConnectionError as _e:
@@ -334,8 +349,11 @@ class LuciUpdater(DataUpdateCoordinator):
                 return await self.update(retry + 1)
 
         if not self._is_only_login:
+            # Prune long-inactive restored devices after the refresh has finished rebuilding
+            # the current device picture from router responses.
             self._clean_devices()
 
+        self._log_debug_snapshot("update:complete")
         return self.data
 
     @property
@@ -388,7 +406,6 @@ class LuciUpdater(DataUpdateCoordinator):
                     CONNECTION_NETWORK_MAC,
                     self.data.get(ATTR_DEVICE_MAC_ADDRESS, self.ip),
                 ),
-                (CONF_IP_ADDRESS, self.ip),
             },
             name=self.data.get(ATTR_DEVICE_NAME, DEFAULT_NAME),
             manufacturer=self.data.get(ATTR_DEVICE_MANUFACTURER, DEFAULT_MANUFACTURER),
@@ -429,6 +446,9 @@ class LuciUpdater(DataUpdateCoordinator):
 
         if action := getattr(self, f"_async_prepare_{method}"):
             await action(data)
+            # Per-stage snapshots make it much easier to see which LuCI probe changed the
+            # aggregate state or where a router stops responding during setup.
+            self._log_debug_snapshot(f"prepare:{method}")
 
     async def _async_prepare_init(self, data: dict) -> None:
         """Prepare init info.
@@ -529,21 +549,24 @@ class LuciUpdater(DataUpdateCoordinator):
         :param data: dict
         """
 
-        with contextlib.suppress(LuciError):
+        try:
             response: dict = await self.luci.vpn_status()
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("vpn_status", err)
+            return
 
+        data |= {
+            ATTR_SENSOR_VPN_UPTIME: 0,
+            ATTR_BINARY_SENSOR_VPN_STATE: False,
+        }
+
+        if "uptime" in response:
             data |= {
-                ATTR_SENSOR_VPN_UPTIME: 0,
-                ATTR_BINARY_SENSOR_VPN_STATE: False,
+                ATTR_SENSOR_VPN_UPTIME: str(
+                    timedelta(seconds=int(float(response["uptime"])))
+                ),
+                ATTR_BINARY_SENSOR_VPN_STATE: int(float(response["uptime"])) > 0,
             }
-
-            if "uptime" in response:
-                data |= {
-                    ATTR_SENSOR_VPN_UPTIME: str(
-                        timedelta(seconds=int(float(response["uptime"])))
-                    ),
-                    ATTR_BINARY_SENSOR_VPN_STATE: int(float(response["uptime"])) > 0,
-                }
 
     async def _async_prepare_rom_update(self, data: dict) -> None:
         """Prepare rom update.
@@ -564,7 +587,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         try:
             response: dict = await self.luci.rom_update()
-        except LuciError:
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("rom_update", err)
             response = {}
 
         if (
@@ -594,7 +618,12 @@ class LuciUpdater(DataUpdateCoordinator):
         if data.get(ATTR_SENSOR_MODE, Mode.DEFAULT) == Mode.MESH:
             return
 
-        response: dict = await self.luci.mode()
+        try:
+            response: dict = await self.luci.mode()
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("mode", err)
+            data[ATTR_SENSOR_MODE] = Mode.DEFAULT
+            return
 
         if "mode" in response:
             with contextlib.suppress(ValueError):
@@ -610,7 +639,12 @@ class LuciUpdater(DataUpdateCoordinator):
         :param data: dict
         """
 
-        response: dict = await self.luci.wan_info()
+        try:
+            response: dict = await self.luci.wan_info()
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("wan_info", err)
+            data[ATTR_BINARY_SENSOR_WAN_STATE] = False
+            return
 
         if (
             "info" in response
@@ -623,13 +657,19 @@ class LuciUpdater(DataUpdateCoordinator):
 
         data[ATTR_BINARY_SENSOR_WAN_STATE] = False
 
+
     async def _async_prepare_led(self, data: dict) -> None:
         """Prepare led.
 
         :param data: dict
         """
 
-        response: dict = await self.luci.led()
+        try:
+            response: dict = await self.luci.led()
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("led", err)
+            data[ATTR_LIGHT_LED] = False
+            return
 
         if "status" in response:
             data[ATTR_LIGHT_LED] = response["status"] == 1
@@ -637,6 +677,7 @@ class LuciUpdater(DataUpdateCoordinator):
             return
 
         data[ATTR_LIGHT_LED] = False
+
 
     async def _async_prepare_wifi(self, data: dict) -> None:
         """Prepare wifi.
@@ -646,7 +687,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         try:
             response: dict = await self.luci.wifi_detail_all()
-        except LuciError:
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("wifi_detail_all", err)
             return
 
         # fmt: off
@@ -703,7 +745,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         self.supports_guest = False
 
-        with contextlib.suppress(LuciError):
+        with contextlib.suppress(LuciError, asyncio.CancelledError):
             response_diag = await self.luci.wifi_diag_detail_all()
             _adapters_len: int = len(adapters)
 
@@ -814,6 +856,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         response: dict = await self.luci.device_list()
 
+        # Some mesh routers stop returning the full device list and only expose signal data.
+        # In that case we fall back to repeater handling and optionally force-load children.
         if "list" not in response or len(response["list"]) == 0:
             if len(self._signals) > 0 and not self.is_repeater:
                 self.reset_counter(is_remove=True)
@@ -902,6 +946,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         await asyncio.sleep(DEFAULT_CALL_DELAY)
 
+        # Devices connected through another managed router are pushed into that router
+        # updater so each Home Assistant entry keeps ownership of its own clients.
         for _ip, devices in add_to.items():
             if not integrations[_ip][UPDATER].is_force_load:
                 integrations[_ip][UPDATER].reset_counter(is_force=True)
@@ -1045,6 +1091,8 @@ class LuciUpdater(DataUpdateCoordinator):
             and action == DeviceAction.ADD
             and self.new_device_callback is not None
         ):
+            # New tracker entities are created lazily when a MAC is first seen; later refreshes
+            # only update the cached device payload.
             async_dispatcher_send(
                 self.hass, SIGNAL_NEW_DEVICE, self.devices[device[ATTR_TRACKER_MAC]]
             )
@@ -1253,6 +1301,31 @@ class LuciUpdater(DataUpdateCoordinator):
             elif not is_remove:
                 self.data[attr] = 0
 
+    def _log_optional_prepare_skip(self, method: str, err: Exception) -> None:
+        """Log when an optional setup probe is skipped."""
+
+        _LOGGER.debug(
+            "Skipping optional setup probe %s for %s: %s",
+            method,
+            self.ip,
+            err.__class__.__name__,
+        )
+
+    def _log_debug_snapshot(self, stage: str) -> None:
+        """Log a full updater snapshot in debug mode."""
+
+        _LOGGER.debug(
+            "Updater snapshot [%s] for %s: code=%s data=%s devices=%s signals=%s moved_devices=%s",
+            stage,
+            self.ip,
+            self.code,
+            self.data,
+            self.devices,
+            self._signals,
+            self._moved_devices,
+        )
+
+
     async def _async_load_devices(self) -> dict | None:
         """Async load devices from Store"""
 
@@ -1322,3 +1395,4 @@ def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
         return integrations[0]
 
     raise ValueError(_error)
+

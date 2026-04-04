@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
-import socket
 import time
-from contextlib import closing
 from functools import cached_property
 from typing import Any, Final
 
-from homeassistant.components.device_tracker import ENTITY_ID_FORMAT, SOURCE_TYPE_ROUTER
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -105,7 +103,7 @@ async def async_setup_entry(
             return  # pragma: no cover
 
         entity_id: str = generate_entity_id(
-            ENTITY_ID_FORMAT, str(new_device.get(ATTR_TRACKER_MAC))
+            "device_tracker.{}", str(new_device.get(ATTR_TRACKER_MAC))
         )
 
         try:
@@ -271,7 +269,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
             signal = ""
 
         if connection is not None and isinstance(connection, Connection):
-            connection = connection.phrase  # type: ignore
+            connection = connection.phrase
 
         return {
             ATTR_TRACKER_SCANNER: DOMAIN,
@@ -351,7 +349,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         :return str: Source type router
         """
 
-        return SOURCE_TYPE_ROUTER
+        return "router"
 
     @cached_property
     def entity_registry_enabled_default(self) -> bool:
@@ -449,19 +447,25 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         return track_device
 
     async def check_ports(self) -> None:
-        """Scan port to configuration url"""
+        """Scan ports for a reachable configuration URL without blocking HA."""
 
         if self.ip_address is None:
             return
 
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-            sock.settimeout(5)
+        for port in CONFIGURATION_PORTS:
+            try:
+                _reader, writer = await asyncio.wait_for(
+                    asyncio.open_connection(self.ip_address, port),
+                    timeout=5,
+                )
+            except (asyncio.TimeoutError, OSError):
+                continue
 
-            for port in CONFIGURATION_PORTS:
-                result = sock.connect_ex((self.ip_address, port))
-                if result == 0:
-                    self._configuration_port = port
+            writer.close()
+            await writer.wait_closed()
+            self._configuration_port = port
 
-                    _LOGGER.debug("Found open port %s: %s", self.ip_address, port)
+            _LOGGER.debug("Found open port %s: %s", self.ip_address, port)
 
-                    break
+            break
+

@@ -7,14 +7,13 @@ from enum import Enum
 from typing import Any, Final
 
 from homeassistant.components.sensor import (
-    ENTITY_ID_FORMAT,
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import DATA_MEGABYTES, PERCENTAGE, TEMP_CELSIUS
+from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -99,7 +98,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         key=ATTR_SENSOR_MEMORY_TOTAL,
         name=ATTR_SENSOR_MEMORY_TOTAL_NAME,
         icon="mdi:memory",
-        native_unit_of_measurement=DATA_MEGABYTES,
+        native_unit_of_measurement="MB",
         state_class=SensorStateClass.TOTAL,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -108,7 +107,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         key=ATTR_SENSOR_TEMPERATURE,
         name=ATTR_SENSOR_TEMPERATURE_NAME,
         icon="mdi:temperature-celsius",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        native_unit_of_measurement="?C",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -259,7 +258,7 @@ class MiWifiSensor(MiWifiEntity, SensorEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
+        MiWifiEntity.__init__(self, unique_id, description, updater, "sensor.{}")
 
         state: Any = self._updater.data.get(description.key, None)
         if state is not None and isinstance(state, Enum):
@@ -287,3 +286,4 @@ class MiWifiSensor(MiWifiEntity, SensorEntity):
         self._attr_native_value = state
 
         self.async_write_ha_state()
+
