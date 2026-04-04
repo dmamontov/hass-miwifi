@@ -63,7 +63,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         :return MiWifiOptionsFlow: Options Flow object
         """
 
-        return MiWifiOptionsFlow(config_entry)
+        return MiWifiOptionsFlow()
 
     async def async_step_ssdp(self, discovery_info: ssdp.SsdpServiceInfo) -> FlowResult:
         """Handle discovery via ssdp.
@@ -266,16 +266,6 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
 class MiWifiOptionsFlow(config_entries.OptionsFlow):
     """Changing options flow."""
 
-    _config_entry: config_entries.ConfigEntry
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow.
-
-        :param config_entry: config_entries.ConfigEntry: Config Entry object
-        """
-
-        self._config_entry = config_entry
-
     async def async_step_init(self, user_input: ConfigType | None = None) -> FlowResult:
         """Manage the options.
 
@@ -298,9 +288,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
             if codes.is_success(code):
                 await self.async_update_unique_id(user_input[CONF_IP_ADDRESS])
 
-                return self.async_create_entry(
-                    title=user_input[CONF_IP_ADDRESS], data=user_input
-                )
+                return self.async_create_entry(data=user_input)
 
             if code == codes.CONFLICT:
                 errors["base"] = "router_not_supported"
@@ -319,7 +307,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         :param unique_id:
         """
 
-        if self._config_entry.unique_id == unique_id:
+        if self.config_entry.unique_id == unique_id:
             return
 
         for flow in self.hass.config_entries.flow.async_progress(True):
@@ -330,7 +318,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 self.hass.config_entries.flow.async_abort(flow["flow_id"])
 
         self.hass.config_entries.async_update_entry(
-            self._config_entry, unique_id=unique_id
+            self.config_entry, unique_id=unique_id
         )
 
     def _get_options_schema(self) -> vol.Schema:
@@ -342,16 +330,16 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
         schema: dict = {
             vol.Required(
                 CONF_IP_ADDRESS,
-                default=get_config_value(self._config_entry, CONF_IP_ADDRESS, ""),
+                default=get_config_value(self.config_entry, CONF_IP_ADDRESS, ""),
             ): str,
             vol.Required(
                 CONF_PASSWORD,
-                default=get_config_value(self._config_entry, CONF_PASSWORD, ""),
+                default=get_config_value(self.config_entry, CONF_PASSWORD, ""),
             ): str,
             vol.Required(
                 CONF_ENCRYPTION_ALGORITHM,
                 default=get_config_value(
-                    self._config_entry,
+                    self.config_entry,
                     CONF_ENCRYPTION_ALGORITHM,
                     EncryptionAlgorithm.SHA1,
                 ),
@@ -364,50 +352,50 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
             vol.Required(
                 CONF_IS_TRACK_DEVICES,
                 default=get_config_value(
-                    self._config_entry, CONF_IS_TRACK_DEVICES, True
+                    self.config_entry, CONF_IS_TRACK_DEVICES, True
                 ),
             ): cv.boolean,
             vol.Required(
                 CONF_AUTO_DISCOVER,
                 default=get_config_value(
-                    self._config_entry, CONF_AUTO_DISCOVER, DEFAULT_AUTO_DISCOVER
+                    self.config_entry, CONF_AUTO_DISCOVER, DEFAULT_AUTO_DISCOVER
                 ),
             ): cv.boolean,
             vol.Required(
                 CONF_STAY_ONLINE,
                 default=get_config_value(
-                    self._config_entry, CONF_STAY_ONLINE, DEFAULT_STAY_ONLINE
+                    self.config_entry, CONF_STAY_ONLINE, DEFAULT_STAY_ONLINE
                 ),
             ): cv.positive_int,
             vol.Required(
                 CONF_SCAN_INTERVAL,
                 default=get_config_value(
-                    self._config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    self.config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                 ),
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
             vol.Optional(
                 CONF_ACTIVITY_DAYS,
                 default=get_config_value(
-                    self._config_entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS
+                    self.config_entry, CONF_ACTIVITY_DAYS, DEFAULT_ACTIVITY_DAYS
                 ),
             ): cv.positive_int,
             vol.Optional(
                 CONF_TIMEOUT,
                 default=get_config_value(
-                    self._config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT
+                    self.config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT
                 ),
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
             vol.Optional(
                 CONF_SETUP_TIMEOUT,
                 default=get_config_value(
-                    self._config_entry, CONF_SETUP_TIMEOUT, DEFAULT_SETUP_TIMEOUT
+                    self.config_entry, CONF_SETUP_TIMEOUT, DEFAULT_SETUP_TIMEOUT
                 ),
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
         }
 
         with contextlib.suppress(ValueError):
             updater: LuciUpdater = async_get_updater(
-                self.hass, self._config_entry.entry_id
+                self.hass, self.config_entry.entry_id
             )
 
             if not updater.is_repeater:  # pragma: no cover
@@ -419,7 +407,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_IS_FORCE_LOAD,
                     default=get_config_value(
-                        self._config_entry, CONF_IS_FORCE_LOAD, False
+                        self.config_entry, CONF_IS_FORCE_LOAD, False
                     ),
                 ): cv.boolean,
             }
