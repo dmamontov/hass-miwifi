@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -18,7 +19,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.typing import ConfigType
 from httpx import codes
 
 from .const import (
@@ -96,11 +97,11 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         return self.async_abort(reason="discovery_started")
 
     async def async_step_integration_discovery(
-        self, discovery_info: DiscoveryInfoType
+        self, discovery_info: dict[str, Any]
     ) -> FlowResult:
         """Handle discovery via integration.
 
-        :param discovery_info: DiscoveryInfoType: Discovery Info object
+        :param discovery_info: dict[str, Any]: Discovery Info object
         :return FlowResult: Result object
         """
 
