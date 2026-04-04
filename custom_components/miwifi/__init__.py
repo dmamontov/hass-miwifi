@@ -61,6 +61,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     notification_id: str = f"{DOMAIN}_{entry.entry_id}_setup_error"
+    # Clear the previous setup error so a successful retry does not leave stale UI noise behind.
     persistent_notification.async_dismiss(hass, notification_id)
 
     is_new: bool = get_config_value(entry, OPTION_IS_FROM_FLOW, False)
@@ -104,6 +105,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         :param with_sleep: bool
         """
 
+        # First refresh is allowed to run longer than normal polling because it discovers
+        # capabilities, builds entities, and may need to walk mesh topology.
         _previous_timeout: int = _updater.luci.timeout
         _updater.luci.timeout = _setup_timeout
         try:
@@ -117,11 +120,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             raise PlatformNotReady
 
         if with_sleep:
+            # Reloads wait a moment before platform setup so the router can settle after
+            # reauthentication and optional discovery work.
             await asyncio.sleep(DEFAULT_SLEEP)
 
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     try:
+        # New entries start immediately so config-flow failures surface to the user. Reloads
+        # keep the small delay inside async_start() because the entry already exists.
         if is_new:
             await async_start()
             await asyncio.sleep(DEFAULT_SLEEP)
@@ -134,6 +141,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         _LOGGER.exception("Failed to set up MiWiFi entry %s", entry.entry_id)
 
+        # Home Assistant often shows a generic setup failure in the UI. Keep the full
+        # traceback available in a persistent notification so the first failed attempt is actionable.
         persistent_notification.async_create(
             hass,
             (

@@ -101,6 +101,8 @@ from .exceptions import LuciConnectionError, LuciError, LuciRequestError
 from .luci import LuciClient
 from .self_check import async_self_check
 
+# Refresh flow is intentionally ordered: start with capability and router state, then
+# enrich optional features, then merge connected-device data from the different LuCI endpoints.
 PREPARE_METHODS: Final = (
     "init",
     "status",
@@ -287,6 +289,8 @@ class LuciUpdater(DataUpdateCoordinator):
         _err: LuciError | None = None
 
         try:
+            # Login is repeated on first refresh, explicit reauthorization, or config-flow
+            # validation runs where we only need to prove credentials work.
             if self._is_reauthorization or self._is_only_login or self._is_first_update:
                 if self._is_first_update and retry == 1:
                     await self.luci.logout()
@@ -295,6 +299,8 @@ class LuciUpdater(DataUpdateCoordinator):
                 await self.luci.login()
 
             for method in PREPARE_METHODS:
+                # Config flow only needs the minimal init probe; a normal refresh walks the
+                # full preparation pipeline and tolerates optional probe failures per method.
                 if not self._is_only_login or method == "init":
                     await self._async_prepare(method, self.data)
         except LuciConnectionError as _e:
@@ -343,6 +349,8 @@ class LuciUpdater(DataUpdateCoordinator):
                 return await self.update(retry + 1)
 
         if not self._is_only_login:
+            # Prune long-inactive restored devices after the refresh has finished rebuilding
+            # the current device picture from router responses.
             self._clean_devices()
 
         self._log_debug_snapshot("update:complete")
@@ -438,6 +446,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         if action := getattr(self, f"_async_prepare_{method}"):
             await action(data)
+            # Per-stage snapshots make it much easier to see which LuCI probe changed the
+            # aggregate state or where a router stops responding during setup.
             self._log_debug_snapshot(f"prepare:{method}")
 
     async def _async_prepare_init(self, data: dict) -> None:
@@ -846,6 +856,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         response: dict = await self.luci.device_list()
 
+        # Some mesh routers stop returning the full device list and only expose signal data.
+        # In that case we fall back to repeater handling and optionally force-load children.
         if "list" not in response or len(response["list"]) == 0:
             if len(self._signals) > 0 and not self.is_repeater:
                 self.reset_counter(is_remove=True)
@@ -934,6 +946,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         await asyncio.sleep(DEFAULT_CALL_DELAY)
 
+        # Devices connected through another managed router are pushed into that router
+        # updater so each Home Assistant entry keeps ownership of its own clients.
         for _ip, devices in add_to.items():
             if not integrations[_ip][UPDATER].is_force_load:
                 integrations[_ip][UPDATER].reset_counter(is_force=True)
@@ -1077,6 +1091,8 @@ class LuciUpdater(DataUpdateCoordinator):
             and action == DeviceAction.ADD
             and self.new_device_callback is not None
         ):
+            # New tracker entities are created lazily when a MAC is first seen; later refreshes
+            # only update the cached device payload.
             async_dispatcher_send(
                 self.hass, SIGNAL_NEW_DEVICE, self.devices[device[ATTR_TRACKER_MAC]]
             )

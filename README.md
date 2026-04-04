@@ -50,6 +50,41 @@ Then restart Home Assistant and check `Settings -> System -> Logs`.
 When debug logging is enabled, the integration logs the LuCI requests and responses for the API methods it actually calls. This is useful for troubleshooting unsupported routers, investigating missing attributes, and implementing new features.
 
 Important: debug logging does not automatically dump every LuCI endpoint exposed by the router. It only logs the endpoints that the integration is currently using. To inspect additional endpoints, use the `miwifi.send_request` service and review the response event/logs.
+
+## Lifecycle flow
+
+### How setup works
+
+1. Config flow verifies credentials with a minimal login + `xqsystem/init_info` check.
+2. `async_setup_entry` creates a `LuciUpdater`, stores it in `hass.data`, and runs the first refresh with a longer setup timeout.
+3. The first refresh walks the ordered preparation pipeline in `updater.py` to collect router state, optional capabilities, and device data.
+4. If the first refresh succeeds, Home Assistant forwards platform setup for sensors, switches, buttons, lights, update entities, and device trackers.
+5. If setup fails, the integration now creates a persistent notification with the error message and a collapsible traceback block so the first failure is visible in the UI.
+
+### How refresh works
+
+- Normal polling uses `DataUpdateCoordinator` with the configured scan interval.
+- The updater logs in when needed, refreshes data in a fixed order, and then updates coordinator entities from the aggregated state.
+- Optional LuCI probes such as VPN status, WAN info, LED state, Wi-Fi details, and mode probing are tolerated when a router does not support them or times out during setup.
+- Device cleanup runs after refresh and removes only devices that have been inactive longer than the configured retention window.
+
+### How device tracking works
+
+- `xqnetwork/wifi_connect_devices` contributes signal strength and a fast list of connected Wi-Fi MAC addresses.
+- `misystem/devicelist` contributes richer client metadata such as IP address, speeds, online duration, and the parent access point.
+- The integration merges both responses into a single device cache and lazily creates new tracker entities when a new MAC appears.
+- When multiple MiWiFi routers are configured, child devices can be reassigned to the updater that owns the parent router so each Home Assistant entry keeps the correct clients.
+
+### How first refresh differs from normal polling
+
+- First refresh can restore previously known devices from storage, discover child mesh routers, and build entity inventory.
+- Reloads use a small delay before platform forwarding to let router state settle after authentication and discovery work.
+- Config flow validation uses the same updater class, but only runs the minimal `init` probe so validation stays fast and predictable.
+
+### Why some endpoints are optional
+
+MiWiFi firmware varies a lot between models, regions, and patched builds. The integration treats core endpoints such as login, init info, and status as required, while best-effort probes are skipped when unsupported or temporarily cancelled. That keeps setup resilient on newer Home Assistant versions and on routers with incomplete LuCI APIs.
+
 ## Supported routers
 
 Many more Xiaomi and Redmi routers supported by MiWiFi
