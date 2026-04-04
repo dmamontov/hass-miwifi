@@ -574,7 +574,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         try:
             response: dict = await self.luci.rom_update()
-        except LuciError:
+        except (LuciError, asyncio.CancelledError):
             response = {}
 
         if (
