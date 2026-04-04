@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import logging
@@ -128,6 +129,7 @@ class LuciClient:
         _url: str = f"{self._url}/;stok={self._token}/web/{_method}"
 
         try:
+            self._debug("Start request", _url, {"method": _method}, _method, True)
             response: Response = await self._client.get(_url, timeout=self._timeout)
 
             self._debug("Successful request", _url, response.content, _method)
@@ -160,6 +162,7 @@ class LuciClient:
         _url: str = f"{self._url}/{_stok}api/{path}"
 
         try:
+            self._debug("Start request", _url, query_params or {}, path, True)
             response: Response = await self._client.get(_url, timeout=self._timeout)
 
             self._debug("Successful request", _url, response.content, path)
@@ -425,21 +428,32 @@ class LuciClient:
         :param is_only_log: bool: Is only log
         """
 
-        _LOGGER.debug("%s (%s): %s", message, url, str(content))
+        _content: Any = self._normalize_debug_content(content)
+
+        _LOGGER.debug("%s (%s): %s", message, url, _content)
 
         if is_only_log:
             return
-
-        _content: dict | str = {}
-
-        try:
-            _content = json.loads(content)
-        except (ValueError, TypeError):
-            _content = str(content)
 
         self.diagnostics[path] = {
             DIAGNOSTIC_DATE_TIME: datetime.now().replace(microsecond=0).isoformat(),
             DIAGNOSTIC_MESSAGE: message,
             DIAGNOSTIC_CONTENT: _content,
         }
+
+    @staticmethod
+    def _normalize_debug_content(content: Any) -> Any:
+        """Normalize debug payloads for readable logs and diagnostics."""
+
+        if isinstance(content, bytes):
+            with contextlib.suppress(UnicodeDecodeError):
+                content = content.decode()
+
+        if isinstance(content, str):
+            with contextlib.suppress(ValueError, TypeError, json.JSONDecodeError):
+                return json.loads(content)
+
+            return content
+
+        return content
 

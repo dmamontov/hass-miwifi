@@ -46,6 +46,10 @@ logger:
 ```
 
 Then restart Home Assistant and check `Settings -> System -> Logs`.
+
+When debug logging is enabled, the integration logs the LuCI requests and responses for the API methods it actually calls. This is useful for troubleshooting unsupported routers, investigating missing attributes, and implementing new features.
+
+Important: debug logging does not automatically dump every LuCI endpoint exposed by the router. It only logs the endpoints that the integration is currently using. To inspect additional endpoints, use the `miwifi.send_request` service and review the response event/logs.
 ## Supported routers
 
 Many more Xiaomi and Redmi routers supported by MiWiFi
@@ -133,4 +137,5 @@ Many more Xiaomi and Redmi routers supported by MiWiFi
 | ![](images/R1CL.png)   | **Mi Router Lite**                    |  R1CL  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> |  <sub>🟢🟢🟢🟢🟢</sub>  |
 | ![](images/R1C.png)    | **Mi Router Mini**                    |  R1CM  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> |  <sub>🟢🟢🟢🟢🟢</sub>  |
 | ![](images/R1D.png)    | **Mi Router R1D**                     |  R1D   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> |  <sub>🟢🟢🟢🟢🟢</sub>  |
+
 

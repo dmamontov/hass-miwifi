@@ -274,6 +274,15 @@ class LuciUpdater(DataUpdateCoordinator):
 
         self.code = codes.OK
 
+        _LOGGER.debug(
+            "Starting updater refresh for %s: retry=%s, first_update=%s, reauthorization=%s, only_login=%s",
+            self.ip,
+            retry,
+            self._is_first_update,
+            self._is_reauthorization,
+            self._is_only_login,
+        )
+
         _is_before_reauthorization: bool = self._is_reauthorization
         _err: LuciError | None = None
 
@@ -336,6 +345,7 @@ class LuciUpdater(DataUpdateCoordinator):
         if not self._is_only_login:
             self._clean_devices()
 
+        self._log_debug_snapshot("update:complete")
         return self.data
 
     @property
@@ -428,6 +438,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         if action := getattr(self, f"_async_prepare_{method}"):
             await action(data)
+            self._log_debug_snapshot(f"prepare:{method}")
 
     async def _async_prepare_init(self, data: dict) -> None:
         """Prepare init info.
@@ -1251,6 +1262,21 @@ class LuciUpdater(DataUpdateCoordinator):
                 del self.data[attr]
             elif not is_remove:
                 self.data[attr] = 0
+
+    def _log_debug_snapshot(self, stage: str) -> None:
+        """Log a full updater snapshot in debug mode."""
+
+        _LOGGER.debug(
+            "Updater snapshot [%s] for %s: code=%s data=%s devices=%s signals=%s moved_devices=%s",
+            stage,
+            self.ip,
+            self.code,
+            self.data,
+            self.devices,
+            self._signals,
+            self._moved_devices,
+        )
+
 
     async def _async_load_devices(self) -> dict | None:
         """Async load devices from Store"""
