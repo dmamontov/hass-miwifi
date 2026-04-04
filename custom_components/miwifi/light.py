@@ -8,7 +8,6 @@ import logging
 from typing import Any, Final
 
 from homeassistant.components.light import (
-    ENTITY_ID_FORMAT,
     LightEntity,
     LightEntityDescription,
 )
@@ -85,7 +84,7 @@ class MiWifiLight(MiWifiEntity, LightEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
+        MiWifiEntity.__init__(self, unique_id, description, updater, "light.{}")
 
         self._attr_is_on = updater.data.get(description.key, False)
         self._change_icon(self._attr_is_on)

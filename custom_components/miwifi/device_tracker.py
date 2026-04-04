@@ -8,7 +8,6 @@ import time
 from functools import cached_property
 from typing import Any, Final
 
-from homeassistant.components.device_tracker import ENTITY_ID_FORMAT
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -104,7 +103,7 @@ async def async_setup_entry(
             return  # pragma: no cover
 
         entity_id: str = generate_entity_id(
-            ENTITY_ID_FORMAT, str(new_device.get(ATTR_TRACKER_MAC))
+            "device_tracker.{}", str(new_device.get(ATTR_TRACKER_MAC))
         )
 
         try:

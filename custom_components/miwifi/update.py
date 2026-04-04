@@ -8,7 +8,6 @@ from typing import Any, Final
 
 from homeassistant.components.update import (
     ATTR_IN_PROGRESS,
-    ENTITY_ID_FORMAT,
     UpdateDeviceClass,
     UpdateEntity,
     UpdateEntityDescription,
@@ -123,7 +122,7 @@ class MiWifiUpdate(MiWifiEntity, UpdateEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
+        MiWifiEntity.__init__(self, unique_id, description, updater, "update.{}")
 
         if description.key in MAP_FEATURE:
             self._attr_supported_features = MAP_FEATURE[description.key]

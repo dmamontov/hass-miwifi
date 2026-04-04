@@ -6,7 +6,6 @@ import logging
 from typing import Final
 
 from homeassistant.components.binary_sensor import (
-    ENTITY_ID_FORMAT,
     BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
@@ -114,7 +113,7 @@ class MiWifiBinarySensor(MiWifiEntity, BinarySensorEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
+        MiWifiEntity.__init__(self, unique_id, description, updater, "binary_sensor.{}")
 
         self._attr_available: bool = (
             updater.data.get(ATTR_STATE, False)

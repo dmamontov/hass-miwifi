@@ -7,7 +7,6 @@ from enum import Enum
 from typing import Any, Final
 
 from homeassistant.components.sensor import (
-    ENTITY_ID_FORMAT,
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
@@ -259,7 +258,7 @@ class MiWifiSensor(MiWifiEntity, SensorEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
+        MiWifiEntity.__init__(self, unique_id, description, updater, "sensor.{}")
 
         state: Any = self._updater.data.get(description.key, None)
         if state is not None and isinstance(state, Enum):

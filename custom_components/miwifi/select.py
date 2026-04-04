@@ -6,7 +6,6 @@ import logging
 from typing import Final
 
 from homeassistant.components.select import (
-    ENTITY_ID_FORMAT,
     SelectEntity,
     SelectEntityDescription,
 )
@@ -183,7 +182,7 @@ class MiWifiSelect(MiWifiEntity, SelectEntity):
         :param updater: LuciUpdater: Luci updater object
         """
 
-        MiWifiEntity.__init__(self, unique_id, description, updater, ENTITY_ID_FORMAT)
+        MiWifiEntity.__init__(self, unique_id, description, updater, "select.{}")
 
         self._attr_current_option = updater.data.get(description.key, None)
         self._change_icon(self._attr_current_option)
