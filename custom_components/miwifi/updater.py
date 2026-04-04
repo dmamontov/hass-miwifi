@@ -644,7 +644,11 @@ class LuciUpdater(DataUpdateCoordinator):
         :param data: dict
         """
 
-        response: dict = await self.luci.led()
+        try:
+            response: dict = await self.luci.led()
+        except LuciError:
+            data[ATTR_LIGHT_LED] = False
+            return
 
         if "status" in response:
             data[ATTR_LIGHT_LED] = response["status"] == 1
@@ -652,6 +656,7 @@ class LuciUpdater(DataUpdateCoordinator):
             return
 
         data[ATTR_LIGHT_LED] = False
+
 
     async def _async_prepare_wifi(self, data: dict) -> None:
         """Prepare wifi.
