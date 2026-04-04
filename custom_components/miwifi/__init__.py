@@ -33,7 +33,7 @@ from .const import (
 )
 from .discovery import async_start_discovery
 from .enum import EncryptionAlgorithm
-from .helper import get_config_value, get_store
+from .helper import build_router_title, get_config_value, get_store
 from .services import SERVICES
 from .updater import LuciUpdater
 
@@ -93,6 +93,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 raise PlatformNotReady from _updater.last_exception
 
             raise PlatformNotReady
+
+        title = build_router_title(_updater.data, _ip)
+        if entry.title != title:
+            hass.config_entries.async_update_entry(entry, title=title)
 
         if with_sleep:
             await asyncio.sleep(DEFAULT_SLEEP)

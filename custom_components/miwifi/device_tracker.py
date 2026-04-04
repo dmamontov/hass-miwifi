@@ -63,6 +63,7 @@ PARALLEL_UPDATES = 0
 
 ATTR_CHANGES: Final = (
     ATTR_TRACKER_IP,
+    ATTR_TRACKER_NAME,
     ATTR_TRACKER_ONLINE,
     ATTR_TRACKER_CONNECTION,
     ATTR_TRACKER_ROUTER_MAC_ADDRESS,
@@ -70,6 +71,18 @@ ATTR_CHANGES: Final = (
     ATTR_TRACKER_DOWN_SPEED,
     ATTR_TRACKER_UP_SPEED,
     ATTR_TRACKER_OPTIONAL_MAC,
+    "online_seconds",
+    "connection_code",
+    "reported_name",
+    "original_name",
+    "parent_mac",
+    "mesh_role",
+    "device_icon",
+    "push_enabled",
+    "times_seen",
+    "authority",
+    "statistics",
+    "ip_info",
 )
 
 CONFIGURATION_PORTS: Final = [80, 443]
@@ -173,7 +186,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         self._device: dict = dict(device)
         self._updater: LuciUpdater = updater
 
-        self._attr_name = device.get(ATTR_TRACKER_NAME, self.mac_address)
+        self._attr_name = self._default_name(device)
 
         self._stay_online: int = stay_online
 
@@ -188,6 +201,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         """When entity is added to hass."""
 
         await CoordinatorEntity.async_added_to_hass(self)
+        self._sync_device_registry_name()
 
         self.hass.loop.call_later(
             DEFAULT_CALL_DELAY,
@@ -202,6 +216,42 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         """
 
         return self._attr_available and self.coordinator.last_update_success
+
+    def _default_name(self, device: dict[str, Any] | None = None) -> str:
+        """Return the default entity/device name."""
+
+        target = self._device if device is None else device
+
+        return str(
+            target.get(ATTR_TRACKER_IP)
+            or target.get(ATTR_TRACKER_NAME)
+            or target.get(ATTR_TRACKER_MAC)
+            or self.mac_address
+        )
+
+
+    @callback
+    def _sync_device_registry_name(
+        self, device_payload: dict[str, Any] | None = None
+    ) -> None:
+        """Keep the HA device registry name aligned with the default IP-based name."""
+
+        target = self._device if device_payload is None else device_payload
+        optional_mac = target.get(ATTR_TRACKER_OPTIONAL_MAC, None)
+        connections = {(dr.CONNECTION_NETWORK_MAC, self.mac_address)}
+        if optional_mac is not None:
+            connections.add((dr.CONNECTION_NETWORK_MAC, optional_mac))
+
+        device_registry: dr.DeviceRegistry = dr.async_get(self.hass)
+        registry_device = device_registry.async_get_device(set(), connections)
+        desired_name = self._default_name(target)
+
+        if (
+            registry_device is not None
+            and registry_device.name_by_user is None
+            and registry_device.name != desired_name
+        ):
+            device_registry.async_update_device(registry_device.id, name=desired_name)
 
     @cached_property
     def mac_address(self) -> str:
@@ -265,39 +315,74 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         """
 
         signal: Any = self._device.get(ATTR_TRACKER_SIGNAL, "")
-        connection: Any = self._device.get(ATTR_TRACKER_CONNECTION, None)
+        connection_enum: Connection | None = self._device.get(
+            ATTR_TRACKER_CONNECTION, None
+        )
 
-        if not self.is_connected or connection == Connection.LAN:
+        if not self.is_connected or connection_enum == Connection.LAN:
             signal = ""
 
-        if connection is not None and isinstance(connection, Connection):
-            connection = connection.phrase  # type: ignore
+        connection = (
+            connection_enum.phrase if isinstance(connection_enum, Connection) else None
+        )
+
+        down_speed = float(self._device.get(ATTR_TRACKER_DOWN_SPEED, 0.0))
+        up_speed = float(self._device.get(ATTR_TRACKER_UP_SPEED, 0.0))
+        online_seconds = int(self._device.get("online_seconds", 0) or 0)
+        reported_name = self._device.get(ATTR_TRACKER_NAME, None)
+        connection_code = self._device.get("connection_code", None)
+        connection_key = (
+            connection_enum.name.lower()
+            if isinstance(connection_enum, Connection)
+            else None
+        )
+        network_type = None
+        if connection_enum == Connection.LAN or connection_code == 0:
+            network_type = "lan"
+        elif connection_enum == Connection.GUEST or connection_code == 3:
+            network_type = "guest"
+        elif connection_enum is not None or (
+            isinstance(connection_code, int) and connection_code > 0
+        ):
+            network_type = "wifi"
 
         return {
             ATTR_TRACKER_SCANNER: DOMAIN,
+            ATTR_TRACKER_NAME: reported_name,
             ATTR_TRACKER_MAC: self.mac_address,
             ATTR_TRACKER_IP: self.ip_address,
             ATTR_TRACKER_ONLINE: self._device.get(ATTR_TRACKER_ONLINE, None)
             if self.is_connected
             else "",
+            "online_seconds": online_seconds if self.is_connected else 0,
             ATTR_TRACKER_CONNECTION: connection,
+            "connection_type": connection_key,
+            "connection_code": connection_code,
+            "network_type": network_type,
             ATTR_TRACKER_ROUTER_MAC_ADDRESS: self._device.get(
                 ATTR_TRACKER_ROUTER_MAC_ADDRESS, None
             ),
+            ATTR_TRACKER_OPTIONAL_MAC: self._device.get(ATTR_TRACKER_OPTIONAL_MAC, None),
             ATTR_TRACKER_SIGNAL: signal,
-            ATTR_TRACKER_DOWN_SPEED: pretty_size(
-                float(self._device.get(ATTR_TRACKER_DOWN_SPEED, 0.0))
-            )
-            if self.is_connected
-            else "",
-            ATTR_TRACKER_UP_SPEED: pretty_size(
-                float(self._device.get(ATTR_TRACKER_UP_SPEED, 0.0))
-            )
-            if self.is_connected
-            else "",
+            ATTR_TRACKER_DOWN_SPEED: pretty_size(down_speed) if self.is_connected else "",
+            ATTR_TRACKER_UP_SPEED: pretty_size(up_speed) if self.is_connected else "",
+            "down_speed_bytes_per_second": down_speed if self.is_connected else 0.0,
+            "up_speed_bytes_per_second": up_speed if self.is_connected else 0.0,
             ATTR_TRACKER_LAST_ACTIVITY: self._device.get(
                 ATTR_TRACKER_LAST_ACTIVITY, None
             ),
+            "reported_name": self._device.get("reported_name", None),
+            "original_name": self._device.get("original_name", None),
+            "parent_mac": self._device.get("parent_mac", None),
+            "mesh_role": self._device.get("mesh_role", None),
+            "device_icon": self._device.get("device_icon", None),
+            "push_enabled": bool(self._device.get("push_enabled", False)),
+            "times_seen": self._device.get("times_seen", None),
+            "authority": self._device.get("authority", None),
+            "statistics": self._device.get("statistics", None),
+            "ip_info": self._device.get("ip_info", None),
+            "restored": bool(self._device.get(ATTR_TRACKER_IS_RESTORED, False)),
+            "manufacturer": self.manufacturer,
         }
 
     @property
@@ -326,6 +411,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         """
 
         _optional_mac = self._device.get(ATTR_TRACKER_OPTIONAL_MAC, None)
+        info_name = self._default_name()
         if _optional_mac is not None:
             return DeviceInfo(
                 connections={
@@ -333,13 +419,13 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
                     (dr.CONNECTION_NETWORK_MAC, _optional_mac),
                 },
                 identifiers={(DOMAIN, self.mac_address)},
-                name=self._attr_name,
+                name=info_name,
             )
 
         return DeviceInfo(
             connections={(dr.CONNECTION_NETWORK_MAC, self.mac_address)},
             identifiers={(DOMAIN, self.mac_address)},
-            name=self._attr_name,
+            name=info_name,
             configuration_url=self.configuration_url,
             manufacturer=self.manufacturer,
         )
@@ -405,6 +491,8 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
         self._attr_available = is_available
         self._is_connected = is_connected
         self._device = dict(device)
+        self._attr_name = self._default_name(device)
+        self._sync_device_registry_name(device)
 
         self.async_write_ha_state()
 
@@ -437,6 +525,10 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
                 device_registry.async_update_device(
                     device.id, manufacturer=self.manufacturer
                 )
+
+            desired_name = self._default_name(track_device)
+            if device.name_by_user is None and device.name != desired_name:
+                device_registry.async_update_device(device.id, name=desired_name)
 
         if (
             entry_id in self.hass.data[DOMAIN]

@@ -125,6 +125,15 @@ class MiWifiBinarySensor(MiWifiEntity, BinarySensorEntity):
         self._attr_is_on = updater.data.get(description.key, False)
         self._change_icon(self._attr_is_on)
 
+    @property
+    def extra_state_attributes(self) -> dict[str, object] | None:
+        """Expose a router snapshot on the main state entity."""
+
+        if self.entity_description.key != ATTR_STATE:
+            return None
+
+        return self._router_extra_state_attributes()
+
     def _handle_coordinator_update(self) -> None:
         """Update state."""
 
