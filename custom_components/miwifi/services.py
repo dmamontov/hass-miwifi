@@ -8,7 +8,7 @@ from typing import Final
 
 import homeassistant.components.persistent_notification as pn
 import voluptuous as vol
-from homeassistant.const import CONF_DEVICE_ID, CONF_IP_ADDRESS, CONF_TYPE
+from homeassistant.const import CONF_DEVICE_ID, CONF_TYPE
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import device_registry as dr
 
@@ -19,6 +19,7 @@ from .const import (
     CONF_REQUEST,
     CONF_RESPONSE,
     CONF_URI,
+    DOMAIN,
     EVENT_LUCI,
     EVENT_TYPE_RESPONSE,
     NAME,
@@ -67,9 +68,9 @@ class MiWifiServiceCall:
         if device is None:
             raise vol.Invalid(f"Device {device_id} not found.")
 
-        for connection_type, identifier in device.connections:
-            if connection_type == CONF_IP_ADDRESS and len(identifier) > 0:
-                return async_get_updater(self.hass, identifier)
+        for entry_id in device.config_entries:
+            if entry_id in self.hass.data.get(DOMAIN, {}):
+                return async_get_updater(self.hass, entry_id)
 
         raise vol.Invalid(
             f"Device {device_id} does not support the called service. Choose a router with MiWifi support."  # pylint: disable=line-too-long
