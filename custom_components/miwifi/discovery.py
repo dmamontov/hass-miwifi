@@ -52,6 +52,7 @@ def async_start_discovery(hass: HomeAssistant) -> None:
     """
 
     if not async_is_discovery_enabled(hass):
+        _LOGGER.debug("Auto discovery disabled for all MiWiFi entries")
         return
 
     data: dict = hass.data.setdefault(DOMAIN, {})

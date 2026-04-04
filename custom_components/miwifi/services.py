@@ -70,7 +70,10 @@ class MiWifiServiceCall:
 
         for entry_id in device.config_entries:
             if entry_id in self.hass.data.get(DOMAIN, {}):
+                _LOGGER.debug("Resolved service device %s to MiWiFi entry %s", device_id, entry_id)
                 return async_get_updater(self.hass, entry_id)
+
+        _LOGGER.debug("Failed to resolve service device %s to any MiWiFi entry", device_id)
 
         raise vol.Invalid(
             f"Device {device_id} does not support the called service. Choose a router with MiWifi support."  # pylint: disable=line-too-long

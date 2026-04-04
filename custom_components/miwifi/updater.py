@@ -539,21 +539,24 @@ class LuciUpdater(DataUpdateCoordinator):
         :param data: dict
         """
 
-        with contextlib.suppress(LuciError, asyncio.CancelledError):
+        try:
             response: dict = await self.luci.vpn_status()
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("vpn_status", err)
+            return
 
+        data |= {
+            ATTR_SENSOR_VPN_UPTIME: 0,
+            ATTR_BINARY_SENSOR_VPN_STATE: False,
+        }
+
+        if "uptime" in response:
             data |= {
-                ATTR_SENSOR_VPN_UPTIME: 0,
-                ATTR_BINARY_SENSOR_VPN_STATE: False,
+                ATTR_SENSOR_VPN_UPTIME: str(
+                    timedelta(seconds=int(float(response["uptime"])))
+                ),
+                ATTR_BINARY_SENSOR_VPN_STATE: int(float(response["uptime"])) > 0,
             }
-
-            if "uptime" in response:
-                data |= {
-                    ATTR_SENSOR_VPN_UPTIME: str(
-                        timedelta(seconds=int(float(response["uptime"])))
-                    ),
-                    ATTR_BINARY_SENSOR_VPN_STATE: int(float(response["uptime"])) > 0,
-                }
 
     async def _async_prepare_rom_update(self, data: dict) -> None:
         """Prepare rom update.
@@ -574,7 +577,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         try:
             response: dict = await self.luci.rom_update()
-        except (LuciError, asyncio.CancelledError):
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("rom_update", err)
             response = {}
 
         if (
@@ -622,7 +626,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         try:
             response: dict = await self.luci.wan_info()
-        except (LuciError, asyncio.CancelledError):
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("wan_info", err)
             data[ATTR_BINARY_SENSOR_WAN_STATE] = False
             return
 
@@ -646,7 +651,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         try:
             response: dict = await self.luci.led()
-        except LuciError:
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("led", err)
             data[ATTR_LIGHT_LED] = False
             return
 
@@ -666,7 +672,8 @@ class LuciUpdater(DataUpdateCoordinator):
 
         try:
             response: dict = await self.luci.wifi_detail_all()
-        except LuciError:
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("wifi_detail_all", err)
             return
 
         # fmt: off
@@ -1272,6 +1279,16 @@ class LuciUpdater(DataUpdateCoordinator):
                 del self.data[attr]
             elif not is_remove:
                 self.data[attr] = 0
+
+    def _log_optional_prepare_skip(self, method: str, err: Exception) -> None:
+        """Log when an optional setup probe is skipped."""
+
+        _LOGGER.debug(
+            "Skipping optional setup probe %s for %s: %s",
+            method,
+            self.ip,
+            err.__class__.__name__,
+        )
 
     def _log_debug_snapshot(self, stage: str) -> None:
         """Log a full updater snapshot in debug mode."""
