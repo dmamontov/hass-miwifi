@@ -1,10 +1,10 @@
 {
   "config": {
     "error": {
-      "ip_address.not_matched": "Invalid IP",
-      "password.not_matched": "Invalid password",
+      "ip_address_not_matched": "Invalid IP",
+      "password_not_matched": "Invalid password",
       "connection": "Failed to establish connection",
-      "router.not.supported": "The router is not supported. Detailed information has been sent to the notification center."
+      "router_not_supported": "The router is not supported. Detailed information has been sent to the notification center."
     },
     "step": {
       "discovery_confirm": {
@@ -24,10 +24,10 @@
   },
   "options": {
     "error": {
-      "ip_address.not_matched": "Invalid IP",
-      "password.not_matched": "Invalid password",
+      "ip_address_not_matched": "Invalid IP",
+      "password_not_matched": "Invalid password",
       "connection": "Failed to establish connection",
-      "router.not.supported": "The router is not supported. Detailed information has been sent to the notification center."
+      "router_not_supported": "The router is not supported. Detailed information has been sent to the notification center."
     },
     "step": {
       "init": {
@@ -53,3 +53,4 @@
     }
   }
 }
+

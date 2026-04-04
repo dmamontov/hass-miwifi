@@ -15,7 +15,8 @@ from homeassistant.loader import async_get_integration
 from homeassistant.util import slugify
 from httpx import codes
 
-from .const import DEFAULT_TIMEOUT, DOMAIN, MANUFACTURERS, STORAGE_VERSION
+from .const import DEFAULT_TIMEOUT, DOMAIN, STORAGE_VERSION
+from .manufacturers import MANUFACTURERS
 from .updater import LuciUpdater
 
 
@@ -158,3 +159,4 @@ def detect_manufacturer(mac: str) -> str | None:
     identifier: str = mac.replace(":", "").upper()[:6]
 
     return MANUFACTURERS[identifier] if identifier in MANUFACTURERS else None
+

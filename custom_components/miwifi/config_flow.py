@@ -190,11 +190,11 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                 )
 
             if code == codes.CONFLICT:
-                errors["base"] = "router.not.supported"
+                errors["base"] = "router_not_supported"
             elif code == codes.FORBIDDEN:
-                errors["base"] = "password.not_matched"
+                errors["base"] = "password_not_matched"
             else:
-                errors["base"] = "ip_address.not_matched"
+                errors["base"] = "ip_address_not_matched"
 
         if self._discovered_device is None:
             return await self.async_step_user(user_input, errors)
@@ -285,11 +285,11 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 )
 
             if code == codes.CONFLICT:
-                errors["base"] = "router.not.supported"
+                errors["base"] = "router_not_supported"
             elif code == codes.FORBIDDEN:
-                errors["base"] = "password.not_matched"
+                errors["base"] = "password_not_matched"
             else:
-                errors["base"] = "ip_address.not_matched"
+                errors["base"] = "ip_address_not_matched"
 
         return self.async_show_form(
             step_id="init", data_schema=self._get_options_schema(), errors=errors
@@ -394,3 +394,4 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 ): cv.boolean,
             }
         )
+

@@ -9,7 +9,6 @@ try:
 except ImportError:  # pragma: no cover
     from homeassistant.backports.enum import StrEnum
 
-
 from .const import (
     ATTR_SWITCH_WIFI_2_4,
     ATTR_SWITCH_WIFI_5_0,
@@ -18,31 +17,38 @@ from .const import (
 )
 
 
-class Mode(IntEnum):
-    """Mode enum"""
+class PhraseIntEnum(IntEnum):
+    """Int enum with a typed phrase attribute."""
 
-    def __new__(cls, value: int, phrase: str = "undefined") -> "Mode":
-        """New mode.
+    phrase: str
 
-        :param value: int: mode
-        :param phrase: str: phrase
-        :return Mode
-        """
-
+    def __new__(cls, value: int, phrase: str = "undefined") -> "PhraseIntEnum":
         obj = int.__new__(cls, value)  # type: ignore
         obj._value_ = value
-
-        obj.phrase = phrase  # type: ignore
-
+        obj.phrase = phrase
         return obj
 
     def __str__(self) -> str:
-        """Serialize to string.
-
-        :return str
-        """
-
         return str(self.value)
+
+
+class PhraseStrEnum(str, Enum):
+    """String enum with a typed phrase attribute."""
+
+    phrase: str
+
+    def __new__(cls, value: str, phrase: str = "undefined") -> "PhraseStrEnum":
+        obj = str.__new__(cls, value)  # type: ignore
+        obj._value_ = value
+        obj.phrase = phrase
+        return obj
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+
+class Mode(PhraseIntEnum):
+    """Mode enum"""
 
     DEFAULT = 0, "default"
     REPEATER = 1, "repeater"
@@ -50,31 +56,8 @@ class Mode(IntEnum):
     MESH = 9, "mesh"
 
 
-class Connection(IntEnum):
+class Connection(PhraseIntEnum):
     """Connection enum"""
-
-    def __new__(cls, value: int, phrase: str = "undefined") -> "Connection":
-        """New connection.
-
-        :param value: int: mode
-        :param phrase: str: phrase
-        :return Connection
-        """
-
-        obj = int.__new__(cls, value)  # type: ignore
-        obj._value_ = value
-
-        obj.phrase = phrase  # type: ignore
-
-        return obj
-
-    def __str__(self) -> str:
-        """Serialize to string.
-
-        :return str
-        """
-
-        return str(self.value)
 
     LAN = 0, "Lan"
     WIFI_2_4 = 1, "2.4G"
@@ -83,31 +66,8 @@ class Connection(IntEnum):
     WIFI_5_0_GAME = 6, "5G Game"
 
 
-class IfName(str, Enum):
+class IfName(PhraseStrEnum):
     """IfName enum"""
-
-    def __new__(cls, value: str, phrase: str = "undefined") -> "IfName":
-        """New ifname.
-
-        :param value: str: ifname
-        :param phrase: str: phrase
-        :return IfName
-        """
-
-        obj = str.__new__(cls, value)  # type: ignore
-        obj._value_ = value
-
-        obj.phrase = phrase  # type: ignore
-
-        return obj
-
-    def __str__(self) -> str:
-        """Serialize to string.
-
-        :return str
-        """
-
-        return str(self.value)
 
     WL0 = "wl0", ATTR_SWITCH_WIFI_5_0
     WL1 = "wl1", ATTR_SWITCH_WIFI_2_4
@@ -115,66 +75,23 @@ class IfName(str, Enum):
     WL14 = "wl14", ATTR_SWITCH_WIFI_GUEST
 
 
-class Wifi(IntEnum):
+class Wifi(PhraseIntEnum):
     """Wifi enum"""
-
-    def __new__(cls, value: int, phrase: str = "undefined") -> "Wifi":
-        """New Wifi.
-
-        :param value: int: WifiIndex
-        :param phrase: str: phrase
-        :return Wifi
-        """
-
-        obj = int.__new__(cls, value)  # type: ignore
-        obj._value_ = value
-
-        obj.phrase = phrase  # type: ignore
-
-        return obj
-
-    def __str__(self) -> str:
-        """Serialize to string.
-
-        :return str
-        """
-
-        return str(self.value)
 
     ADAPTER_2_4 = 1, ATTR_SWITCH_WIFI_2_4
     ADAPTER_5_0 = 2, ATTR_SWITCH_WIFI_5_0
     ADAPTER_5_0_GAME = 3, ATTR_SWITCH_WIFI_5_0_GAME
 
 
-class DeviceAction(IntEnum):
+class DeviceAction(PhraseIntEnum):
     """DeviceAction enum"""
-
-    def __new__(cls, value: int, phrase: str = "undefined") -> "DeviceAction":
-        """New device action.
-
-        :param value: int: action
-        :param phrase: str: phrase
-        :return DeviceAction
-        """
-
-        obj = int.__new__(cls, value)  # type: ignore
-        obj._value_ = value
-
-        obj.phrase = phrase  # type: ignore
-
-        return obj
-
-    def __str__(self) -> str:
-        """Serialize to string.
-
-        :return str
-        """
-
-        return str(self.value)
 
     ADD = 0, "Add"
     MOVE = 1, "Move"
     SKIP = 2, "Skip"
+
+
+PhraseEnum = Mode | Connection | IfName | Wifi | DeviceAction
 
 
 class EncryptionAlgorithm(StrEnum):

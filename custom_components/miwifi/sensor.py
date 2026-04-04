@@ -53,7 +53,7 @@ from .const import (
     ATTR_STATE,
 )
 from .entity import MiWifiEntity
-from .enum import DeviceClass
+from .enum import DeviceClass, PhraseEnum
 from .updater import LuciUpdater, async_get_updater
 
 PARALLEL_UPDATES = 0
@@ -287,3 +287,4 @@ class MiWifiSensor(MiWifiEntity, SensorEntity):
         self._attr_native_value = state
 
         self.async_write_ha_state()
+

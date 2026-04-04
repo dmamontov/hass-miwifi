@@ -270,7 +270,7 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
             signal = ""
 
         if connection is not None and isinstance(connection, Connection):
-            connection = connection.phrase  # type: ignore
+            connection = connection.phrase
 
         return {
             ATTR_TRACKER_SCANNER: DOMAIN,
@@ -469,3 +469,4 @@ class MiWifiDeviceTracker(ScannerEntity, CoordinatorEntity):
             _LOGGER.debug("Found open port %s: %s", self.ip_address, port)
 
             break
+
