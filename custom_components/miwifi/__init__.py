@@ -32,6 +32,7 @@ from .const import (
     DOMAIN,
     OPTION_IS_FROM_FLOW,
     PLATFORMS,
+    SETUP_TASK,
     UPDATE_LISTENER,
     UPDATER,
 )
@@ -126,23 +127,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    try:
-        # New entries start immediately so config-flow failures surface to the user. Reloads
-        # keep the small delay inside async_start() because the entry already exists.
-        if is_new:
-            await async_start()
-            await asyncio.sleep(DEFAULT_SLEEP)
-        else:
-            await async_start(True)
-    except Exception as err:
+    def handle_setup_failure(err: Exception) -> None:
         trace: str = "".join(
             traceback.format_exception(type(err), err, err.__traceback__)
         )
 
         _LOGGER.exception("Failed to set up MiWiFi entry %s", entry.entry_id)
 
-        # Home Assistant often shows a generic setup failure in the UI. Keep the full
-        # traceback available in a persistent notification so the first failed attempt is actionable.
+        # Keep the full traceback available so background setup failures stay actionable.
         persistent_notification.async_create(
             hass,
             (
@@ -156,6 +148,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             notification_id=notification_id,
         )
 
+    async def async_start_in_background() -> None:
+        """Finish first-time entry setup without blocking config flow."""
+
+        try:
+            await async_start()
+            await asyncio.sleep(DEFAULT_SLEEP)
+        except Exception as err:  # pragma: no cover - best effort notification path
+            handle_setup_failure(err)
+        finally:
+            if entry.entry_id in hass.data.get(DOMAIN, {}):
+                hass.data[DOMAIN][entry.entry_id].pop(SETUP_TASK, None)
+
+    try:
+        if is_new:
+            # First-time setup should only validate credentials synchronously in the
+            # config flow. The heavier coordinator/platform initialization runs in the
+            # background so the form no longer collapses into Home Assistant's generic
+            # unknown-error banner after valid credentials.
+            hass.data[DOMAIN][entry.entry_id][SETUP_TASK] = hass.async_create_task(
+                async_start_in_background()
+            )
+        else:
+            await async_start(True)
+    except Exception as err:
+        handle_setup_failure(err)
         raise
 
     async def async_stop(event: Event) -> None:
@@ -198,6 +215,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if is_unload := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         _updater: LuciUpdater = hass.data[DOMAIN][entry.entry_id][UPDATER]
         await _updater.async_stop()
+
+        _setup_task = hass.data[DOMAIN][entry.entry_id].get(SETUP_TASK)
+        if _setup_task is not None and not _setup_task.done():
+            _setup_task.cancel()
 
         _update_listener: CALLBACK_TYPE = hass.data[DOMAIN][entry.entry_id][
             UPDATE_LISTENER

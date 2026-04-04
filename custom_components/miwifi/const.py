@@ -35,6 +35,7 @@ DIAGNOSTIC_CONTENT: Final = "content"
 """Helper const"""
 UPDATER: Final = "updater"
 UPDATE_LISTENER: Final = "update_listener"
+SETUP_TASK: Final = "setup_task"
 OPTION_IS_FROM_FLOW: Final = "is_from_flow"
 STORAGE_VERSION: Final = 1
 SIGNAL_NEW_DEVICE: Final = f"{DOMAIN}-device-new"
