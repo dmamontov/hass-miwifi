@@ -539,7 +539,7 @@ class LuciUpdater(DataUpdateCoordinator):
         :param data: dict
         """
 
-        with contextlib.suppress(LuciError):
+        with contextlib.suppress(LuciError, asyncio.CancelledError):
             response: dict = await self.luci.vpn_status()
 
             data |= {
@@ -723,7 +723,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         self.supports_guest = False
 
-        with contextlib.suppress(LuciError):
+        with contextlib.suppress(LuciError, asyncio.CancelledError):
             response_diag = await self.luci.wifi_diag_detail_all()
             _adapters_len: int = len(adapters)
 
@@ -1357,3 +1357,4 @@ def async_get_updater(hass: HomeAssistant, identifier: str) -> LuciUpdater:
         return integrations[0]
 
     raise ValueError(_error)
+
