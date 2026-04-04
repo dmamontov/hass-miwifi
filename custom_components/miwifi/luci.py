@@ -95,8 +95,7 @@ class LuciClient:
         try:
             self._debug("Start request", _url, json.dumps(_request_data), _method, True)
 
-            async with self._client as client:
-                response: Response = await client.post(
+            response: Response = await self._client.post(
                     _url,
                     data=_request_data,
                     timeout=self._timeout,
@@ -129,10 +128,9 @@ class LuciClient:
         _url: str = f"{self._url}/;stok={self._token}/web/{_method}"
 
         try:
-            async with self._client as client:
-                response: Response = await client.get(_url, timeout=self._timeout)
+            response: Response = await self._client.get(_url, timeout=self._timeout)
 
-                self._debug("Successful request", _url, response.content, _method)
+            self._debug("Successful request", _url, response.content, _method)
         except (HTTPError, ConnectError, TransportError, ValueError, TypeError) as _e:
             self._debug("Logout error", _url, _e, _method)
 
@@ -162,8 +160,7 @@ class LuciClient:
         _url: str = f"{self._url}/{_stok}api/{path}"
 
         try:
-            async with self._client as client:
-                response: Response = await client.get(_url, timeout=self._timeout)
+            response: Response = await self._client.get(_url, timeout=self._timeout)
 
             self._debug("Successful request", _url, response.content, path)
 
@@ -445,3 +442,4 @@ class LuciClient:
             DIAGNOSTIC_MESSAGE: message,
             DIAGNOSTIC_CONTENT: _content,
         }
+
