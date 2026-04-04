@@ -34,6 +34,18 @@ The component allows you to monitor devices and manage routers based on [MiWiFi]
 - [Diagnostics](https://github.com/dmamontov/hass-miwifi/wiki/Diagnostics)
 - [FAQ](https://github.com/dmamontov/hass-miwifi/wiki/FAQ)
 
+## Debug logging
+
+To enable debug logs for this integration, add the following to your `configuration.yaml`:
+
+```yaml
+logger:
+  default: info
+  logs:
+    custom_components.miwifi: debug
+```
+
+Then restart Home Assistant and check `Settings -> System -> Logs`.
 ## Supported routers
 
 Many more Xiaomi and Redmi routers supported by MiWiFi
@@ -121,3 +133,4 @@ Many more Xiaomi and Redmi routers supported by MiWiFi
 | ![](images/R1CL.png)   | **Mi Router Lite**                    |  R1CL  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> |  <sub>🟢🟢🟢🟢🟢</sub>  |
 | ![](images/R1C.png)    | **Mi Router Mini**                    |  R1CM  | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> |  <sub>🟢🟢🟢🟢🟢</sub>  |
 | ![](images/R1D.png)    | **Mi Router R1D**                     |  R1D   | <sub>🟢🟢🟢🟢</sub> | <sub>🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🔴</sub> |  <sub>🟢🟢🟢🟢🟢</sub>  |
+
