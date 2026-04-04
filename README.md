@@ -34,6 +34,14 @@ The component allows you to monitor devices and manage routers based on [MiWiFi]
 - [Diagnostics](https://github.com/dmamontov/hass-miwifi/wiki/Diagnostics)
 - [FAQ](https://github.com/dmamontov/hass-miwifi/wiki/FAQ)
 
+## Home Assistant compatibility
+
+- CI compatibility target: `>=2022.4.0`
+- Forward-compatibility target: Home Assistant `dev` is also checked in CI
+- In practice, the integration is maintained to keep working on current stable Home Assistant releases while preserving compatibility with older supported APIs where possible
+
+The exact source of truth for this policy is the GitHub workflow configuration in [.github/workflows/checks.yml](.github/workflows/checks.yml) and [.github/workflows/dev_checks.yml](.github/workflows/dev_checks.yml).
+
 ## Debug logging
 
 To enable debug logs for this integration, add the following to your `configuration.yaml`:
