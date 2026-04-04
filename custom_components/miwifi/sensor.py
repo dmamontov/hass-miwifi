@@ -52,7 +52,7 @@ from .const import (
     ATTR_STATE,
 )
 from .entity import MiWifiEntity
-from .enum import DeviceClass, PhraseEnum
+from .enum import DeviceClass
 from .updater import LuciUpdater, async_get_updater
 
 PARALLEL_UPDATES = 0
