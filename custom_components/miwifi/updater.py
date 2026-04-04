@@ -620,7 +620,11 @@ class LuciUpdater(DataUpdateCoordinator):
         :param data: dict
         """
 
-        response: dict = await self.luci.wan_info()
+        try:
+            response: dict = await self.luci.wan_info()
+        except LuciError:
+            data[ATTR_BINARY_SENSOR_WAN_STATE] = False
+            return
 
         if (
             "info" in response
@@ -632,6 +636,7 @@ class LuciUpdater(DataUpdateCoordinator):
             return
 
         data[ATTR_BINARY_SENSOR_WAN_STATE] = False
+
 
     async def _async_prepare_led(self, data: dict) -> None:
         """Prepare led.
