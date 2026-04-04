@@ -608,7 +608,12 @@ class LuciUpdater(DataUpdateCoordinator):
         if data.get(ATTR_SENSOR_MODE, Mode.DEFAULT) == Mode.MESH:
             return
 
-        response: dict = await self.luci.mode()
+        try:
+            response: dict = await self.luci.mode()
+        except (LuciError, asyncio.CancelledError) as err:
+            self._log_optional_prepare_skip("mode", err)
+            data[ATTR_SENSOR_MODE] = Mode.DEFAULT
+            return
 
         if "mode" in response:
             with contextlib.suppress(ValueError):
