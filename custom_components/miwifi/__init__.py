@@ -166,5 +166,5 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     :param entry: ConfigEntry: Config Entry object
     """
 
-    _updater: LuciUpdater = hass.data[DOMAIN][entry.entry_id][UPDATER]
-    await _updater.async_stop(clean_store=True)
+    await get_store(hass, get_config_value(entry, CONF_IP_ADDRESS)).async_remove()
+
