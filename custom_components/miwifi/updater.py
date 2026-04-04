@@ -622,7 +622,7 @@ class LuciUpdater(DataUpdateCoordinator):
 
         try:
             response: dict = await self.luci.wan_info()
-        except LuciError:
+        except (LuciError, asyncio.CancelledError):
             data[ATTR_BINARY_SENSOR_WAN_STATE] = False
             return
 
