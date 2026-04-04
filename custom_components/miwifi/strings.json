@@ -17,7 +17,8 @@
           "is_track_devices": "Track devices",
           "stay_online": "Minimum stay online in seconds",
           "scan_interval": "Scan interval in seconds [PRO]",
-          "timeout": "Timeout of requests in seconds [PRO]"
+          "timeout": "Timeout of requests in seconds [PRO]",
+          "setup_timeout": "Initial setup timeout in seconds [PRO]"
         }
       }
     }
@@ -42,6 +43,7 @@
           "scan_interval": "Scan interval in seconds [PRO]",
           "activity_days": "Allowed number of days to wait after the last activity [PRO]",
           "timeout": "Timeout of requests in seconds [PRO]",
+          "setup_timeout": "Initial setup timeout in seconds [PRO]",
           "is_force_load": "Forced booting of devices in repeater mode [PRO]"
         }
       }
@@ -53,4 +55,5 @@
     }
   }
 }
+
 

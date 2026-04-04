@@ -20,9 +20,11 @@ from .const import (
     CONF_ACTIVITY_DAYS,
     CONF_ENCRYPTION_ALGORITHM,
     CONF_IS_FORCE_LOAD,
+    CONF_SETUP_TIMEOUT,
     DEFAULT_ACTIVITY_DAYS,
     DEFAULT_CALL_DELAY,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SETUP_TIMEOUT,
     DEFAULT_SLEEP,
     DEFAULT_TIMEOUT,
     DOMAIN,
@@ -62,6 +64,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.config_entries.async_update_entry(entry, data=entry.data, options={})
 
     _ip: str = get_config_value(entry, CONF_IP_ADDRESS)
+    _setup_timeout: int = get_config_value(
+        entry, CONF_SETUP_TIMEOUT, DEFAULT_SETUP_TIMEOUT
+    )
 
     _updater: LuciUpdater = LuciUpdater(
         hass,
@@ -93,7 +98,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         :param with_sleep: bool
         """
 
-        await _updater.async_config_entry_first_refresh()
+        _previous_timeout: int = _updater.luci.timeout
+        _updater.luci.timeout = _setup_timeout
+        try:
+            await _updater.async_config_entry_first_refresh()
+        finally:
+            _updater.luci.timeout = _previous_timeout
         if not _updater.last_update_success:
             if _updater.last_exception is not None:
                 raise PlatformNotReady from _updater.last_exception
@@ -173,4 +183,5 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """
 
     await get_store(hass, get_config_value(entry, CONF_IP_ADDRESS)).async_remove()
+
 

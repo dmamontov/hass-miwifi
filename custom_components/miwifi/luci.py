@@ -76,6 +76,18 @@ class LuciClient:
 
         self.diagnostics: dict[str, Any] = {}
 
+    @property
+    def timeout(self) -> int:
+        """Current request timeout in seconds."""
+
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value: int) -> None:
+        """Override request timeout in seconds."""
+
+        self._timeout = value
+
     async def login(self) -> dict:
         """Login method
 
@@ -456,4 +468,5 @@ class LuciClient:
             return content
 
         return content
+
 

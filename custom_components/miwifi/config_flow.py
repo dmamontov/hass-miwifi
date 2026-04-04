@@ -27,9 +27,11 @@ from .const import (
     CONF_ENCRYPTION_ALGORITHM,
     CONF_IS_FORCE_LOAD,
     CONF_IS_TRACK_DEVICES,
+    CONF_SETUP_TIMEOUT,
     CONF_STAY_ONLINE,
     DEFAULT_ACTIVITY_DAYS,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SETUP_TIMEOUT,
     DEFAULT_STAY_ONLINE,
     DEFAULT_TIMEOUT,
     DOMAIN,
@@ -151,6 +153,10 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                         CONF_TIMEOUT,
                         default=DEFAULT_TIMEOUT,
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+                    vol.Required(
+                        CONF_SETUP_TIMEOUT,
+                        default=DEFAULT_SETUP_TIMEOUT,
+                    ): vol.All(vol.Coerce(int), vol.Range(min=10)),
                 }
             ),
             errors=errors,
@@ -177,7 +183,7 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                 user_input[CONF_IP_ADDRESS],
                 user_input[CONF_PASSWORD],
                 user_input[CONF_ENCRYPTION_ALGORITHM],
-                user_input[CONF_TIMEOUT],
+                user_input[CONF_SETUP_TIMEOUT],
             )
 
             _LOGGER.debug("Verify access code: %s", code)
@@ -239,6 +245,10 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                         CONF_TIMEOUT,
                         default=DEFAULT_TIMEOUT,
                     ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+                    vol.Required(
+                        CONF_SETUP_TIMEOUT,
+                        default=DEFAULT_SETUP_TIMEOUT,
+                    ): vol.All(vol.Coerce(int), vol.Range(min=10)),
                 }
             ),
             errors=errors,
@@ -272,7 +282,7 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 user_input[CONF_IP_ADDRESS],
                 user_input[CONF_PASSWORD],
                 user_input[CONF_ENCRYPTION_ALGORITHM],
-                user_input[CONF_TIMEOUT],
+                user_input[CONF_SETUP_TIMEOUT],
             )
 
             _LOGGER.debug("Verify access code: %s", code)
@@ -373,6 +383,12 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                     self._config_entry, CONF_TIMEOUT, DEFAULT_TIMEOUT
                 ),
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+            vol.Optional(
+                CONF_SETUP_TIMEOUT,
+                default=get_config_value(
+                    self._config_entry, CONF_SETUP_TIMEOUT, DEFAULT_SETUP_TIMEOUT
+                ),
+            ): vol.All(vol.Coerce(int), vol.Range(min=10)),
         }
 
         with contextlib.suppress(ValueError):
@@ -394,4 +410,5 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 ): cv.boolean,
             }
         )
+
 
