@@ -109,10 +109,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await async_start()
         await asyncio.sleep(DEFAULT_SLEEP)
     else:
-        hass.loop.call_later(
-            DEFAULT_CALL_DELAY,
-            lambda: hass.async_create_task(async_start(True)),
-        )
+        await async_start(True)
 
     async def async_stop(event: Event) -> None:
         """Async stop"""
