@@ -33,7 +33,7 @@ from .const import (
 )
 from .discovery import async_start_discovery, async_stop_discovery
 from .enum import EncryptionAlgorithm
-from .helper import get_config_value, get_store
+from .helper import async_get_version, get_config_value, get_store
 from .services import SERVICES
 from .updater import LuciUpdater
 
@@ -49,6 +49,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """
 
     async_start_discovery(hass)
+
+    _LOGGER.info(
+        "Setting up MiWiFi integration version %s for entry %s",
+        await async_get_version(hass),
+        entry.entry_id,
+    )
 
     is_new: bool = get_config_value(entry, OPTION_IS_FROM_FLOW, False)
 
