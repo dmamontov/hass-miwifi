@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from enum import Enum, IntEnum  # type: ignore
 
-from homeassistant.backports.enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:  # pragma: no cover
+    from homeassistant.backports.enum import StrEnum
+
 
 from .const import (
     ATTR_SWITCH_WIFI_2_4,
