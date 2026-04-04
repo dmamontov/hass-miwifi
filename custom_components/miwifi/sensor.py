@@ -162,7 +162,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         icon="mdi:counter",
         native_unit_of_measurement=PCS,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
     ),
     SensorEntityDescription(
         key=ATTR_SENSOR_DEVICES_2_4,
@@ -170,7 +170,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         icon="mdi:counter",
         native_unit_of_measurement=PCS,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
     ),
     SensorEntityDescription(
         key=ATTR_SENSOR_DEVICES_5_0,
@@ -178,7 +178,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         icon="mdi:counter",
         native_unit_of_measurement=PCS,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
     ),
     SensorEntityDescription(
         key=ATTR_SENSOR_DEVICES_GUEST,
@@ -186,7 +186,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         icon="mdi:counter",
         native_unit_of_measurement=PCS,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
     ),
     SensorEntityDescription(
         key=ATTR_SENSOR_DEVICES_5_0_GAME,
@@ -194,7 +194,7 @@ MIWIFI_SENSORS: tuple[SensorEntityDescription, ...] = (
         icon="mdi:counter",
         native_unit_of_measurement=PCS,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
     ),
 )
 

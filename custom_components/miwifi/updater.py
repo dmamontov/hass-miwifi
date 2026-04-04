@@ -98,6 +98,7 @@ from .enum import (
     Wifi,
 )
 from .exceptions import LuciConnectionError, LuciError, LuciRequestError
+from .helper import build_router_title
 from .luci import LuciClient
 from .self_check import async_self_check
 
@@ -390,7 +391,7 @@ class LuciUpdater(DataUpdateCoordinator):
                 ),
                 (CONF_IP_ADDRESS, self.ip),
             },
-            name=self.data.get(ATTR_DEVICE_NAME, DEFAULT_NAME),
+            name=build_router_title(self.data, self.ip),
             manufacturer=self.data.get(ATTR_DEVICE_MANUFACTURER, DEFAULT_MANUFACTURER),
             model=self.data.get(ATTR_DEVICE_MODEL, None),
             sw_version=self.data.get(ATTR_DEVICE_SW_VERSION, None),
@@ -1085,12 +1086,17 @@ class LuciUpdater(DataUpdateCoordinator):
             device["type"] = 6 if device["wifiIndex"] == 3 else device["wifiIndex"]
 
         connection: Connection | None = None
+        connection_code: int | None = None
 
-        with contextlib.suppress(ValueError):
-            # fmt: off
-            connection = Connection(int(device["type"])) \
-                if "type" in device else None
-            # fmt: on
+        if "type" in device:
+            with contextlib.suppress(TypeError, ValueError):
+                connection_code = int(device["type"])
+
+            if connection_code is not None:
+                with contextlib.suppress(ValueError):
+                    connection = Connection(connection_code)
+
+        online_seconds = int(ip_attr["online"] if ip_attr is not None else 0)
 
         return {
             ATTR_TRACKER_ENTRY_ID: device[ATTR_TRACKER_ENTRY_ID],
@@ -1107,6 +1113,17 @@ class LuciUpdater(DataUpdateCoordinator):
             ATTR_TRACKER_NAME: device.get("name", device[ATTR_TRACKER_MAC]),
             ATTR_TRACKER_IP: ip_attr["ip"] if ip_attr is not None else None,
             ATTR_TRACKER_CONNECTION: connection,
+            "connection_code": connection_code,
+            "reported_name": device.get("name", None),
+            "original_name": device.get("oname", None),
+            "parent_mac": device.get("parent", None) or None,
+            "mesh_role": device.get("isap", None),
+            "device_icon": device.get("icon", None) or None,
+            "push_enabled": bool(device.get("push", 0)),
+            "times_seen": device.get("times", None),
+            "authority": device.get("authority", None),
+            "statistics": device.get("statistics", None),
+            "ip_info": ip_attr,
             ATTR_TRACKER_DOWN_SPEED: float(ip_attr["downspeed"])
             if ip_attr is not None
             and "downspeed" in ip_attr
@@ -1117,9 +1134,8 @@ class LuciUpdater(DataUpdateCoordinator):
             and "upspeed" in ip_attr
             and float(ip_attr["upspeed"]) > 0
             else 0.0,
-            ATTR_TRACKER_ONLINE: str(
-                timedelta(seconds=int(ip_attr["online"] if ip_attr is not None else 0))
-            ),
+            ATTR_TRACKER_ONLINE: str(timedelta(seconds=online_seconds)),
+            "online_seconds": online_seconds,
             ATTR_TRACKER_LAST_ACTIVITY: datetime.now()
             .replace(microsecond=0)
             .isoformat(),

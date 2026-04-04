@@ -19,6 +19,19 @@ from .const import DEFAULT_TIMEOUT, DOMAIN, MANUFACTURERS, STORAGE_VERSION
 from .updater import LuciUpdater
 
 
+def build_router_title(data: dict[str, Any], ip: str) -> str:
+    """Build a human-friendly config entry/device title."""
+
+    name = str(data.get("device_name") or data.get("device_model") or ip)
+    version = data.get("current_version")
+    if version is None:
+        sw_version = data.get("device_sw_version")
+        if isinstance(sw_version, str) and sw_version:
+            version = sw_version.split(" ", 1)[0]
+
+    return f"{name} {version} ({ip})" if version else f"{name} ({ip})"
+
+
 def get_config_value(
     config_entry: config_entries.ConfigEntry | None, param: str, default=None
 ) -> Any:
