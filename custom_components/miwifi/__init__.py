@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import traceback
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -13,6 +14,7 @@ from homeassistant.const import (
     CONF_TIMEOUT,
     EVENT_HOMEASSISTANT_STOP,
 )
+from homeassistant.components import persistent_notification
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
 
@@ -58,6 +60,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await async_get_version(hass),
         entry.entry_id,
     )
+
+    notification_id: str = f"{DOMAIN}_{entry.entry_id}_setup_error"
+    persistent_notification.async_dismiss(hass, notification_id)
 
     is_new: bool = get_config_value(entry, OPTION_IS_FROM_FLOW, False)
 
@@ -117,11 +122,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    if is_new:
-        await async_start()
-        await asyncio.sleep(DEFAULT_SLEEP)
-    else:
-        await async_start(True)
+    try:
+        if is_new:
+            await async_start()
+            await asyncio.sleep(DEFAULT_SLEEP)
+        else:
+            await async_start(True)
+    except Exception as err:
+        trace: str = "".join(
+            traceback.format_exception(type(err), err, err.__traceback__)
+        )
+
+        _LOGGER.exception("Failed to set up MiWiFi entry %s", entry.entry_id)
+
+        persistent_notification.async_create(
+            hass,
+            (
+                f"MiWiFi setup failed for `{_ip}`.\n\n"
+                f"Error: `{err}`\n\n"
+                "<details><summary>Traceback</summary>\n\n"
+                f"```python\n{trace}\n```\n"
+                "</details>"
+            ),
+            title="MiWiFi setup failed",
+            notification_id=notification_id,
+        )
+
+        raise
 
     async def async_stop(event: Event) -> None:
         """Async stop"""
