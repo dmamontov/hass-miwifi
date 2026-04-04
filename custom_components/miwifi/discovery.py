@@ -8,7 +8,7 @@ from typing import Any
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_IP_ADDRESS
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.httpx_client import get_async_client
 from httpx import AsyncClient
@@ -38,7 +38,6 @@ def async_start_discovery(hass: HomeAssistant) -> None:
     if DISCOVERY in data:
         return
 
-    data[DISCOVERY] = True
 
     async def _async_discovery(*_: Any) -> None:
         """Async discovery
@@ -53,7 +52,17 @@ def async_start_discovery(hass: HomeAssistant) -> None:
     # Do not block startup since discovery takes 31s or more
     asyncio.create_task(_async_discovery())
 
-    async_track_time_interval(hass, _async_discovery, DISCOVERY_INTERVAL)
+    data[DISCOVERY] = async_track_time_interval(hass, _async_discovery, DISCOVERY_INTERVAL)
+
+
+@callback
+def async_stop_discovery(hass: HomeAssistant) -> None:
+    """Stop discovery when the last config entry is removed."""
+
+    data: dict = hass.data.get(DOMAIN, {})
+    unsubscribe: CALLBACK_TYPE | None = data.pop(DISCOVERY, None)
+    if unsubscribe is not None:
+        unsubscribe()
 
 
 async def async_discover_devices(client: AsyncClient) -> list:

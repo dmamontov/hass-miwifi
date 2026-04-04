@@ -31,7 +31,7 @@ from .const import (
     UPDATE_LISTENER,
     UPDATER,
 )
-from .discovery import async_start_discovery
+from .discovery import async_start_discovery, async_stop_discovery
 from .enum import EncryptionAlgorithm
 from .helper import get_config_value, get_store
 from .services import SERVICES
@@ -155,6 +155,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _update_listener()
 
         hass.data[DOMAIN].pop(entry.entry_id)
+
+        if not any(isinstance(data, dict) for data in hass.data[DOMAIN].values()):
+            async_stop_discovery(hass)
 
     return is_unload
 

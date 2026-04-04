@@ -18,6 +18,7 @@ class MiWifiEntity(CoordinatorEntity):
     """MiWifi entity."""
 
     _attr_attribution: str = ATTRIBUTION
+    _attr_has_entity_name = True
 
     def __init__(
         self,
