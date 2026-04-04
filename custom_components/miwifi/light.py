@@ -8,6 +8,7 @@ import logging
 from typing import Any, Final
 
 from homeassistant.components.light import (
+    ColorMode,
     LightEntity,
     LightEntityDescription,
 )
@@ -70,6 +71,9 @@ async def async_setup_entry(
 # pylint: disable=too-many-ancestors
 class MiWifiLight(MiWifiEntity, LightEntity):
     """MiWifi light entry."""
+
+    _attr_supported_color_modes = {ColorMode.ONOFF}
+    _attr_color_mode = ColorMode.ONOFF
 
     def __init__(
         self,
