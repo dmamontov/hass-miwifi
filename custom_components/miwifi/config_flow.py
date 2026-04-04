@@ -24,12 +24,14 @@ from httpx import codes
 
 from .const import (
     CONF_ACTIVITY_DAYS,
+    CONF_AUTO_DISCOVER,
     CONF_ENCRYPTION_ALGORITHM,
     CONF_IS_FORCE_LOAD,
     CONF_IS_TRACK_DEVICES,
     CONF_SETUP_TIMEOUT,
     CONF_STAY_ONLINE,
     DEFAULT_ACTIVITY_DAYS,
+    DEFAULT_AUTO_DISCOVER,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SETUP_TIMEOUT,
     DEFAULT_STAY_ONLINE,
@@ -144,6 +146,9 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                     ),
                     vol.Required(CONF_IS_TRACK_DEVICES, default=True): cv.boolean,
                     vol.Required(
+                        CONF_AUTO_DISCOVER, default=DEFAULT_AUTO_DISCOVER
+                    ): cv.boolean,
+                    vol.Required(
                         CONF_STAY_ONLINE, default=DEFAULT_STAY_ONLINE
                     ): cv.positive_int,
                     vol.Required(
@@ -235,6 +240,9 @@ class MiWifiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                         ]
                     ),
                     vol.Required(CONF_IS_TRACK_DEVICES, default=True): cv.boolean,
+                    vol.Required(
+                        CONF_AUTO_DISCOVER, default=DEFAULT_AUTO_DISCOVER
+                    ): cv.boolean,
                     vol.Required(
                         CONF_STAY_ONLINE, default=DEFAULT_STAY_ONLINE
                     ): cv.positive_int,
@@ -357,6 +365,12 @@ class MiWifiOptionsFlow(config_entries.OptionsFlow):
                 CONF_IS_TRACK_DEVICES,
                 default=get_config_value(
                     self._config_entry, CONF_IS_TRACK_DEVICES, True
+                ),
+            ): cv.boolean,
+            vol.Required(
+                CONF_AUTO_DISCOVER,
+                default=get_config_value(
+                    self._config_entry, CONF_AUTO_DISCOVER, DEFAULT_AUTO_DISCOVER
                 ),
             ): cv.boolean,
             vol.Required(

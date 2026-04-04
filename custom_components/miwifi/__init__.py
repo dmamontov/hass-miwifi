@@ -18,6 +18,7 @@ from homeassistant.exceptions import PlatformNotReady
 
 from .const import (
     CONF_ACTIVITY_DAYS,
+    CONF_AUTO_DISCOVER,
     CONF_ENCRYPTION_ALGORITHM,
     CONF_IS_FORCE_LOAD,
     CONF_SETUP_TIMEOUT,
@@ -33,7 +34,7 @@ from .const import (
     UPDATE_LISTENER,
     UPDATER,
 )
-from .discovery import async_start_discovery, async_stop_discovery
+from .discovery import async_is_discovery_enabled, async_start_discovery, async_stop_discovery
 from .enum import EncryptionAlgorithm
 from .helper import async_get_version, get_config_value, get_store
 from .services import SERVICES
@@ -84,6 +85,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     hass.data[DOMAIN][entry.entry_id] = {
+        CONF_AUTO_DISCOVER: get_config_value(entry, CONF_AUTO_DISCOVER, True),
         CONF_IP_ADDRESS: _ip,
         UPDATER: _updater,
     }
@@ -169,7 +171,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         hass.data[DOMAIN].pop(entry.entry_id)
 
-        if not any(isinstance(data, dict) for data in hass.data[DOMAIN].values()):
+        if not async_is_discovery_enabled(hass):
             async_stop_discovery(hass)
 
     return is_unload

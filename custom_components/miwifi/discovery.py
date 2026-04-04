@@ -16,15 +16,32 @@ from httpx import AsyncClient
 from .const import (
     CLIENT_ADDRESS,
     CLIENT_ADDRESS_IP,
+    CONF_AUTO_DISCOVER,
+    DEFAULT_AUTO_DISCOVER,
     DEFAULT_CHECK_TIMEOUT,
     DISCOVERY,
     DISCOVERY_INTERVAL,
     DOMAIN,
 )
 from .exceptions import LuciConnectionError, LuciError
+from .helper import get_config_value
 from .luci import LuciClient
 
 _LOGGER = logging.getLogger(__name__)
+
+
+@callback
+def async_is_discovery_enabled(hass: HomeAssistant) -> bool:
+    """Return whether auto discovery is enabled for any configured entry."""
+
+    entries = hass.config_entries.async_entries(DOMAIN)
+    if not entries:
+        return True
+
+    return any(
+        get_config_value(entry, CONF_AUTO_DISCOVER, DEFAULT_AUTO_DISCOVER)
+        for entry in entries
+    )
 
 
 @callback
@@ -33,6 +50,9 @@ def async_start_discovery(hass: HomeAssistant) -> None:
 
     :param hass: HomeAssistant: Home Assistant object
     """
+
+    if not async_is_discovery_enabled(hass):
+        return
 
     data: dict = hass.data.setdefault(DOMAIN, {})
     if DISCOVERY in data:
