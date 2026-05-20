@@ -1,0 +1,17 @@
+{
+  "romversion": "1.0.88",
+  "countrycode": "CN",
+  "code": 0,
+  "id": "**REDACTED**",
+  "routername": "XIAOMI RC06",
+  "inited": 1,
+  "connect": 0,
+  "routerId": "**REDACTED**",
+  "model": "xiaomi.router.rc06",
+  "hardware": "RC06",
+  "bound": 0,
+  "language": "cn",
+  "modules": {
+    "replacement_assistant": "1"
+  }
+}
