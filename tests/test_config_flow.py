@@ -103,6 +103,45 @@ async def test_user(hass: HomeAssistant) -> None:
 
 
 @pytest.mark.asyncio
+async def test_user_rc06(hass: HomeAssistant) -> None:
+    """Test user config for RC06 router.
+
+    :param hass: HomeAssistant
+    """
+
+    await setup.async_setup_component(hass, "http", {})
+    result_init = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+
+    with patch(
+        "custom_components.miwifi.async_setup_entry",
+        return_value=True,
+    ) as mock_async_setup_entry, patch(
+        "custom_components.miwifi.updater.LuciClient"
+    ) as mock_luci_client, patch(
+        "custom_components.miwifi.updater.asyncio.sleep", return_value=None
+    ):
+        mock_luci_client.return_value.logout = AsyncMock(return_value=None)
+        mock_luci_client.return_value.login = AsyncMock(
+            return_value=json.loads(load_fixture("login_data.json"))
+        )
+        mock_luci_client.return_value.init_info = AsyncMock(
+            return_value=json.loads(load_fixture("init_info_rc06_data.json"))
+        )
+
+        result_configure = await hass.config_entries.flow.async_configure(
+            result_init["flow_id"],
+            {CONF_IP_ADDRESS: MOCK_IP_ADDRESS, CONF_PASSWORD: MOCK_PASSWORD},
+        )
+        await hass.async_block_till_done()
+
+    assert result_configure["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result_configure["title"] == MOCK_IP_ADDRESS
+    assert len(mock_async_setup_entry.mock_calls) == 1
+
+
+@pytest.mark.asyncio
 async def test_user_ip_error(hass: HomeAssistant) -> None:
     """Test user config ip error.
 
